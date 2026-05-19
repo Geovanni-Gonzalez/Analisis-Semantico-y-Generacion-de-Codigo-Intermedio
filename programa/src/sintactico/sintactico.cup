@@ -1,0 +1,274 @@
+import java_cup.runtime.*;
+
+/* CODIGO */
+parser code {:
+    public int numErrores = 0;
+
+    public void syntax_error(Symbol s) {
+        numErrores++;
+        String token = s.value != null ? "'" + s.value + "'" : "token desconocido";
+        System.err.println("Error sintáctico en línea " + s.left +
+                           ", columna " + s.right +
+                           ": token inesperado " + token);
+    }
+
+    public void unrecovered_syntax_error(Symbol s) {
+        numErrores++;
+        if (s.left == -1) {
+            System.err.println("Error irrecuperable: se llegó al final del archivo sin poder recuperarse.");
+        } else {
+            System.err.println("Error irrecuperable en línea " + s.left +
+                               ", columna " + s.right +
+                               ": el análisis no puede continuar.");
+        }
+    }
+:};
+
+/* TERMINALES */
+
+terminal String ID, LIT_STRING, LIT_CHAR;
+terminal Integer LIT_ENTERO;
+terminal Double LIT_FLOTANTE;
+terminal String LIT_FRACCION;
+terminal String LIT_EXPONENTE;
+terminal Boolean TRUE, FALSE;
+
+
+terminal INT, FLOAT, BOOL, CHAR_TYPE, STRING_TYPE;
+terminal IF, ELSE, DO, WHILE, SWITCH, CASE, DEFAULT;
+terminal CIN, COUT;
+terminal RETURN, BREAK, EMPTY, MAIN;
+
+terminal ASSIGN;
+terminal SEPARATOR;
+terminal L_BLOCK, R_BLOCK;
+terminal L_PAREN, R_PAREN;
+terminal L_ARRAY, R_ARRAY;
+
+terminal COMMA, END_EXPR;
+
+terminal PLUS, MINUS, UMINUS, TIMES, DIV, MOD, POW;
+terminal AND_LOG, OR_LOG;
+terminal GREATER_T, LESS_T, GREATER_TE, LESS_TE, EQUAL_OP, N_EQUAL;
+
+/* NO TERMINALES */
+non terminal programa;
+non terminal MAIN_FUNC;
+non terminal funciones_opt, funciones, funcion, tipoRetorno;
+non terminal parametros, lista_params, param;
+
+non terminal bloque, listaSentencias, item;
+non terminal sentenciaSimple;
+
+non terminal decl, declTail, declArrTail;
+non terminal filasArreglo, filaArreglo;
+
+non terminal asignacion, asigTail;
+
+non terminal expr, exprLog, exprRel, exprArit;
+non terminal termino, potencia, factor, base, literal;
+
+non terminal idTail;
+
+non terminal args, lista_args;
+
+non terminal control, ifElse, doWhile, switch_stmt;
+non terminal casos, caso;
+
+non terminal io, lectura, escritura, salida;
+
+non terminal retorno, break_stmt;
+
+/* PRECEDENCIA */
+
+precedence left OR_LOG;
+precedence left AND_LOG;
+precedence left PLUS, MINUS;
+precedence left TIMES, DIV, MOD;
+precedence right POW;
+precedence right UMINUS;
+
+/* INICIO */
+
+start with programa;
+
+/* GRAMATICA */
+
+programa ::= funciones_opt MAIN_FUNC funciones_opt ;
+
+MAIN_FUNC ::= EMPTY SEPARATOR MAIN L_PAREN R_PAREN bloque ;
+
+/* FUNCIONES */
+
+funciones_opt ::= funciones
+                | /* empty */ ;
+
+funciones ::= funciones funcion
+            | funcion ;
+
+funcion ::= tipoRetorno SEPARATOR ID L_PAREN parametros R_PAREN bloque
+          | error R_BLOCK  /* recuperacion: funcion mal formada, sincroniza en :| */
+          ;
+
+tipoRetorno ::= INT | FLOAT | BOOL | CHAR_TYPE | STRING_TYPE ;
+
+parametros ::= lista_params
+             | /* empty */ ;
+
+lista_params ::= lista_params COMMA param
+               | param ;
+
+param ::= tipoRetorno SEPARATOR ID ;
+
+/* BLOQUES */
+
+bloque ::= L_BLOCK listaSentencias R_BLOCK
+         | L_BLOCK error R_BLOCK  /* recuperacion: bloque con contenido invalido */
+         ;
+
+listaSentencias ::= listaSentencias item
+                  | item ;
+
+item ::= sentenciaSimple END_EXPR
+       | control
+       | error END_EXPR  /* recuperacion: sentencia invalida, sincroniza en ! */
+       ;
+
+/* SENTENCIAS */
+
+sentenciaSimple ::= decl
+                  | asignacion
+                  | expr
+                  | io
+                  | retorno
+                  | break_stmt ;
+
+/* DECLARACIONES */
+
+decl ::= tipoRetorno SEPARATOR ID declTail ;
+
+declTail ::= ASSIGN expr
+           | L_BLOCK LIT_ENTERO COMMA LIT_ENTERO R_BLOCK declArrTail
+           | /* empty */ ;
+
+declArrTail ::= ASSIGN filasArreglo
+              | /* empty */ ;
+
+/* ARREGLOS */
+
+filasArreglo ::= filasArreglo filaArreglo
+               | filaArreglo ;
+
+filaArreglo ::= L_BLOCK lista_args R_BLOCK
+              | L_BLOCK error R_BLOCK  /* recuperacion: fila de arreglo invalida */
+              ;
+
+/* ASIGNACIÓN */
+
+asignacion ::= ID asigTail ;
+
+asigTail ::= ASSIGN expr
+           | L_ARRAY expr COMMA expr R_ARRAY ASSIGN expr ;
+
+/* EXPRESIONES */
+
+expr ::= exprLog ;
+
+exprLog ::= exprLog AND_LOG exprRel
+          | exprLog OR_LOG exprRel
+          | exprRel ;
+
+exprRel ::= GREATER_T L_PAREN expr COMMA expr R_PAREN
+          | LESS_T L_PAREN expr COMMA expr R_PAREN
+          | GREATER_TE L_PAREN expr COMMA expr R_PAREN
+          | LESS_TE L_PAREN expr COMMA expr R_PAREN
+          | EQUAL_OP L_PAREN expr COMMA expr R_PAREN
+          | N_EQUAL L_PAREN expr COMMA expr R_PAREN
+          | exprArit ;
+
+exprArit ::= exprArit PLUS termino
+           | exprArit MINUS termino
+           | termino ;
+
+termino ::= termino TIMES potencia
+          | termino DIV potencia
+          | termino MOD potencia
+          | potencia ;
+
+potencia ::= factor POW potencia
+           | factor ;
+
+factor ::= MINUS factor %prec UMINUS
+         | base ;
+
+/* BASE (CLAVE) */
+
+base ::= literal
+       | ID idTail
+       | L_PAREN expr R_PAREN ;
+
+literal ::= LIT_ENTERO
+          | LIT_FLOTANTE
+          | LIT_FRACCION
+          | LIT_EXPONENTE
+          | TRUE
+          | FALSE
+          | LIT_CHAR
+          | LIT_STRING ;
+
+/* ID TAIL (factorización) */
+
+idTail ::= L_ARRAY expr COMMA expr R_ARRAY
+         | L_PAREN args R_PAREN
+         | /* empty */ ;
+
+/* LLAMADAS */
+
+args ::= lista_args
+       | /* empty */ ;
+
+lista_args ::= lista_args COMMA expr
+             | expr ;
+
+/* CONTROL */
+
+control ::= ifElse
+          | doWhile
+          | switch_stmt ;
+
+ifElse ::= IF L_PAREN expr R_PAREN bloque
+         | IF L_PAREN expr R_PAREN bloque ELSE bloque
+         | IF L_PAREN error R_PAREN bloque           /* recuperacion: condicion invalida en if */
+         | IF L_PAREN error R_PAREN bloque ELSE bloque ;
+
+doWhile ::= DO bloque WHILE L_PAREN expr R_PAREN
+          | DO bloque WHILE L_PAREN error R_PAREN  /* recuperacion: condicion invalida en while */
+          ;
+
+switch_stmt ::= SWITCH L_PAREN expr R_PAREN L_BLOCK casos R_BLOCK
+              | SWITCH L_PAREN error R_PAREN L_BLOCK casos R_BLOCK  /* recuperacion: expr invalida en switch */
+              ;
+
+break_stmt ::= BREAK ;
+
+casos ::= casos caso
+        | caso ;
+
+caso ::= CASE LIT_ENTERO SEPARATOR bloque
+       | DEFAULT SEPARATOR bloque
+       | CASE error SEPARATOR bloque  /* recuperacion: etiqueta de case invalida */
+       ;
+
+/* IO */
+
+io ::= lectura | escritura ;
+
+lectura ::= CIN SEPARATOR ID ;
+
+escritura ::= COUT SEPARATOR salida ;
+
+salida ::= salida COMMA expr
+         | expr ;
+
+retorno ::= RETURN SEPARATOR expr ;
+
