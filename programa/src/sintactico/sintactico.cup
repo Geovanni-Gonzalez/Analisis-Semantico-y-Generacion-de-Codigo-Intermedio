@@ -1,19 +1,11 @@
 import java_cup.runtime.*;
+import ast.*;
 
 parser code {:
     public final java.util.List<String> erroresSintacticos = new java.util.ArrayList<>();
+    public ProgramaNodo ast;
     private int numErrores = 0;
     private int cantidadMain = 0;
-
-    /*
-     * La gramatica queda sin construccion de tabla de simbolos, chequeos de tipos
-     * ni generacion de codigo intermedio. Las acciones que permanecen son
-     * infraestructura sintactica: reporte/recuperacion de errores y validacion
-     * estructural minima del punto de entrada requerida por el P1.
-     *
-     * P2 puede agregar aqui sus estructuras semanticas sin mezclar su logica con
-     * las reglas de recuperacion sintactica.
-     */
 
     public int getNumErrores() {
         return numErrores;
@@ -86,501 +78,895 @@ terminal Integer LIT_ENTERO;
 terminal Character LIT_CHAR;
 terminal String ID;
 
-non terminal programa, miembros, miembro, funcion, main;
-non terminal tipo, parametrosOpt, parametros, parametro;
-non terminal bloque, contenido, item;
-non terminal sentencia, creacion, restoNumerico, restoVariable;
-non terminal asigArr, filasArreglo, filaArreglo, valoresArreglo;
-non terminal asignacion, accesoArreglo;
-non terminal control, ifelse, doWhile, finDoWhile, switchSt, casos, caso;
-non terminal io, retorno, breakSt;
-non terminal expresion, orExpr, orTail, andExpr, andTail, notExpr;
-non terminal relExpr, aritExpr, aritTail, termino, terminoTail;
-non terminal potencia, factor, base, literal;
-non terminal idFuncion, args, listaArgs;
+non terminal ProgramaNodo programa;
+non terminal java.util.List miembros, parametrosOpt, parametros, contenido;
+non terminal FuncionNodo miembro, funcion, main;
+non terminal TipoDato tipo;
+non terminal ParametroNodo parametro;
+non terminal BloqueNodo bloque;
+non terminal Nodo item, sentencia, control;
+non terminal DeclaracionVariableNodo creacion;
+non terminal Object restoNumerico;
+non terminal ExpresionNodo restoVariable;
+non terminal InicializacionArregloNodo asigArr;
+non terminal java.util.List filasArreglo, filaArreglo, valoresArreglo;
+non terminal AsignacionNodo asignacion;
+non terminal AccesoArregloNodo accesoArreglo;
+non terminal IfNodo ifelse;
+non terminal WhileNodo doWhile;
+non terminal Object finDoWhile;
+non terminal SwitchNodo switchSt;
+non terminal java.util.List casos;
+non terminal CasoSwitchNodo caso;
+non terminal SentenciaNodo io, retorno, breakSt;
+non terminal ExpresionNodo expresion, orExpr, andExpr, notExpr;
+non terminal ExpresionNodo relExpr, aritExpr, termino, potencia, factor, base, literal;
+non terminal LlamadaFuncionNodo idFuncion;
+non terminal java.util.List args, listaArgs;
 
 start with programa;
 
 /* Programa completo: una secuencia de miembros de nivel superior con un punto de entrada valido. */
 programa
-    ::= miembros
-        {: parser.verificarMain(); :}
+    ::= miembros:ms
+        {:
+            parser.verificarMain();
+            RESULT = new ProgramaNodo(msleft, msright, ms);
+            parser.ast = (ProgramaNodo) RESULT;
+        :}
     ;
 
 /* Miembros de nivel superior: una o mas funciones o el procedimiento principal. */
 miembros
-    ::= miembros miembro
-    | miembro
+    ::= miembros:ms miembro:m
+        {:
+            ms.add(m);
+            RESULT = ms;
+        :}
+    | miembro:m
+        {:
+            java.util.List lista = new java.util.ArrayList();
+            lista.add(m);
+            RESULT = lista;
+        :}
     ;
 
 /* Miembro de nivel superior: declaracion de funcion regular o procedimiento principal. */
 miembro
-    ::= funcion
-    | main
+    ::= funcion:f
+        {: RESULT = f; :}
+    | main:m
+        {: RESULT = m; :}
     ;
 
 /* Procedimiento principal: firma empty ~ __main__<| |> seguida de un bloque. */
 main
-    ::= EMPTY SEPARATOR MAIN L_PAREN R_PAREN bloque
-        {: parser.registrarMain(); :}
-    | EMPTY SEPARATOR MAIN L_PAREN parametros R_PAREN bloque
+    ::= EMPTY:e SEPARATOR MAIN L_PAREN R_PAREN bloque:b
+        {:
+            parser.registrarMain();
+            RESULT = new FuncionNodo(eleft, eright, "__main__", TipoDato.EMPTY,
+                    new java.util.ArrayList(), b, true);
+        :}
+    | EMPTY:e SEPARATOR MAIN L_PAREN parametros:p R_PAREN bloque:b
         {:
             parser.registrarMain();
             parser.report_error("El procedimiento '__main__' no debe recibir parametros", null);
+            RESULT = new FuncionNodo(eleft, eright, "__main__", TipoDato.EMPTY, p, b, true);
         :}
-    | tipo SEPARATOR MAIN L_PAREN parametros R_PAREN bloque
+    | tipo:t SEPARATOR MAIN L_PAREN parametros:p R_PAREN bloque:b
         {:
             parser.registrarMain();
             parser.report_error("El procedimiento '__main__' debe ser de tipo 'empty'", null);
             parser.report_error("El procedimiento '__main__' no debe recibir parametros", null);
+            RESULT = new FuncionNodo(tleft, tright, "__main__", t, p, b, true);
         :}
-    | tipo SEPARATOR MAIN L_PAREN R_PAREN bloque
+    | tipo:t SEPARATOR MAIN L_PAREN R_PAREN bloque:b
         {:
             parser.registrarMain();
             parser.report_error("El procedimiento '__main__' debe ser de tipo 'empty'", null);
+            RESULT = new FuncionNodo(tleft, tright, "__main__", t,
+                    new java.util.ArrayList(), b, true);
         :}
-    | EMPTY error MAIN L_PAREN R_PAREN bloque
+    | EMPTY:e error MAIN L_PAREN R_PAREN bloque:b
         {:
             parser.registrarMain();
             parser.report_error("Se esperaba '~' entre 'empty' y '__main__'", null);
+            RESULT = new FuncionNodo(eleft, eright, "__main__", TipoDato.EMPTY,
+                    new java.util.ArrayList(), b, true);
         :}
-    | EMPTY error MAIN L_PAREN parametros R_PAREN bloque
+    | EMPTY:e error MAIN L_PAREN parametros:p R_PAREN bloque:b
         {:
             parser.registrarMain();
             parser.report_error("Se esperaba '~' entre 'empty' y '__main__'", null);
             parser.report_error("El procedimiento '__main__' no debe recibir parametros", null);
+            RESULT = new FuncionNodo(eleft, eright, "__main__", TipoDato.EMPTY, p, b, true);
         :}
-    | EMPTY SEPARATOR MAIN error bloque
+    | EMPTY:e SEPARATOR MAIN error bloque:b
         {:
             parser.registrarMain();
             parser.report_error("Se esperaba '<| |>' en la firma de '__main__'", null);
+            RESULT = new FuncionNodo(eleft, eright, "__main__", TipoDato.EMPTY,
+                    new java.util.ArrayList(), b, true);
         :}
     ;
 
 /* Funcion regular: tipo de retorno, nombre, parametros opcionales y cuerpo en bloque. */
 funcion
-    ::= tipo SEPARATOR ID L_PAREN parametrosOpt R_PAREN bloque
-    | tipo error ID L_PAREN parametrosOpt R_PAREN bloque
-        {: parser.report_error("Se esperaba '~' entre el tipo y el nombre de la funcion", null); :}
-    | tipo SEPARATOR ID L_PAREN parametrosOpt R_PAREN error
-        {: parser.report_error("Se esperaba un bloque '|: ... :|' en el cuerpo de la funcion", null); :}
+    ::= tipo:t SEPARATOR ID:id L_PAREN parametrosOpt:p R_PAREN bloque:b
+        {: RESULT = new FuncionNodo(tleft, tright, id, t, p, b, false); :}
+    | tipo:t error ID:id L_PAREN parametrosOpt:p R_PAREN bloque:b
+        {:
+            parser.report_error("Se esperaba '~' entre el tipo y el nombre de la funcion", null);
+            RESULT = new FuncionNodo(tleft, tright, id, t, p, b, false);
+        :}
+    | tipo:t SEPARATOR ID:id L_PAREN parametrosOpt:p R_PAREN error
+        {:
+            parser.report_error("Se esperaba un bloque '|: ... :|' en el cuerpo de la funcion", null);
+            RESULT = new FuncionNodo(tleft, tright, id, t, p,
+                    new BloqueNodo(tleft, tright, new java.util.ArrayList()), false);
+        :}
     ;
 
 /* Tipo declarable del lenguaje. */
 tipo
     ::= INT
+        {: RESULT = TipoDato.INT; :}
     | FLOAT
+        {: RESULT = TipoDato.FLOAT; :}
     | BOOL
+        {: RESULT = TipoDato.BOOL; :}
     | CHAR_TYPE
+        {: RESULT = TipoDato.CHAR; :}
     | STRING_TYPE
+        {: RESULT = TipoDato.STRING; :}
     ;
 
 /* Lista opcional de parametros formales. */
 parametrosOpt
     ::=
-    | parametros
+        {: RESULT = new java.util.ArrayList(); :}
+    | parametros:p
+        {: RESULT = p; :}
     ;
 
 /* Lista de parametros formales separados por coma. */
 parametros
-    ::= parametros COMMA parametro
-    | parametro
-    | parametros COMMA error
-        {: parser.report_error("Parametro mal formado, se esperaba '<tipo> ~ <id>'", null); :}
+    ::= parametros:ps COMMA parametro:p
+        {:
+            ps.add(p);
+            RESULT = ps;
+        :}
+    | parametro:p
+        {:
+            java.util.List lista = new java.util.ArrayList();
+            lista.add(p);
+            RESULT = lista;
+        :}
+    | parametros:ps COMMA error
+        {:
+            parser.report_error("Parametro mal formado, se esperaba '<tipo> ~ <id>'", null);
+            RESULT = ps;
+        :}
     ;
 
 /* Parametro formal: tipo, separador y nombre. */
 parametro
-    ::= tipo SEPARATOR ID
-    | tipo error ID
-        {: parser.report_error("Se esperaba '~' entre el tipo y el nombre del parametro", null); :}
+    ::= tipo:t SEPARATOR ID:id
+        {: RESULT = new ParametroNodo(tleft, tright, id, t); :}
+    | tipo:t error ID:id
+        {:
+            parser.report_error("Se esperaba '~' entre el tipo y el nombre del parametro", null);
+            RESULT = new ParametroNodo(tleft, tright, id, t);
+        :}
     ;
 
 /* Bloque de codigo delimitado por |: y :|. */
 bloque
-    ::= L_BLOCK contenido R_BLOCK
-    | L_BLOCK contenido error R_BLOCK
-        {: parser.report_error("Se descarta contenido invalido hasta el cierre seguro ':|'", null); :}
+    ::= L_BLOCK:b contenido:c R_BLOCK
+        {: RESULT = new BloqueNodo(bleft, bright, c); :}
+    | L_BLOCK:b contenido:c error R_BLOCK
+        {:
+            parser.report_error("Se descarta contenido invalido hasta el cierre seguro ':|'", null);
+            RESULT = new BloqueNodo(bleft, bright, c);
+        :}
     | error R_BLOCK
-        {: parser.report_error("Se esperaba '|:' para abrir el bloque", null); :}
+        {:
+            parser.report_error("Se esperaba '|:' para abrir el bloque", null);
+            RESULT = new BloqueNodo(0, 0, new java.util.ArrayList());
+        :}
     ;
 
 /* Contenido de un bloque: cero o mas sentencias o controles. */
 contenido
     ::=
-    | contenido item
+        {: RESULT = new java.util.ArrayList(); :}
+    | contenido:c item:i
+        {:
+            c.add(i);
+            RESULT = c;
+        :}
     ;
 
 /* Elemento ejecutable dentro de un bloque. */
 item
-    ::= sentencia
-    | control
+    ::= sentencia:s
+        {: RESULT = s; :}
+    | control:c
+        {: RESULT = c; :}
     ;
 
 /* Sentencia simple: declaracion, asignacion, expresion, E/S, retorno o break terminados con !. */
 sentencia
-    ::= creacion END_EXPR
-    | asignacion END_EXPR
-    | expresion END_EXPR
-    | io END_EXPR
-    | retorno END_EXPR
-    | breakSt END_EXPR
-    | creacion error
-        {: parser.report_error("Se esperaba '!' al final de la declaracion", null); :}
-    | asignacion error
-        {: parser.report_error("Se esperaba '!' al final de la asignacion", null); :}
-    | expresion error
-        {: parser.report_error("Se esperaba '!' al final de la expresion", null); :}
-    | io error
-        {: parser.report_error("Se esperaba '!' al final de la instruccion de E/S", null); :}
-    | retorno error
-        {: parser.report_error("Se esperaba '!' al final del return", null); :}
-    | breakSt error
-        {: parser.report_error("Se esperaba '!' al final del break", null); :}
+    ::= creacion:c END_EXPR
+        {: RESULT = c; :}
+    | asignacion:a END_EXPR
+        {: RESULT = a; :}
+    | expresion:e END_EXPR
+        {: RESULT = new ExpresionSentenciaNodo(eleft, eright, e); :}
+    | io:i END_EXPR
+        {: RESULT = i; :}
+    | retorno:r END_EXPR
+        {: RESULT = r; :}
+    | breakSt:b END_EXPR
+        {: RESULT = b; :}
+    | creacion:c error
+        {:
+            parser.report_error("Se esperaba '!' al final de la declaracion", null);
+            RESULT = c;
+        :}
+    | asignacion:a error
+        {:
+            parser.report_error("Se esperaba '!' al final de la asignacion", null);
+            RESULT = a;
+        :}
+    | expresion:e error
+        {:
+            parser.report_error("Se esperaba '!' al final de la expresion", null);
+            RESULT = new ExpresionSentenciaNodo(eleft, eright, e);
+        :}
+    | io:i error
+        {:
+            parser.report_error("Se esperaba '!' al final de la instruccion de E/S", null);
+            RESULT = i;
+        :}
+    | retorno:r error
+        {:
+            parser.report_error("Se esperaba '!' al final del return", null);
+            RESULT = r;
+        :}
+    | breakSt:b error
+        {:
+            parser.report_error("Se esperaba '!' al final del break", null);
+            RESULT = b;
+        :}
     | error END_EXPR
-        {: parser.report_error("Sentencia invalida; se descarta hasta el siguiente '!'", null); :}
+        {:
+            parser.report_error("Sentencia invalida; se descarta hasta el siguiente '!'", null);
+            RESULT = new ExpresionSentenciaNodo(0, 0,
+                    new LiteralNodo(0, 0, null, TipoDato.DESCONOCIDO));
+        :}
     ;
 
 /* Declaracion de variable escalar o arreglo con inicializacion opcional. */
 creacion
-    ::= BOOL SEPARATOR ID restoVariable
-    | CHAR_TYPE SEPARATOR ID restoVariable
-    | STRING_TYPE SEPARATOR ID restoVariable
-    | INT SEPARATOR ID restoNumerico
-    | FLOAT SEPARATOR ID restoNumerico
-    | BOOL error ID restoVariable
-        {: parser.report_error("Se esperaba '~' entre 'bool' y el identificador", null); :}
-    | CHAR_TYPE error ID restoVariable
-        {: parser.report_error("Se esperaba '~' entre 'char' y el identificador", null); :}
-    | STRING_TYPE error ID restoVariable
-        {: parser.report_error("Se esperaba '~' entre 'string' y el identificador", null); :}
-    | INT error ID restoNumerico
-        {: parser.report_error("Se esperaba '~' entre 'int' y el identificador", null); :}
-    | FLOAT error ID restoNumerico
-        {: parser.report_error("Se esperaba '~' entre 'float' y el identificador", null); :}
+    ::= BOOL:t SEPARATOR ID:id restoVariable:r
+        {: RESULT = new DeclaracionVariableNodo(tleft, tright, id, TipoDato.BOOL, r); :}
+    | CHAR_TYPE:t SEPARATOR ID:id restoVariable:r
+        {: RESULT = new DeclaracionVariableNodo(tleft, tright, id, TipoDato.CHAR, r); :}
+    | STRING_TYPE:t SEPARATOR ID:id restoVariable:r
+        {: RESULT = new DeclaracionVariableNodo(tleft, tright, id, TipoDato.STRING, r); :}
+    | INT:t SEPARATOR ID:id restoNumerico:r
+        {:
+            DeclaracionSufijo s = (DeclaracionSufijo) r;
+            RESULT = s.esArreglo()
+                    ? new DeclaracionVariableNodo(tleft, tright, id, TipoDato.INT,
+                            s.filas, s.columnas, s.inicializacionArreglo)
+                    : new DeclaracionVariableNodo(tleft, tright, id, TipoDato.INT, s.inicializador);
+        :}
+    | FLOAT:t SEPARATOR ID:id restoNumerico:r
+        {:
+            DeclaracionSufijo s = (DeclaracionSufijo) r;
+            RESULT = s.esArreglo()
+                    ? new DeclaracionVariableNodo(tleft, tright, id, TipoDato.FLOAT,
+                            s.filas, s.columnas, s.inicializacionArreglo)
+                    : new DeclaracionVariableNodo(tleft, tright, id, TipoDato.FLOAT, s.inicializador);
+        :}
+    | BOOL:t error ID:id restoVariable:r
+        {:
+            parser.report_error("Se esperaba '~' entre 'bool' y el identificador", null);
+            RESULT = new DeclaracionVariableNodo(tleft, tright, id, TipoDato.BOOL, r);
+        :}
+    | CHAR_TYPE:t error ID:id restoVariable:r
+        {:
+            parser.report_error("Se esperaba '~' entre 'char' y el identificador", null);
+            RESULT = new DeclaracionVariableNodo(tleft, tright, id, TipoDato.CHAR, r);
+        :}
+    | STRING_TYPE:t error ID:id restoVariable:r
+        {:
+            parser.report_error("Se esperaba '~' entre 'string' y el identificador", null);
+            RESULT = new DeclaracionVariableNodo(tleft, tright, id, TipoDato.STRING, r);
+        :}
+    | INT:t error ID:id restoNumerico:r
+        {:
+            parser.report_error("Se esperaba '~' entre 'int' y el identificador", null);
+            DeclaracionSufijo s = (DeclaracionSufijo) r;
+            RESULT = s.esArreglo()
+                    ? new DeclaracionVariableNodo(tleft, tright, id, TipoDato.INT,
+                            s.filas, s.columnas, s.inicializacionArreglo)
+                    : new DeclaracionVariableNodo(tleft, tright, id, TipoDato.INT, s.inicializador);
+        :}
+    | FLOAT:t error ID:id restoNumerico:r
+        {:
+            parser.report_error("Se esperaba '~' entre 'float' y el identificador", null);
+            DeclaracionSufijo s = (DeclaracionSufijo) r;
+            RESULT = s.esArreglo()
+                    ? new DeclaracionVariableNodo(tleft, tright, id, TipoDato.FLOAT,
+                            s.filas, s.columnas, s.inicializacionArreglo)
+                    : new DeclaracionVariableNodo(tleft, tright, id, TipoDato.FLOAT, s.inicializador);
+        :}
     ;
 
 /* Continuacion de una declaracion numerica: escalar o arreglo bidimensional. */
 restoNumerico
-    ::= restoVariable
-    | L_ARRAY expresion COMMA expresion R_ARRAY asigArr
-    | L_ARRAY expresion R_ARRAY L_ARRAY expresion R_ARRAY asigArr
-    | L_ARRAY expresion error expresion R_ARRAY asigArr
-        {: parser.report_error("Se esperaba ',' entre las dos dimensiones del arreglo", null); :}
-    | L_ARRAY expresion COMMA expresion error asigArr
-        {: parser.report_error("Se esperaba '>>' para cerrar los indices del arreglo", null); :}
-    | L_ARRAY expresion error L_ARRAY expresion R_ARRAY asigArr
-        {: parser.report_error("Se esperaba '>>' para cerrar la primera dimension del arreglo", null); :}
-    | L_ARRAY expresion R_ARRAY L_ARRAY expresion error asigArr
-        {: parser.report_error("Se esperaba '>>' para cerrar la segunda dimension del arreglo", null); :}
+    ::= restoVariable:r
+        {: RESULT = new DeclaracionSufijo(r); :}
+    | L_ARRAY expresion:f COMMA expresion:c R_ARRAY asigArr:a
+        {: RESULT = new DeclaracionSufijo(f, c, a); :}
+    | L_ARRAY expresion:f R_ARRAY L_ARRAY expresion:c R_ARRAY asigArr:a
+        {: RESULT = new DeclaracionSufijo(f, c, a); :}
+    | L_ARRAY expresion:f error expresion:c R_ARRAY asigArr:a
+        {:
+            parser.report_error("Se esperaba ',' entre las dos dimensiones del arreglo", null);
+            RESULT = new DeclaracionSufijo(f, c, a);
+        :}
+    | L_ARRAY expresion:f COMMA expresion:c error asigArr:a
+        {:
+            parser.report_error("Se esperaba '>>' para cerrar los indices del arreglo", null);
+            RESULT = new DeclaracionSufijo(f, c, a);
+        :}
+    | L_ARRAY expresion:f error L_ARRAY expresion:c R_ARRAY asigArr:a
+        {:
+            parser.report_error("Se esperaba '>>' para cerrar la primera dimension del arreglo", null);
+            RESULT = new DeclaracionSufijo(f, c, a);
+        :}
+    | L_ARRAY expresion:f R_ARRAY L_ARRAY expresion:c error asigArr:a
+        {:
+            parser.report_error("Se esperaba '>>' para cerrar la segunda dimension del arreglo", null);
+            RESULT = new DeclaracionSufijo(f, c, a);
+        :}
     ;
 
 /* Continuacion de una declaracion escalar: sin inicializar o con expresion inicial. */
 restoVariable
     ::=
-    | ASSIGN expresion
+        {: RESULT = null; :}
+    | ASSIGN expresion:e
+        {: RESULT = e; :}
     | ASSIGN error
-        {: parser.report_error("Se esperaba una expresion despues de '<-'", null); :}
+        {:
+            parser.report_error("Se esperaba una expresion despues de '<-'", null);
+            RESULT = null;
+        :}
     ;
 
 /* Inicializacion opcional de arreglo mediante filas entre bloques. */
 asigArr
     ::=
-    | ASSIGN L_BLOCK filasArreglo R_BLOCK
-    | ASSIGN error filasArreglo R_BLOCK
-        {: parser.report_error("Se esperaba '|:' para abrir la inicializacion del arreglo", null); :}
-    | ASSIGN L_BLOCK filasArreglo error
-        {: parser.report_error("Se esperaba ':|' para cerrar la inicializacion del arreglo", null); :}
+        {: RESULT = null; :}
+    | ASSIGN L_BLOCK:b filasArreglo:f R_BLOCK
+        {: RESULT = new InicializacionArregloNodo(bleft, bright, f); :}
+    | ASSIGN error filasArreglo:f R_BLOCK
+        {:
+            parser.report_error("Se esperaba '|:' para abrir la inicializacion del arreglo", null);
+            RESULT = new InicializacionArregloNodo(0, 0, f);
+        :}
+    | ASSIGN L_BLOCK:b filasArreglo:f error
+        {:
+            parser.report_error("Se esperaba ':|' para cerrar la inicializacion del arreglo", null);
+            RESULT = new InicializacionArregloNodo(bleft, bright, f);
+        :}
     ;
 
 /* Lista de filas para inicializar un arreglo. */
 filasArreglo
-    ::= filasArreglo COMMA filaArreglo
-    | filaArreglo
-    | filasArreglo COMMA error
-        {: parser.report_error("Fila de arreglo mal formada", null); :}
+    ::= filasArreglo:fs COMMA filaArreglo:f
+        {:
+            fs.add(f);
+            RESULT = fs;
+        :}
+    | filaArreglo:f
+        {:
+            java.util.List lista = new java.util.ArrayList();
+            lista.add(f);
+            RESULT = lista;
+        :}
+    | filasArreglo:fs COMMA error
+        {:
+            parser.report_error("Fila de arreglo mal formada", null);
+            RESULT = fs;
+        :}
     ;
 
 /* Fila de arreglo: lista de valores encerrada en bloque. */
 filaArreglo
-    ::= L_BLOCK valoresArreglo R_BLOCK
-    | L_BLOCK valoresArreglo error
-        {: parser.report_error("Se esperaba ':|' para cerrar la fila del arreglo", null); :}
+    ::= L_BLOCK valoresArreglo:vs R_BLOCK
+        {: RESULT = vs; :}
+    | L_BLOCK valoresArreglo:vs error
+        {:
+            parser.report_error("Se esperaba ':|' para cerrar la fila del arreglo", null);
+            RESULT = vs;
+        :}
     ;
 
 /* Valores de una fila de arreglo separados por coma. */
 valoresArreglo
-    ::= valoresArreglo COMMA expresion
-    | expresion
-    | valoresArreglo COMMA error
-        {: parser.report_error("Se esperaba una expresion en la lista de valores del arreglo", null); :}
+    ::= valoresArreglo:vs COMMA expresion:e
+        {:
+            vs.add(e);
+            RESULT = vs;
+        :}
+    | expresion:e
+        {:
+            java.util.List lista = new java.util.ArrayList();
+            lista.add(e);
+            RESULT = lista;
+        :}
+    | valoresArreglo:vs COMMA error
+        {:
+            parser.report_error("Se esperaba una expresion en la lista de valores del arreglo", null);
+            RESULT = vs;
+        :}
     ;
 
 /* Asignacion a variable simple o posicion de arreglo. */
 asignacion
-    ::= ID ASSIGN expresion
-    | accesoArreglo ASSIGN expresion
-    | ID ASSIGN error
-        {: parser.report_error("Se esperaba una expresion en la asignacion", null); :}
-    | accesoArreglo ASSIGN error
-        {: parser.report_error("Se esperaba una expresion para modificar el elemento del arreglo", null); :}
+    ::= ID:id ASSIGN expresion:e
+        {: RESULT = new AsignacionNodo(idleft, idright, new IdentificadorNodo(idleft, idright, id), e); :}
+    | accesoArreglo:a ASSIGN expresion:e
+        {: RESULT = new AsignacionNodo(aleft, aright, a, e); :}
+    | ID:id ASSIGN error
+        {:
+            parser.report_error("Se esperaba una expresion en la asignacion", null);
+            RESULT = new AsignacionNodo(idleft, idright, new IdentificadorNodo(idleft, idright, id),
+                    new LiteralNodo(idleft, idright, null, TipoDato.DESCONOCIDO));
+        :}
+    | accesoArreglo:a ASSIGN error
+        {:
+            parser.report_error("Se esperaba una expresion para modificar el elemento del arreglo", null);
+            RESULT = new AsignacionNodo(aleft, aright, a,
+                    new LiteralNodo(aleft, aright, null, TipoDato.DESCONOCIDO));
+        :}
     ;
 
 /* Acceso bidimensional de arreglo con indices en una pareja o en dos pares. */
 accesoArreglo
-    ::= ID L_ARRAY expresion COMMA expresion R_ARRAY
-    | ID L_ARRAY expresion R_ARRAY L_ARRAY expresion R_ARRAY
-    | ID L_ARRAY expresion error expresion R_ARRAY
-        {: parser.report_error("Se esperaba ',' entre los dos indices del arreglo", null); :}
-    | ID L_ARRAY expresion COMMA expresion error
-        {: parser.report_error("Se esperaba '>>' para cerrar el acceso al arreglo", null); :}
-    | ID L_ARRAY expresion error L_ARRAY expresion R_ARRAY
-        {: parser.report_error("Se esperaba '>>' para cerrar el primer indice del arreglo", null); :}
-    | ID L_ARRAY expresion R_ARRAY L_ARRAY expresion error
-        {: parser.report_error("Se esperaba '>>' para cerrar el segundo indice del arreglo", null); :}
+    ::= ID:id L_ARRAY expresion:f COMMA expresion:c R_ARRAY
+        {: RESULT = new AccesoArregloNodo(idleft, idright, id, f, c); :}
+    | ID:id L_ARRAY expresion:f R_ARRAY L_ARRAY expresion:c R_ARRAY
+        {: RESULT = new AccesoArregloNodo(idleft, idright, id, f, c); :}
+    | ID:id L_ARRAY expresion:f error expresion:c R_ARRAY
+        {:
+            parser.report_error("Se esperaba ',' entre los dos indices del arreglo", null);
+            RESULT = new AccesoArregloNodo(idleft, idright, id, f, c);
+        :}
+    | ID:id L_ARRAY expresion:f COMMA expresion:c error
+        {:
+            parser.report_error("Se esperaba '>>' para cerrar el acceso al arreglo", null);
+            RESULT = new AccesoArregloNodo(idleft, idright, id, f, c);
+        :}
+    | ID:id L_ARRAY expresion:f error L_ARRAY expresion:c R_ARRAY
+        {:
+            parser.report_error("Se esperaba '>>' para cerrar el primer indice del arreglo", null);
+            RESULT = new AccesoArregloNodo(idleft, idright, id, f, c);
+        :}
+    | ID:id L_ARRAY expresion:f R_ARRAY L_ARRAY expresion:c error
+        {:
+            parser.report_error("Se esperaba '>>' para cerrar el segundo indice del arreglo", null);
+            RESULT = new AccesoArregloNodo(idleft, idright, id, f, c);
+        :}
     ;
 
 /* Sentencia de control de flujo. */
 control
-    ::= ifelse
-    | doWhile
-    | switchSt
+    ::= ifelse:i
+        {: RESULT = i; :}
+    | doWhile:w
+        {: RESULT = w; :}
+    | switchSt:s
+        {: RESULT = s; :}
     ;
 
 /* Condicional if con bloque obligatorio y else opcional. */
 ifelse
-    ::= IF L_PAREN expresion R_PAREN bloque
-    | IF L_PAREN expresion R_PAREN bloque ELSE bloque
-    | IF L_PAREN error R_PAREN bloque
-        {: parser.report_error("Condicion invalida en 'if'", null); :}
-    | IF L_PAREN error R_PAREN bloque ELSE bloque
-        {: parser.report_error("Condicion invalida en 'if-else'", null); :}
+    ::= IF:i L_PAREN expresion:e R_PAREN bloque:b
+        {: RESULT = new IfNodo(ileft, iright, e, b, null); :}
+    | IF:i L_PAREN expresion:e R_PAREN bloque:b ELSE bloque:eb
+        {: RESULT = new IfNodo(ileft, iright, e, b, eb); :}
+    | IF:i L_PAREN error R_PAREN bloque:b
+        {:
+            parser.report_error("Condicion invalida en 'if'", null);
+            RESULT = new IfNodo(ileft, iright, new LiteralNodo(ileft, iright, null, TipoDato.BOOL), b, null);
+        :}
+    | IF:i L_PAREN error R_PAREN bloque:b ELSE bloque:eb
+        {:
+            parser.report_error("Condicion invalida en 'if-else'", null);
+            RESULT = new IfNodo(ileft, iright, new LiteralNodo(ileft, iright, null, TipoDato.BOOL), b, eb);
+        :}
     ;
 
 /* Ciclo do-while: bloque do seguido de condicion while. */
 doWhile
-    ::= DO bloque WHILE L_PAREN expresion R_PAREN finDoWhile
-    | DO bloque WHILE L_PAREN error R_PAREN finDoWhile
-        {: parser.report_error("Condicion invalida en 'do-while'", null); :}
-    | DO bloque error L_PAREN expresion R_PAREN finDoWhile
-        {: parser.report_error("Se esperaba 'while' despues del bloque 'do'", null); :}
+    ::= DO:d bloque:b WHILE L_PAREN expresion:e R_PAREN finDoWhile
+        {: RESULT = new WhileNodo(dleft, dright, e, b, true); :}
+    | DO:d bloque:b WHILE L_PAREN error R_PAREN finDoWhile
+        {:
+            parser.report_error("Condicion invalida en 'do-while'", null);
+            RESULT = new WhileNodo(dleft, dright, new LiteralNodo(dleft, dright, null, TipoDato.BOOL), b, true);
+        :}
+    | DO:d bloque:b error L_PAREN expresion:e R_PAREN finDoWhile
+        {:
+            parser.report_error("Se esperaba 'while' despues del bloque 'do'", null);
+            RESULT = new WhileNodo(dleft, dright, e, b, true);
+        :}
     ;
 
 /* Terminador opcional del do-while para aceptar variantes del enunciado y pruebas. */
 finDoWhile
     ::=
+        {: RESULT = null; :}
     | END_EXPR
+        {: RESULT = null; :}
     ;
 
 /* Seleccion multiple switch con casos directos o encerrados en bloque. */
 switchSt
-    ::= SWITCH L_PAREN expresion R_PAREN casos
-    | SWITCH L_PAREN expresion R_PAREN L_BLOCK casos R_BLOCK
-    | SWITCH L_PAREN error R_PAREN casos
-        {: parser.report_error("Expresion invalida en 'switch'", null); :}
-    | SWITCH L_PAREN error R_PAREN L_BLOCK casos R_BLOCK
-        {: parser.report_error("Expresion invalida en 'switch'", null); :}
+    ::= SWITCH:s L_PAREN expresion:e R_PAREN casos:c
+        {: RESULT = new SwitchNodo(sleft, sright, e, c); :}
+    | SWITCH:s L_PAREN expresion:e R_PAREN L_BLOCK casos:c R_BLOCK
+        {: RESULT = new SwitchNodo(sleft, sright, e, c); :}
+    | SWITCH:s L_PAREN error R_PAREN casos:c
+        {:
+            parser.report_error("Expresion invalida en 'switch'", null);
+            RESULT = new SwitchNodo(sleft, sright,
+                    new LiteralNodo(sleft, sright, null, TipoDato.DESCONOCIDO), c);
+        :}
+    | SWITCH:s L_PAREN error R_PAREN L_BLOCK casos:c R_BLOCK
+        {:
+            parser.report_error("Expresion invalida en 'switch'", null);
+            RESULT = new SwitchNodo(sleft, sright,
+                    new LiteralNodo(sleft, sright, null, TipoDato.DESCONOCIDO), c);
+        :}
     ;
 
 /* Lista no vacia de casos de switch. */
 casos
-    ::= casos caso
-    | caso
+    ::= casos:cs caso:c
+        {:
+            cs.add(c);
+            RESULT = cs;
+        :}
+    | caso:c
+        {:
+            java.util.List lista = new java.util.ArrayList();
+            lista.add(c);
+            RESULT = lista;
+        :}
     ;
 
 /* Caso de switch o caso default con su bloque asociado. */
 caso
-    ::= CASE SEPARATOR expresion COLON bloque
-    | DEFAULT SEPARATOR COLON bloque
-    | CASE error expresion COLON bloque
-        {: parser.report_error("Se esperaba '~' despues de 'case'", null); :}
-    | CASE SEPARATOR expresion error bloque
-        {: parser.report_error("Se esperaba ':' despues del valor del 'case'", null); :}
-    | DEFAULT error COLON bloque
-        {: parser.report_error("Se esperaba '~' despues de 'default'", null); :}
+    ::= CASE:c SEPARATOR expresion:e COLON bloque:b
+        {: RESULT = new CasoSwitchNodo(cleft, cright, e, b, false); :}
+    | DEFAULT:d SEPARATOR COLON bloque:b
+        {: RESULT = new CasoSwitchNodo(dleft, dright, null, b, true); :}
+    | CASE:c error expresion:e COLON bloque:b
+        {:
+            parser.report_error("Se esperaba '~' despues de 'case'", null);
+            RESULT = new CasoSwitchNodo(cleft, cright, e, b, false);
+        :}
+    | CASE:c SEPARATOR expresion:e error bloque:b
+        {:
+            parser.report_error("Se esperaba ':' despues del valor del 'case'", null);
+            RESULT = new CasoSwitchNodo(cleft, cright, e, b, false);
+        :}
+    | DEFAULT:d error COLON bloque:b
+        {:
+            parser.report_error("Se esperaba '~' despues de 'default'", null);
+            RESULT = new CasoSwitchNodo(dleft, dright, null, b, true);
+        :}
     ;
 
 /* Entrada y salida: cin recibe un identificador y cout imprime una expresion. */
 io
-    ::= CIN L_PAREN ID R_PAREN
-    | COUT L_PAREN expresion R_PAREN
-    | CIN error ID R_PAREN
-        {: parser.report_error("Se esperaba '<|' en 'cin'", null); :}
-    | CIN L_PAREN ID error
-        {: parser.report_error("Se esperaba '|>' para cerrar 'cin'", null); :}
-    | COUT error expresion R_PAREN
-        {: parser.report_error("Se esperaba '<|' en 'cout'", null); :}
-    | COUT L_PAREN expresion error
-        {: parser.report_error("Se esperaba '|>' para cerrar 'cout'", null); :}
+    ::= CIN:c L_PAREN ID:id R_PAREN
+        {: RESULT = new EntradaNodo(cleft, cright, id); :}
+    | COUT:c L_PAREN expresion:e R_PAREN
+        {: RESULT = new SalidaNodo(cleft, cright, e); :}
+    | CIN:c error ID:id R_PAREN
+        {:
+            parser.report_error("Se esperaba '<|' en 'cin'", null);
+            RESULT = new EntradaNodo(cleft, cright, id);
+        :}
+    | CIN:c L_PAREN ID:id error
+        {:
+            parser.report_error("Se esperaba '|>' para cerrar 'cin'", null);
+            RESULT = new EntradaNodo(cleft, cright, id);
+        :}
+    | COUT:c error expresion:e R_PAREN
+        {:
+            parser.report_error("Se esperaba '<|' en 'cout'", null);
+            RESULT = new SalidaNodo(cleft, cright, e);
+        :}
+    | COUT:c L_PAREN expresion:e error
+        {:
+            parser.report_error("Se esperaba '|>' para cerrar 'cout'", null);
+            RESULT = new SalidaNodo(cleft, cright, e);
+        :}
     ;
 
 /* Retorno de funcion con separador y expresion. */
 retorno
-    ::= RETURN SEPARATOR expresion
-    | RETURN error expresion
-        {: parser.report_error("Se esperaba '~' despues de 'return'", null); :}
-    | RETURN SEPARATOR error
-        {: parser.report_error("Se esperaba una expresion despues de 'return ~'", null); :}
+    ::= RETURN:r SEPARATOR expresion:e
+        {: RESULT = new ReturnNodo(rleft, rright, e); :}
+    | RETURN:r error expresion:e
+        {:
+            parser.report_error("Se esperaba '~' despues de 'return'", null);
+            RESULT = new ReturnNodo(rleft, rright, e);
+        :}
+    | RETURN:r SEPARATOR error
+        {:
+            parser.report_error("Se esperaba una expresion despues de 'return ~'", null);
+            RESULT = new ReturnNodo(rleft, rright,
+                    new LiteralNodo(rleft, rright, null, TipoDato.DESCONOCIDO));
+        :}
     ;
 
 /* Sentencia break. */
 breakSt
-    ::= BREAK
+    ::= BREAK:b
+        {: RESULT = new BreakNodo(bleft, bright); :}
     ;
 
 /* Expresion general, iniciando en el nivel de menor precedencia. */
 expresion
-    ::= orExpr
+    ::= orExpr:e
+        {: RESULT = e; :}
     ;
 
 /* Expresion disyuntiva formada por conjunciones. */
 orExpr
-    ::= andExpr orTail
-    ;
-
-/* Continuacion recursiva por derecha del operador logico #. */
-orTail
-    ::=
-    | OR_LOG andExpr orTail
-    | OR_LOG error
-        {: parser.report_error("Expresion invalida despues de '#'", null); :}
+    ::= orExpr:l OR_LOG:o andExpr:r
+        {: RESULT = new ExpresionBinariaNodo(oleft, oright, "#", l, r); :}
+    | OR_LOG:o error
+        {:
+            parser.report_error("Expresion invalida despues de '#'", null);
+            RESULT = new LiteralNodo(oleft, oright, null, TipoDato.DESCONOCIDO);
+        :}
+    | andExpr:e
+        {: RESULT = e; :}
     ;
 
 /* Expresion conjuntiva formada por negaciones o comparaciones. */
 andExpr
-    ::= notExpr andTail
-    ;
-
-/* Continuacion recursiva por derecha del operador logico @. */
-andTail
-    ::=
-    | AND_LOG notExpr andTail
-    | AND_LOG error
-        {: parser.report_error("Expresion invalida despues de '@'", null); :}
+    ::= andExpr:l AND_LOG:o notExpr:r
+        {: RESULT = new ExpresionBinariaNodo(oleft, oright, "@", l, r); :}
+    | AND_LOG:o error
+        {:
+            parser.report_error("Expresion invalida despues de '@'", null);
+            RESULT = new LiteralNodo(oleft, oright, null, TipoDato.DESCONOCIDO);
+        :}
+    | notExpr:e
+        {: RESULT = e; :}
     ;
 
 /* Negacion logica o expresion relacional. */
 notExpr
-    ::= NOT_LOG notExpr
-    | relExpr
+    ::= NOT_LOG:o notExpr:e
+        {: RESULT = new ExpresionUnariaNodo(oleft, oright, "$", e); :}
+    | relExpr:e
+        {: RESULT = e; :}
     ;
 
 /* Comparacion funcional o expresion aritmetica sin comparador. */
 relExpr
-    ::= EQUAL L_PAREN expresion COMMA expresion R_PAREN
-    | N_EQUAL L_PAREN expresion COMMA expresion R_PAREN
-    | LESS_T L_PAREN expresion COMMA expresion R_PAREN
-    | LESS_TE L_PAREN expresion COMMA expresion R_PAREN
-    | GREATHER_T L_PAREN expresion COMMA expresion R_PAREN
-    | GREATHER_TE L_PAREN expresion COMMA expresion R_PAREN
-    | EQUAL L_PAREN expresion error expresion R_PAREN
-        {: parser.report_error("Se esperaba ',' entre los argumentos de 'equal'", null); :}
-    | N_EQUAL L_PAREN expresion error expresion R_PAREN
-        {: parser.report_error("Se esperaba ',' entre los argumentos de 'n_equal'", null); :}
-    | LESS_T L_PAREN expresion error expresion R_PAREN
-        {: parser.report_error("Se esperaba ',' entre los argumentos de 'less_t'", null); :}
-    | LESS_TE L_PAREN expresion error expresion R_PAREN
-        {: parser.report_error("Se esperaba ',' entre los argumentos de 'less_te'", null); :}
-    | GREATHER_T L_PAREN expresion error expresion R_PAREN
-        {: parser.report_error("Se esperaba ',' entre los argumentos de 'greather_t'", null); :}
-    | GREATHER_TE L_PAREN expresion error expresion R_PAREN
-        {: parser.report_error("Se esperaba ',' entre los argumentos de 'greather_te'", null); :}
-    | aritExpr
+    ::= EQUAL:o L_PAREN expresion:l COMMA expresion:r R_PAREN
+        {: RESULT = new ExpresionBinariaNodo(oleft, oright, "equal", l, r); :}
+    | N_EQUAL:o L_PAREN expresion:l COMMA expresion:r R_PAREN
+        {: RESULT = new ExpresionBinariaNodo(oleft, oright, "n_equal", l, r); :}
+    | LESS_T:o L_PAREN expresion:l COMMA expresion:r R_PAREN
+        {: RESULT = new ExpresionBinariaNodo(oleft, oright, "less_t", l, r); :}
+    | LESS_TE:o L_PAREN expresion:l COMMA expresion:r R_PAREN
+        {: RESULT = new ExpresionBinariaNodo(oleft, oright, "less_te", l, r); :}
+    | GREATHER_T:o L_PAREN expresion:l COMMA expresion:r R_PAREN
+        {: RESULT = new ExpresionBinariaNodo(oleft, oright, "greather_t", l, r); :}
+    | GREATHER_TE:o L_PAREN expresion:l COMMA expresion:r R_PAREN
+        {: RESULT = new ExpresionBinariaNodo(oleft, oright, "greather_te", l, r); :}
+    | EQUAL:o L_PAREN expresion:l error expresion:r R_PAREN
+        {:
+            parser.report_error("Se esperaba ',' entre los argumentos de 'equal'", null);
+            RESULT = new ExpresionBinariaNodo(oleft, oright, "equal", l, r);
+        :}
+    | N_EQUAL:o L_PAREN expresion:l error expresion:r R_PAREN
+        {:
+            parser.report_error("Se esperaba ',' entre los argumentos de 'n_equal'", null);
+            RESULT = new ExpresionBinariaNodo(oleft, oright, "n_equal", l, r);
+        :}
+    | LESS_T:o L_PAREN expresion:l error expresion:r R_PAREN
+        {:
+            parser.report_error("Se esperaba ',' entre los argumentos de 'less_t'", null);
+            RESULT = new ExpresionBinariaNodo(oleft, oright, "less_t", l, r);
+        :}
+    | LESS_TE:o L_PAREN expresion:l error expresion:r R_PAREN
+        {:
+            parser.report_error("Se esperaba ',' entre los argumentos de 'less_te'", null);
+            RESULT = new ExpresionBinariaNodo(oleft, oright, "less_te", l, r);
+        :}
+    | GREATHER_T:o L_PAREN expresion:l error expresion:r R_PAREN
+        {:
+            parser.report_error("Se esperaba ',' entre los argumentos de 'greather_t'", null);
+            RESULT = new ExpresionBinariaNodo(oleft, oright, "greather_t", l, r);
+        :}
+    | GREATHER_TE:o L_PAREN expresion:l error expresion:r R_PAREN
+        {:
+            parser.report_error("Se esperaba ',' entre los argumentos de 'greather_te'", null);
+            RESULT = new ExpresionBinariaNodo(oleft, oright, "greather_te", l, r);
+        :}
+    | aritExpr:e
+        {: RESULT = e; :}
     ;
 
 /* Expresion aditiva formada por terminos. */
 aritExpr
-    ::= termino aritTail
-    ;
-
-/* Continuacion recursiva por derecha para suma y resta. */
-aritTail
-    ::=
-    | PLUS termino aritTail
-    | MINUS termino aritTail
-    | PLUS error
-        {: parser.report_error("Expresion invalida despues de '+'", null); :}
-    | MINUS error
-        {: parser.report_error("Expresion invalida despues de '-'", null); :}
+    ::= aritExpr:l PLUS:o termino:r
+        {: RESULT = new ExpresionBinariaNodo(oleft, oright, "+", l, r); :}
+    | aritExpr:l MINUS:o termino:r
+        {: RESULT = new ExpresionBinariaNodo(oleft, oright, "-", l, r); :}
+    | PLUS:o error
+        {:
+            parser.report_error("Expresion invalida despues de '+'", null);
+            RESULT = new LiteralNodo(oleft, oright, null, TipoDato.DESCONOCIDO);
+        :}
+    | MINUS:o error
+        {:
+            parser.report_error("Expresion invalida despues de '-'", null);
+            RESULT = new LiteralNodo(oleft, oright, null, TipoDato.DESCONOCIDO);
+        :}
+    | termino:e
+        {: RESULT = e; :}
     ;
 
 /* Termino multiplicativo formado por potencias. */
 termino
-    ::= potencia terminoTail
-    ;
-
-/* Continuacion recursiva por derecha para multiplicacion, division y modulo. */
-terminoTail
-    ::=
-    | TIMES potencia terminoTail
-    | DIV potencia terminoTail
-    | MOD potencia terminoTail
-    | TIMES error
-        {: parser.report_error("Expresion invalida despues de '*'", null); :}
-    | DIV error
-        {: parser.report_error("Expresion invalida despues de '/'", null); :}
-    | MOD error
-        {: parser.report_error("Expresion invalida despues de '%'", null); :}
+    ::= termino:l TIMES:o potencia:r
+        {: RESULT = new ExpresionBinariaNodo(oleft, oright, "*", l, r); :}
+    | termino:l DIV:o potencia:r
+        {: RESULT = new ExpresionBinariaNodo(oleft, oright, "/", l, r); :}
+    | termino:l MOD:o potencia:r
+        {: RESULT = new ExpresionBinariaNodo(oleft, oright, "%", l, r); :}
+    | TIMES:o error
+        {:
+            parser.report_error("Expresion invalida despues de '*'", null);
+            RESULT = new LiteralNodo(oleft, oright, null, TipoDato.DESCONOCIDO);
+        :}
+    | DIV:o error
+        {:
+            parser.report_error("Expresion invalida despues de '/'", null);
+            RESULT = new LiteralNodo(oleft, oright, null, TipoDato.DESCONOCIDO);
+        :}
+    | MOD:o error
+        {:
+            parser.report_error("Expresion invalida despues de '%'", null);
+            RESULT = new LiteralNodo(oleft, oright, null, TipoDato.DESCONOCIDO);
+        :}
+    | potencia:e
+        {: RESULT = e; :}
     ;
 
 /* Potencia con asociatividad a la derecha. */
 potencia
-    ::= factor
-    | factor POW potencia
-    | factor POW error
-        {: parser.report_error("Expresion invalida despues de '^'", null); :}
+    ::= factor:e
+        {: RESULT = e; :}
+    | factor:l POW:o potencia:r
+        {: RESULT = new ExpresionBinariaNodo(oleft, oright, "^", l, r); :}
+    | factor:l POW:o error
+        {:
+            parser.report_error("Expresion invalida despues de '^'", null);
+            RESULT = new ExpresionBinariaNodo(oleft, oright, "^", l,
+                    new LiteralNodo(oleft, oright, null, TipoDato.DESCONOCIDO));
+        :}
     ;
 
 /* Factor: prefijos unarios o base de expresion. */
 factor
-    ::= MINUS factor
-    | INC factor
-    | DEC factor
-    | base
+    ::= MINUS:o factor:e
+        {: RESULT = new ExpresionUnariaNodo(oleft, oright, "-", e); :}
+    | INC:o factor:e
+        {: RESULT = new ExpresionUnariaNodo(oleft, oright, "++", e); :}
+    | DEC:o factor:e
+        {: RESULT = new ExpresionUnariaNodo(oleft, oright, "--", e); :}
+    | base:e
+        {: RESULT = e; :}
     ;
 
 /* Base de expresion: literal, identificador, arreglo, llamada o parentesis. */
 base
-    ::= literal
-    | ID
-    | accesoArreglo
-    | idFuncion
-    | L_PAREN expresion R_PAREN
-    | L_PAREN expresion error
-        {: parser.report_error("Se esperaba '|>' para cerrar la expresion entre parentesis", null); :}
-    | L_PAREN error R_PAREN
-        {: parser.report_error("Expresion vacia o invalida entre '<|' y '|>'", null); :}
+    ::= literal:l
+        {: RESULT = l; :}
+    | ID:id
+        {: RESULT = new IdentificadorNodo(idleft, idright, id); :}
+    | accesoArreglo:a
+        {: RESULT = a; :}
+    | idFuncion:f
+        {: RESULT = f; :}
+    | L_PAREN expresion:e R_PAREN
+        {: RESULT = e; :}
+    | L_PAREN expresion:e error
+        {:
+            parser.report_error("Se esperaba '|>' para cerrar la expresion entre parentesis", null);
+            RESULT = e;
+        :}
+    | L_PAREN:p error R_PAREN
+        {:
+            parser.report_error("Expresion vacia o invalida entre '<|' y '|>'", null);
+            RESULT = new LiteralNodo(pleft, pright, null, TipoDato.DESCONOCIDO);
+        :}
     ;
 
 /* Llamada a funcion por identificador con argumentos opcionales. */
 idFuncion
-    ::= ID L_PAREN args R_PAREN
-    | ID L_PAREN args error
-        {: parser.report_error("Se esperaba '|>' para cerrar la llamada a funcion", null); :}
+    ::= ID:id L_PAREN args:a R_PAREN
+        {: RESULT = new LlamadaFuncionNodo(idleft, idright, id, a); :}
+    | ID:id L_PAREN args:a error
+        {:
+            parser.report_error("Se esperaba '|>' para cerrar la llamada a funcion", null);
+            RESULT = new LlamadaFuncionNodo(idleft, idright, id, a);
+        :}
     ;
 
 /* Argumentos opcionales de una llamada a funcion. */
 args
     ::=
-    | listaArgs
+        {: RESULT = new java.util.ArrayList(); :}
+    | listaArgs:a
+        {: RESULT = a; :}
     ;
 
 /* Lista de argumentos reales separados por coma. */
 listaArgs
-    ::= listaArgs COMMA expresion
-    | expresion
-    | listaArgs COMMA error
-        {: parser.report_error("Argumento invalido en llamada a funcion", null); :}
+    ::= listaArgs:a COMMA expresion:e
+        {:
+            a.add(e);
+            RESULT = a;
+        :}
+    | expresion:e
+        {:
+            java.util.List lista = new java.util.ArrayList();
+            lista.add(e);
+            RESULT = lista;
+        :}
+    | listaArgs:a COMMA error
+        {:
+            parser.report_error("Argumento invalido en llamada a funcion", null);
+            RESULT = a;
+        :}
     ;
 
 /* Literal soportado por el lenguaje. */
 literal
-    ::= LIT_ENTERO
-    | LIT_FLOTANTE
-    | LIT_FRACCION
-    | LIT_EXPONENTE
-    | TRUE
-    | FALSE
-    | LIT_CHAR
-    | LIT_STRING
+    ::= LIT_ENTERO:v
+        {: RESULT = new LiteralNodo(vleft, vright, v, TipoDato.INT); :}
+    | LIT_FLOTANTE:v
+        {: RESULT = new LiteralNodo(vleft, vright, v, TipoDato.FLOAT); :}
+    | LIT_FRACCION:v
+        {: RESULT = new LiteralNodo(vleft, vright, v, TipoDato.FLOAT); :}
+    | LIT_EXPONENTE:v
+        {: RESULT = new LiteralNodo(vleft, vright, v, TipoDato.FLOAT); :}
+    | TRUE:v
+        {: RESULT = new LiteralNodo(vleft, vright, v, TipoDato.BOOL); :}
+    | FALSE:v
+        {: RESULT = new LiteralNodo(vleft, vright, v, TipoDato.BOOL); :}
+    | LIT_CHAR:v
+        {: RESULT = new LiteralNodo(vleft, vright, v, TipoDato.CHAR); :}
+    | LIT_STRING:v
+        {: RESULT = new LiteralNodo(vleft, vright, v, TipoDato.STRING); :}
     ;
