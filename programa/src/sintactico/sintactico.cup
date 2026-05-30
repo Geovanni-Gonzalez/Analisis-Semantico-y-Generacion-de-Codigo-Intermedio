@@ -3,9 +3,23 @@ import java_cup.runtime.*;
 parser code {:
     public final java.util.List<String> erroresSintacticos = new java.util.ArrayList<>();
     private int numErrores = 0;
+    private int cantidadMain = 0;
 
     public int getNumErrores() {
         return numErrores;
+    }
+
+    public void registrarMain() {
+        cantidadMain++;
+        if (cantidadMain > 1) {
+            report_error("El programa debe contener un unico procedimiento inicial '__main__'", null);
+        }
+    }
+
+    public void verificarMain() {
+        if (cantidadMain == 0) {
+            report_error("El programa debe contener exactamente un procedimiento inicial '__main__'", null);
+        }
     }
 
     @Override
@@ -61,9 +75,8 @@ terminal Double LIT_FLOTANTE;
 terminal Integer LIT_ENTERO;
 terminal Character LIT_CHAR;
 terminal String ID;
-terminal String BAD_CHAR;
 
-non terminal programa, funcionesOpt, funciones, funcion, main;
+non terminal programa, miembros, miembro, funcion, main;
 non terminal tipo, parametrosOpt, parametros, parametro;
 non terminal bloque, contenido, item;
 non terminal sentencia, creacion, restoNumerico, restoVariable;
@@ -79,25 +92,55 @@ non terminal idFuncion, args, listaArgs;
 start with programa;
 
 programa
-    ::= funcionesOpt main funcionesOpt
+    ::= miembros
+        {: parser.verificarMain(); :}
     ;
 
-funcionesOpt
-    ::=
-    | funciones
+miembros
+    ::= miembros miembro
+    | miembro
     ;
 
-funciones
-    ::= funciones funcion
-    | funcion
+miembro
+    ::= funcion
+    | main
     ;
 
 main
     ::= EMPTY SEPARATOR MAIN L_PAREN R_PAREN bloque
+        {: parser.registrarMain(); :}
+    | EMPTY SEPARATOR MAIN L_PAREN parametros R_PAREN bloque
+        {:
+            parser.registrarMain();
+            parser.report_error("El procedimiento '__main__' no debe recibir parametros", null);
+        :}
+    | tipo SEPARATOR MAIN L_PAREN parametros R_PAREN bloque
+        {:
+            parser.registrarMain();
+            parser.report_error("El procedimiento '__main__' debe ser de tipo 'empty'", null);
+            parser.report_error("El procedimiento '__main__' no debe recibir parametros", null);
+        :}
+    | tipo SEPARATOR MAIN L_PAREN R_PAREN bloque
+        {:
+            parser.registrarMain();
+            parser.report_error("El procedimiento '__main__' debe ser de tipo 'empty'", null);
+        :}
     | EMPTY error MAIN L_PAREN R_PAREN bloque
-        {: parser.report_error("Se esperaba '~' entre 'empty' y '__main__'", null); :}
+        {:
+            parser.registrarMain();
+            parser.report_error("Se esperaba '~' entre 'empty' y '__main__'", null);
+        :}
+    | EMPTY error MAIN L_PAREN parametros R_PAREN bloque
+        {:
+            parser.registrarMain();
+            parser.report_error("Se esperaba '~' entre 'empty' y '__main__'", null);
+            parser.report_error("El procedimiento '__main__' no debe recibir parametros", null);
+        :}
     | EMPTY SEPARATOR MAIN error bloque
-        {: parser.report_error("Se esperaba '<| |>' en la firma de '__main__'", null); :}
+        {:
+            parser.registrarMain();
+            parser.report_error("Se esperaba '<| |>' en la firma de '__main__'", null);
+        :}
     ;
 
 funcion
@@ -136,6 +179,8 @@ parametro
 
 bloque
     ::= L_BLOCK contenido R_BLOCK
+    | L_BLOCK contenido error R_BLOCK
+        {: parser.report_error("Se descarta contenido invalido hasta el cierre seguro ':|'", null); :}
     | error R_BLOCK
         {: parser.report_error("Se esperaba '|:' para abrir el bloque", null); :}
     ;
@@ -193,7 +238,12 @@ creacion
 
 restoNumerico
     ::= restoVariable
+    | L_ARRAY expresion COMMA expresion R_ARRAY asigArr
     | L_ARRAY expresion R_ARRAY L_ARRAY expresion R_ARRAY asigArr
+    | L_ARRAY expresion error expresion R_ARRAY asigArr
+        {: parser.report_error("Se esperaba ',' entre las dos dimensiones del arreglo", null); :}
+    | L_ARRAY expresion COMMA expresion error asigArr
+        {: parser.report_error("Se esperaba '>>' para cerrar los indices del arreglo", null); :}
     | L_ARRAY expresion error L_ARRAY expresion R_ARRAY asigArr
         {: parser.report_error("Se esperaba '>>' para cerrar la primera dimension del arreglo", null); :}
     | L_ARRAY expresion R_ARRAY L_ARRAY expresion error asigArr
@@ -246,7 +296,12 @@ asignacion
     ;
 
 accesoArreglo
-    ::= ID L_ARRAY expresion R_ARRAY L_ARRAY expresion R_ARRAY
+    ::= ID L_ARRAY expresion COMMA expresion R_ARRAY
+    | ID L_ARRAY expresion R_ARRAY L_ARRAY expresion R_ARRAY
+    | ID L_ARRAY expresion error expresion R_ARRAY
+        {: parser.report_error("Se esperaba ',' entre los dos indices del arreglo", null); :}
+    | ID L_ARRAY expresion COMMA expresion error
+        {: parser.report_error("Se esperaba '>>' para cerrar el acceso al arreglo", null); :}
     | ID L_ARRAY expresion error L_ARRAY expresion R_ARRAY
         {: parser.report_error("Se esperaba '>>' para cerrar el primer indice del arreglo", null); :}
     | ID L_ARRAY expresion R_ARRAY L_ARRAY expresion error

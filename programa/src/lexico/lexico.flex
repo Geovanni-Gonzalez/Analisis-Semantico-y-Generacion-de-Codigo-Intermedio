@@ -64,7 +64,15 @@ private Symbol symbol(int type, Object value) {
 }
 
 private void errorLexico() {
-    String error = "Error lexico: '" + yytext() + "' en linea " + (yyline + 1)
+    errorLexico("simbolo no reconocido");
+}
+
+private void errorLexico(String descripcion) {
+    String lexema = yytext()
+            .replace("\r", "\\r")
+            .replace("\n", "\\n")
+            .replace("\t", "\\t");
+    String error = "Error lexico: " + descripcion + " '" + lexema + "' en linea " + (yyline + 1)
             + ", columna " + (yycolumn + 1);
     erroresLexicos.add(error);
     if (imprimirErrores) {
@@ -120,6 +128,18 @@ private String informacionPara(int type, String lexema, Object value) {
     }
 }
 %}
+
+%eofval{
+    if (yystate() == COMMENT) {
+        String error = "Error lexico: comentario multilinea sin cerrar en linea " + (yyline + 1)
+                + ", columna " + (yycolumn + 1);
+        erroresLexicos.add(error);
+        if (imprimirErrores) {
+            System.err.println(error);
+        }
+    }
+    return new Symbol(sym.EOF);
+%eofval}
 
 /* DEFINICIONES */
 DIGITO = [0-9]
@@ -201,9 +221,12 @@ STRING = [^\r\n\"]*
 {FRACCION}      { return symbol(sym.LIT_FRACCION, yytext()); }
 {FLOTANTE}      { return symbol(sym.LIT_FLOTANTE, Double.parseDouble(yytext())); }
 {ENTERO}        { return symbol(sym.LIT_ENTERO, Integer.parseInt(yytext())); }
-"'"{CHAR}{CHAR}+"'" { return symbol(sym.BAD_CHAR, yytext()); }
+"''"            { errorLexico("literal char vacio"); }
+"'"{CHAR}{CHAR}+"'" { errorLexico("literal char mal formado"); }
+"'"{CHAR}*      { errorLexico("literal char sin cerrar"); }
 "'"{CHAR}"'"     { return symbol(sym.LIT_CHAR, yytext().charAt(1)); }
 \"{STRING}\"    { return symbol(sym.LIT_STRING, yytext()); }
+\"{STRING}(\r|\n) { errorLexico("cadena sin cerrar"); }
 
 {ID}            { return symbol(sym.ID, yytext()); }
 
