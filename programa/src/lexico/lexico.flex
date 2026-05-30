@@ -159,8 +159,11 @@ STRING = [^\r\n\"]*
 /* REGLAS */
 
 "int"           { return symbol(sym.INT); }
+"entero"        { return symbol(sym.INT); }
 "float"         { return symbol(sym.FLOAT); }
+"flotante"      { return symbol(sym.FLOAT); }
 "bool"          { return symbol(sym.BOOL); }
+"booleano"      { return symbol(sym.BOOL); }
 "char"          { return symbol(sym.CHAR_TYPE); }
 "string"        { return symbol(sym.STRING_TYPE); }
 
