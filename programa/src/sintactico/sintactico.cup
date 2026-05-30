@@ -5,6 +5,16 @@ parser code {:
     private int numErrores = 0;
     private int cantidadMain = 0;
 
+    /*
+     * La gramatica queda sin construccion de tabla de simbolos, chequeos de tipos
+     * ni generacion de codigo intermedio. Las acciones que permanecen son
+     * infraestructura sintactica: reporte/recuperacion de errores y validacion
+     * estructural minima del punto de entrada requerida por el P1.
+     *
+     * P2 puede agregar aqui sus estructuras semanticas sin mezclar su logica con
+     * las reglas de recuperacion sintactica.
+     */
+
     public int getNumErrores() {
         return numErrores;
     }
@@ -91,21 +101,25 @@ non terminal idFuncion, args, listaArgs;
 
 start with programa;
 
+/* Programa completo: una secuencia de miembros de nivel superior con un punto de entrada valido. */
 programa
     ::= miembros
         {: parser.verificarMain(); :}
     ;
 
+/* Miembros de nivel superior: una o mas funciones o el procedimiento principal. */
 miembros
     ::= miembros miembro
     | miembro
     ;
 
+/* Miembro de nivel superior: declaracion de funcion regular o procedimiento principal. */
 miembro
     ::= funcion
     | main
     ;
 
+/* Procedimiento principal: firma empty ~ __main__<| |> seguida de un bloque. */
 main
     ::= EMPTY SEPARATOR MAIN L_PAREN R_PAREN bloque
         {: parser.registrarMain(); :}
@@ -143,6 +157,7 @@ main
         :}
     ;
 
+/* Funcion regular: tipo de retorno, nombre, parametros opcionales y cuerpo en bloque. */
 funcion
     ::= tipo SEPARATOR ID L_PAREN parametrosOpt R_PAREN bloque
     | tipo error ID L_PAREN parametrosOpt R_PAREN bloque
@@ -151,6 +166,7 @@ funcion
         {: parser.report_error("Se esperaba un bloque '|: ... :|' en el cuerpo de la funcion", null); :}
     ;
 
+/* Tipo declarable del lenguaje. */
 tipo
     ::= INT
     | FLOAT
@@ -159,11 +175,13 @@ tipo
     | STRING_TYPE
     ;
 
+/* Lista opcional de parametros formales. */
 parametrosOpt
     ::=
     | parametros
     ;
 
+/* Lista de parametros formales separados por coma. */
 parametros
     ::= parametros COMMA parametro
     | parametro
@@ -171,12 +189,14 @@ parametros
         {: parser.report_error("Parametro mal formado, se esperaba '<tipo> ~ <id>'", null); :}
     ;
 
+/* Parametro formal: tipo, separador y nombre. */
 parametro
     ::= tipo SEPARATOR ID
     | tipo error ID
         {: parser.report_error("Se esperaba '~' entre el tipo y el nombre del parametro", null); :}
     ;
 
+/* Bloque de codigo delimitado por |: y :|. */
 bloque
     ::= L_BLOCK contenido R_BLOCK
     | L_BLOCK contenido error R_BLOCK
@@ -185,16 +205,19 @@ bloque
         {: parser.report_error("Se esperaba '|:' para abrir el bloque", null); :}
     ;
 
+/* Contenido de un bloque: cero o mas sentencias o controles. */
 contenido
     ::=
     | contenido item
     ;
 
+/* Elemento ejecutable dentro de un bloque. */
 item
     ::= sentencia
     | control
     ;
 
+/* Sentencia simple: declaracion, asignacion, expresion, E/S, retorno o break terminados con !. */
 sentencia
     ::= creacion END_EXPR
     | asignacion END_EXPR
@@ -218,6 +241,7 @@ sentencia
         {: parser.report_error("Sentencia invalida; se descarta hasta el siguiente '!'", null); :}
     ;
 
+/* Declaracion de variable escalar o arreglo con inicializacion opcional. */
 creacion
     ::= BOOL SEPARATOR ID restoVariable
     | CHAR_TYPE SEPARATOR ID restoVariable
@@ -236,6 +260,7 @@ creacion
         {: parser.report_error("Se esperaba '~' entre 'float' y el identificador", null); :}
     ;
 
+/* Continuacion de una declaracion numerica: escalar o arreglo bidimensional. */
 restoNumerico
     ::= restoVariable
     | L_ARRAY expresion COMMA expresion R_ARRAY asigArr
@@ -250,6 +275,7 @@ restoNumerico
         {: parser.report_error("Se esperaba '>>' para cerrar la segunda dimension del arreglo", null); :}
     ;
 
+/* Continuacion de una declaracion escalar: sin inicializar o con expresion inicial. */
 restoVariable
     ::=
     | ASSIGN expresion
@@ -257,6 +283,7 @@ restoVariable
         {: parser.report_error("Se esperaba una expresion despues de '<-'", null); :}
     ;
 
+/* Inicializacion opcional de arreglo mediante filas entre bloques. */
 asigArr
     ::=
     | ASSIGN L_BLOCK filasArreglo R_BLOCK
@@ -266,6 +293,7 @@ asigArr
         {: parser.report_error("Se esperaba ':|' para cerrar la inicializacion del arreglo", null); :}
     ;
 
+/* Lista de filas para inicializar un arreglo. */
 filasArreglo
     ::= filasArreglo COMMA filaArreglo
     | filaArreglo
@@ -273,12 +301,14 @@ filasArreglo
         {: parser.report_error("Fila de arreglo mal formada", null); :}
     ;
 
+/* Fila de arreglo: lista de valores encerrada en bloque. */
 filaArreglo
     ::= L_BLOCK valoresArreglo R_BLOCK
     | L_BLOCK valoresArreglo error
         {: parser.report_error("Se esperaba ':|' para cerrar la fila del arreglo", null); :}
     ;
 
+/* Valores de una fila de arreglo separados por coma. */
 valoresArreglo
     ::= valoresArreglo COMMA expresion
     | expresion
@@ -286,6 +316,7 @@ valoresArreglo
         {: parser.report_error("Se esperaba una expresion en la lista de valores del arreglo", null); :}
     ;
 
+/* Asignacion a variable simple o posicion de arreglo. */
 asignacion
     ::= ID ASSIGN expresion
     | accesoArreglo ASSIGN expresion
@@ -295,6 +326,7 @@ asignacion
         {: parser.report_error("Se esperaba una expresion para modificar el elemento del arreglo", null); :}
     ;
 
+/* Acceso bidimensional de arreglo con indices en una pareja o en dos pares. */
 accesoArreglo
     ::= ID L_ARRAY expresion COMMA expresion R_ARRAY
     | ID L_ARRAY expresion R_ARRAY L_ARRAY expresion R_ARRAY
@@ -308,12 +340,14 @@ accesoArreglo
         {: parser.report_error("Se esperaba '>>' para cerrar el segundo indice del arreglo", null); :}
     ;
 
+/* Sentencia de control de flujo. */
 control
     ::= ifelse
     | doWhile
     | switchSt
     ;
 
+/* Condicional if con bloque obligatorio y else opcional. */
 ifelse
     ::= IF L_PAREN expresion R_PAREN bloque
     | IF L_PAREN expresion R_PAREN bloque ELSE bloque
@@ -323,6 +357,7 @@ ifelse
         {: parser.report_error("Condicion invalida en 'if-else'", null); :}
     ;
 
+/* Ciclo do-while: bloque do seguido de condicion while. */
 doWhile
     ::= DO bloque WHILE L_PAREN expresion R_PAREN finDoWhile
     | DO bloque WHILE L_PAREN error R_PAREN finDoWhile
@@ -331,11 +366,13 @@ doWhile
         {: parser.report_error("Se esperaba 'while' despues del bloque 'do'", null); :}
     ;
 
+/* Terminador opcional del do-while para aceptar variantes del enunciado y pruebas. */
 finDoWhile
     ::=
     | END_EXPR
     ;
 
+/* Seleccion multiple switch con casos directos o encerrados en bloque. */
 switchSt
     ::= SWITCH L_PAREN expresion R_PAREN casos
     | SWITCH L_PAREN expresion R_PAREN L_BLOCK casos R_BLOCK
@@ -345,11 +382,13 @@ switchSt
         {: parser.report_error("Expresion invalida en 'switch'", null); :}
     ;
 
+/* Lista no vacia de casos de switch. */
 casos
     ::= casos caso
     | caso
     ;
 
+/* Caso de switch o caso default con su bloque asociado. */
 caso
     ::= CASE SEPARATOR expresion COLON bloque
     | DEFAULT SEPARATOR COLON bloque
@@ -361,6 +400,7 @@ caso
         {: parser.report_error("Se esperaba '~' despues de 'default'", null); :}
     ;
 
+/* Entrada y salida: cin recibe un identificador y cout imprime una expresion. */
 io
     ::= CIN L_PAREN ID R_PAREN
     | COUT L_PAREN expresion R_PAREN
@@ -374,6 +414,7 @@ io
         {: parser.report_error("Se esperaba '|>' para cerrar 'cout'", null); :}
     ;
 
+/* Retorno de funcion con separador y expresion. */
 retorno
     ::= RETURN SEPARATOR expresion
     | RETURN error expresion
@@ -382,18 +423,22 @@ retorno
         {: parser.report_error("Se esperaba una expresion despues de 'return ~'", null); :}
     ;
 
+/* Sentencia break. */
 breakSt
     ::= BREAK
     ;
 
+/* Expresion general, iniciando en el nivel de menor precedencia. */
 expresion
     ::= orExpr
     ;
 
+/* Expresion disyuntiva formada por conjunciones. */
 orExpr
     ::= andExpr orTail
     ;
 
+/* Continuacion recursiva por derecha del operador logico #. */
 orTail
     ::=
     | OR_LOG andExpr orTail
@@ -401,10 +446,12 @@ orTail
         {: parser.report_error("Expresion invalida despues de '#'", null); :}
     ;
 
+/* Expresion conjuntiva formada por negaciones o comparaciones. */
 andExpr
     ::= notExpr andTail
     ;
 
+/* Continuacion recursiva por derecha del operador logico @. */
 andTail
     ::=
     | AND_LOG notExpr andTail
@@ -412,11 +459,13 @@ andTail
         {: parser.report_error("Expresion invalida despues de '@'", null); :}
     ;
 
+/* Negacion logica o expresion relacional. */
 notExpr
     ::= NOT_LOG notExpr
     | relExpr
     ;
 
+/* Comparacion funcional o expresion aritmetica sin comparador. */
 relExpr
     ::= EQUAL L_PAREN expresion COMMA expresion R_PAREN
     | N_EQUAL L_PAREN expresion COMMA expresion R_PAREN
@@ -439,10 +488,12 @@ relExpr
     | aritExpr
     ;
 
+/* Expresion aditiva formada por terminos. */
 aritExpr
     ::= termino aritTail
     ;
 
+/* Continuacion recursiva por derecha para suma y resta. */
 aritTail
     ::=
     | PLUS termino aritTail
@@ -453,10 +504,12 @@ aritTail
         {: parser.report_error("Expresion invalida despues de '-'", null); :}
     ;
 
+/* Termino multiplicativo formado por potencias. */
 termino
     ::= potencia terminoTail
     ;
 
+/* Continuacion recursiva por derecha para multiplicacion, division y modulo. */
 terminoTail
     ::=
     | TIMES potencia terminoTail
@@ -470,6 +523,7 @@ terminoTail
         {: parser.report_error("Expresion invalida despues de '%'", null); :}
     ;
 
+/* Potencia con asociatividad a la derecha. */
 potencia
     ::= factor
     | factor POW potencia
@@ -477,6 +531,7 @@ potencia
         {: parser.report_error("Expresion invalida despues de '^'", null); :}
     ;
 
+/* Factor: prefijos unarios o base de expresion. */
 factor
     ::= MINUS factor
     | INC factor
@@ -484,6 +539,7 @@ factor
     | base
     ;
 
+/* Base de expresion: literal, identificador, arreglo, llamada o parentesis. */
 base
     ::= literal
     | ID
@@ -496,17 +552,20 @@ base
         {: parser.report_error("Expresion vacia o invalida entre '<|' y '|>'", null); :}
     ;
 
+/* Llamada a funcion por identificador con argumentos opcionales. */
 idFuncion
     ::= ID L_PAREN args R_PAREN
     | ID L_PAREN args error
         {: parser.report_error("Se esperaba '|>' para cerrar la llamada a funcion", null); :}
     ;
 
+/* Argumentos opcionales de una llamada a funcion. */
 args
     ::=
     | listaArgs
     ;
 
+/* Lista de argumentos reales separados por coma. */
 listaArgs
     ::= listaArgs COMMA expresion
     | expresion
@@ -514,6 +573,7 @@ listaArgs
         {: parser.report_error("Argumento invalido en llamada a funcion", null); :}
     ;
 
+/* Literal soportado por el lenguaje. */
 literal
     ::= LIT_ENTERO
     | LIT_FLOTANTE
