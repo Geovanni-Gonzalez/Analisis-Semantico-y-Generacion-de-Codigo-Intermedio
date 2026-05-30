@@ -1,0 +1,18 @@
+int ~ suma <| int ~ a, int ~ b |> |:
+    return ~ a + b!
+:|
+
+empty ~ __main__ <| |> |:
+    int ~ x <- 10!
+    float ~ matriz << 2 >> << 2 >> <- |: |: 1.5, 2.5 :|, |: 3.5, 4.5 :| :|!
+    matriz << 0 >> << 1 >> <- 9.5!
+    cout <| "ok" |>!
+    if <| equal <| x, 10 |> @ true |> |:
+        x <- suma <| x, 1 |>!
+    :| else |:
+        break!
+    :|
+    do |:
+        --x!
+    :| while <| greather_t <| x, 0 |> |>
+:|

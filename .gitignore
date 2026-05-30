@@ -27,6 +27,8 @@ replay_pid*
 Lexer.java
 parser.java
 sym.java
+target/
+programa/target/
 
 # IntelliJ IDEA
 .idea/

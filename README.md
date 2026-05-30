@@ -1,56 +1,71 @@
-# Análisis Semántico y Generación de Código Intermedio
-
-**Proyecto 2 — Compiladores e Intérpretes**  
-Universidad | Geovanni González
-
----
+﻿# Análisis Semántico y Generación de Código Intermedio
 
 ## Descripción
+Proyecto de compiladores enfocado en validaciónes semanticas y generación de código intermedio sobre una base JFlex/CUP/Java.
 
-Implementación de las fases de **análisis semántico** y **generación de código intermedio** para un compilador de un lenguaje de programación de propósito educativo. El proyecto extiende el analizador léxico y sintáctico del Proyecto 1, agregando verificación de tipos, manejo de tabla de símbolos y emisión de código de tres direcciones (cuádruplos / TAC).
+## Objetivo
+Practicar fases posteriores de un compilador: reglas semanticas, tablas y representaciónes intermedias.
 
-## Herramientas utilizadas
+## Tecnologías utilizadas
+- Java
+- Maven
+- JFlex
+- CUP
 
-| Herramienta | Propósito |
-|-------------|-----------|
-| JFlex | Generación del analizador léxico |
-| CUP | Generación del analizador sintáctico |
-| Java 17+ | Lenguaje de implementación |
+## Funcionalidades principales
+- Especificacion lexica
+- Especificacion sintactica
+- Build Maven
+- Punto de entrada Java
+
+## Mi rol
+Organicé el proyecto Maven y trabajé en la conexión entre análisis léxico, sintáctico y semántico.
+
+## Aprendizajes clave
+- Pipeline de compilación
+- Integracion JFlex/CUP
+- Validaciónes semanticas
+- Automatización con Maven
+
+## Instalación y ejecución
+```bash
+cd Analisis-Semantico-y-Generacion-de-Codigo-Intermedio/programa
+mvn clean package
+java -jar target/proyecto-compiladores-1.0-SNAPSHOT.jar
+```
+Si el JAR cambia de nombre, revisar `target/`.
 
 ## Estructura del proyecto
+- programa/pom.xml: configuración
+- programa/src/léxico/: JFlex
+- programa/src/sintáctico/: CUP
+- programa/src/java/Main.java: entrada
 
-```
-src/
-├── lexico.flex          # Especificación léxica (JFlex)
-├── sintactico.cup       # Especificación sintáctica (CUP)
-├── semantico/           # Analizador semántico y tabla de símbolos
-└── codigo/              # Generación de código intermedio
-```
+## Capturas o demo
+Por documentar. Se recomienda agregar capturas de la pantalla principal o un GIF corto de uso.
 
-> Los archivos `Lexer.java`, `parser.java` y `sym.java` son generados automáticamente por JFlex/CUP y están excluidos del repositorio.
+## Estado del proyecto
+Proyecto académico en evolución.
 
-## Cómo compilar y ejecutar
+## Valor técnico demostrado
+Demuestra comprensión de fases de compiladores y herramientas de generación.
 
-```bash
-# 1. Generar el léxico
-jflex src/lexico.flex
+## Mejoras futuras
+- Agregar casos de prueba
+- Documentar gramática
+- Completar ejemplos de código intermedio
 
-# 2. Generar el parser
-cup src/sintactico.cup
+## Autor
+Geovanni González  
+Estudiante de Ingeniería en Computación  
+GitHub: [Geovanni-Gonzalez](https://github.com/Geovanni-Gonzalez)
 
-# 3. Compilar
-javac -cp cup.jar src/**/*.java
 
-# 4. Ejecutar con un archivo fuente
-java -cp .:cup.jar Main <archivo.txt>
-```
 
-## Evaluador
 
-El punto de entrada principal es la clase `Main`. La salida incluye:
-- Errores semánticos detectados (tipos incompatibles, variables no declaradas, etc.)
-- Código intermedio generado en formato de cuádruplos
 
----
 
-*Curso: Compiladores e Intérpretes*
+
+
+
+

@@ -1,274 +1,526 @@
 import java_cup.runtime.*;
 
-/* CODIGO */
 parser code {:
-    public int numErrores = 0;
+    public final java.util.List<String> erroresSintacticos = new java.util.ArrayList<>();
+    private int numErrores = 0;
+    private int cantidadMain = 0;
 
-    public void syntax_error(Symbol s) {
-        numErrores++;
-        String token = s.value != null ? "'" + s.value + "'" : "token desconocido";
-        System.err.println("Error sintáctico en línea " + s.left +
-                           ", columna " + s.right +
-                           ": token inesperado " + token);
+    public int getNumErrores() {
+        return numErrores;
     }
 
-    public void unrecovered_syntax_error(Symbol s) {
-        numErrores++;
-        if (s.left == -1) {
-            System.err.println("Error irrecuperable: se llegó al final del archivo sin poder recuperarse.");
-        } else {
-            System.err.println("Error irrecuperable en línea " + s.left +
-                               ", columna " + s.right +
-                               ": el análisis no puede continuar.");
+    public void registrarMain() {
+        cantidadMain++;
+        if (cantidadMain > 1) {
+            report_error("El programa debe contener un unico procedimiento inicial '__main__'", null);
         }
+    }
+
+    public void verificarMain() {
+        if (cantidadMain == 0) {
+            report_error("El programa debe contener exactamente un procedimiento inicial '__main__'", null);
+        }
+    }
+
+    @Override
+    public void report_error(String message, Object info) {
+        numErrores++;
+        StringBuilder sb = new StringBuilder("[Error sintactico #" + numErrores + "]");
+        if (info instanceof Symbol) {
+            Symbol s = (Symbol) info;
+            if (s.left > 0) {
+                sb.append(" linea ").append(s.left).append(", columna ").append(s.right);
+            }
+            if (s.value != null) {
+                sb.append(" token: '").append(s.value).append("'");
+            }
+        }
+        sb.append(" - ").append(message);
+        erroresSintacticos.add(sb.toString());
+        System.err.println(sb.toString());
+    }
+
+    @Override
+    public void report_fatal_error(String message, Object info) {
+        report_error("FATAL - " + message, info);
+    }
+
+    @Override
+    public void syntax_error(Symbol curToken) {
+        report_error("Syntax error", curToken);
+    }
+
+    @Override
+    public void unrecovered_syntax_error(Symbol curToken) throws Exception {
+        report_error("No se pudo recuperar el analisis sintactico", curToken);
     }
 :};
 
-/* TERMINALES */
-
-terminal String ID, LIT_STRING, LIT_CHAR;
-terminal Integer LIT_ENTERO;
-terminal Double LIT_FLOTANTE;
-terminal String LIT_FRACCION;
-terminal String LIT_EXPONENTE;
-terminal Boolean TRUE, FALSE;
-
-
 terminal INT, FLOAT, BOOL, CHAR_TYPE, STRING_TYPE;
+terminal EMPTY, MAIN, RETURN, BREAK;
 terminal IF, ELSE, DO, WHILE, SWITCH, CASE, DEFAULT;
 terminal CIN, COUT;
-terminal RETURN, BREAK, EMPTY, MAIN;
-
+terminal Boolean TRUE, FALSE;
+terminal EQUAL, N_EQUAL, LESS_T, LESS_TE, GREATHER_T, GREATHER_TE;
+terminal PLUS, MINUS, TIMES, DIV, MOD, POW;
+terminal AND_LOG, OR_LOG, NOT_LOG;
+terminal INC, DEC;
 terminal ASSIGN;
-terminal SEPARATOR;
-terminal L_BLOCK, R_BLOCK;
 terminal L_PAREN, R_PAREN;
+terminal L_BLOCK, R_BLOCK;
 terminal L_ARRAY, R_ARRAY;
+terminal SEPARATOR, COMMA, COLON, END_EXPR;
+terminal String LIT_EXPONENTE, LIT_FRACCION, LIT_STRING;
+terminal Double LIT_FLOTANTE;
+terminal Integer LIT_ENTERO;
+terminal Character LIT_CHAR;
+terminal String ID;
 
-terminal COMMA, END_EXPR;
-
-terminal PLUS, MINUS, UMINUS, TIMES, DIV, MOD, POW;
-terminal AND_LOG, OR_LOG;
-terminal GREATER_T, LESS_T, GREATER_TE, LESS_TE, EQUAL_OP, N_EQUAL;
-
-/* NO TERMINALES */
-non terminal programa;
-non terminal MAIN_FUNC;
-non terminal funciones_opt, funciones, funcion, tipoRetorno;
-non terminal parametros, lista_params, param;
-
-non terminal bloque, listaSentencias, item;
-non terminal sentenciaSimple;
-
-non terminal decl, declTail, declArrTail;
-non terminal filasArreglo, filaArreglo;
-
-non terminal asignacion, asigTail;
-
-non terminal expr, exprLog, exprRel, exprArit;
-non terminal termino, potencia, factor, base, literal;
-
-non terminal idTail;
-
-non terminal args, lista_args;
-
-non terminal control, ifElse, doWhile, switch_stmt;
-non terminal casos, caso;
-
-non terminal io, lectura, escritura, salida;
-
-non terminal retorno, break_stmt;
-
-/* PRECEDENCIA */
-
-precedence left OR_LOG;
-precedence left AND_LOG;
-precedence left PLUS, MINUS;
-precedence left TIMES, DIV, MOD;
-precedence right POW;
-precedence right UMINUS;
-
-/* INICIO */
+non terminal programa, miembros, miembro, funcion, main;
+non terminal tipo, parametrosOpt, parametros, parametro;
+non terminal bloque, contenido, item;
+non terminal sentencia, creacion, restoNumerico, restoVariable;
+non terminal asigArr, filasArreglo, filaArreglo, valoresArreglo;
+non terminal asignacion, accesoArreglo;
+non terminal control, ifelse, doWhile, finDoWhile, switchSt, casos, caso;
+non terminal io, retorno, breakSt;
+non terminal expresion, orExpr, orTail, andExpr, andTail, notExpr;
+non terminal relExpr, aritExpr, aritTail, termino, terminoTail;
+non terminal potencia, factor, base, literal;
+non terminal idFuncion, args, listaArgs;
 
 start with programa;
 
-/* GRAMATICA */
+programa
+    ::= miembros
+        {: parser.verificarMain(); :}
+    ;
 
-programa ::= funciones_opt MAIN_FUNC funciones_opt ;
+miembros
+    ::= miembros miembro
+    | miembro
+    ;
 
-MAIN_FUNC ::= EMPTY SEPARATOR MAIN L_PAREN R_PAREN bloque ;
+miembro
+    ::= funcion
+    | main
+    ;
 
-/* FUNCIONES */
+main
+    ::= EMPTY SEPARATOR MAIN L_PAREN R_PAREN bloque
+        {: parser.registrarMain(); :}
+    | EMPTY SEPARATOR MAIN L_PAREN parametros R_PAREN bloque
+        {:
+            parser.registrarMain();
+            parser.report_error("El procedimiento '__main__' no debe recibir parametros", null);
+        :}
+    | tipo SEPARATOR MAIN L_PAREN parametros R_PAREN bloque
+        {:
+            parser.registrarMain();
+            parser.report_error("El procedimiento '__main__' debe ser de tipo 'empty'", null);
+            parser.report_error("El procedimiento '__main__' no debe recibir parametros", null);
+        :}
+    | tipo SEPARATOR MAIN L_PAREN R_PAREN bloque
+        {:
+            parser.registrarMain();
+            parser.report_error("El procedimiento '__main__' debe ser de tipo 'empty'", null);
+        :}
+    | EMPTY error MAIN L_PAREN R_PAREN bloque
+        {:
+            parser.registrarMain();
+            parser.report_error("Se esperaba '~' entre 'empty' y '__main__'", null);
+        :}
+    | EMPTY error MAIN L_PAREN parametros R_PAREN bloque
+        {:
+            parser.registrarMain();
+            parser.report_error("Se esperaba '~' entre 'empty' y '__main__'", null);
+            parser.report_error("El procedimiento '__main__' no debe recibir parametros", null);
+        :}
+    | EMPTY SEPARATOR MAIN error bloque
+        {:
+            parser.registrarMain();
+            parser.report_error("Se esperaba '<| |>' en la firma de '__main__'", null);
+        :}
+    ;
 
-funciones_opt ::= funciones
-                | /* empty */ ;
+funcion
+    ::= tipo SEPARATOR ID L_PAREN parametrosOpt R_PAREN bloque
+    | tipo error ID L_PAREN parametrosOpt R_PAREN bloque
+        {: parser.report_error("Se esperaba '~' entre el tipo y el nombre de la funcion", null); :}
+    | tipo SEPARATOR ID L_PAREN parametrosOpt R_PAREN error
+        {: parser.report_error("Se esperaba un bloque '|: ... :|' en el cuerpo de la funcion", null); :}
+    ;
 
-funciones ::= funciones funcion
-            | funcion ;
+tipo
+    ::= INT
+    | FLOAT
+    | BOOL
+    | CHAR_TYPE
+    | STRING_TYPE
+    ;
 
-funcion ::= tipoRetorno SEPARATOR ID L_PAREN parametros R_PAREN bloque
-          | error R_BLOCK  /* recuperacion: funcion mal formada, sincroniza en :| */
-          ;
+parametrosOpt
+    ::=
+    | parametros
+    ;
 
-tipoRetorno ::= INT | FLOAT | BOOL | CHAR_TYPE | STRING_TYPE ;
+parametros
+    ::= parametros COMMA parametro
+    | parametro
+    | parametros COMMA error
+        {: parser.report_error("Parametro mal formado, se esperaba '<tipo> ~ <id>'", null); :}
+    ;
 
-parametros ::= lista_params
-             | /* empty */ ;
+parametro
+    ::= tipo SEPARATOR ID
+    | tipo error ID
+        {: parser.report_error("Se esperaba '~' entre el tipo y el nombre del parametro", null); :}
+    ;
 
-lista_params ::= lista_params COMMA param
-               | param ;
+bloque
+    ::= L_BLOCK contenido R_BLOCK
+    | L_BLOCK contenido error R_BLOCK
+        {: parser.report_error("Se descarta contenido invalido hasta el cierre seguro ':|'", null); :}
+    | error R_BLOCK
+        {: parser.report_error("Se esperaba '|:' para abrir el bloque", null); :}
+    ;
 
-param ::= tipoRetorno SEPARATOR ID ;
+contenido
+    ::=
+    | contenido item
+    ;
 
-/* BLOQUES */
+item
+    ::= sentencia
+    | control
+    ;
 
-bloque ::= L_BLOCK listaSentencias R_BLOCK
-         | L_BLOCK error R_BLOCK  /* recuperacion: bloque con contenido invalido */
-         ;
+sentencia
+    ::= creacion END_EXPR
+    | asignacion END_EXPR
+    | expresion END_EXPR
+    | io END_EXPR
+    | retorno END_EXPR
+    | breakSt END_EXPR
+    | creacion error
+        {: parser.report_error("Se esperaba '!' al final de la declaracion", null); :}
+    | asignacion error
+        {: parser.report_error("Se esperaba '!' al final de la asignacion", null); :}
+    | expresion error
+        {: parser.report_error("Se esperaba '!' al final de la expresion", null); :}
+    | io error
+        {: parser.report_error("Se esperaba '!' al final de la instruccion de E/S", null); :}
+    | retorno error
+        {: parser.report_error("Se esperaba '!' al final del return", null); :}
+    | breakSt error
+        {: parser.report_error("Se esperaba '!' al final del break", null); :}
+    | error END_EXPR
+        {: parser.report_error("Sentencia invalida; se descarta hasta el siguiente '!'", null); :}
+    ;
 
-listaSentencias ::= listaSentencias item
-                  | item ;
+creacion
+    ::= BOOL SEPARATOR ID restoVariable
+    | CHAR_TYPE SEPARATOR ID restoVariable
+    | STRING_TYPE SEPARATOR ID restoVariable
+    | INT SEPARATOR ID restoNumerico
+    | FLOAT SEPARATOR ID restoNumerico
+    | BOOL error ID restoVariable
+        {: parser.report_error("Se esperaba '~' entre 'bool' y el identificador", null); :}
+    | CHAR_TYPE error ID restoVariable
+        {: parser.report_error("Se esperaba '~' entre 'char' y el identificador", null); :}
+    | STRING_TYPE error ID restoVariable
+        {: parser.report_error("Se esperaba '~' entre 'string' y el identificador", null); :}
+    | INT error ID restoNumerico
+        {: parser.report_error("Se esperaba '~' entre 'int' y el identificador", null); :}
+    | FLOAT error ID restoNumerico
+        {: parser.report_error("Se esperaba '~' entre 'float' y el identificador", null); :}
+    ;
 
-item ::= sentenciaSimple END_EXPR
-       | control
-       | error END_EXPR  /* recuperacion: sentencia invalida, sincroniza en ! */
-       ;
+restoNumerico
+    ::= restoVariable
+    | L_ARRAY expresion COMMA expresion R_ARRAY asigArr
+    | L_ARRAY expresion R_ARRAY L_ARRAY expresion R_ARRAY asigArr
+    | L_ARRAY expresion error expresion R_ARRAY asigArr
+        {: parser.report_error("Se esperaba ',' entre las dos dimensiones del arreglo", null); :}
+    | L_ARRAY expresion COMMA expresion error asigArr
+        {: parser.report_error("Se esperaba '>>' para cerrar los indices del arreglo", null); :}
+    | L_ARRAY expresion error L_ARRAY expresion R_ARRAY asigArr
+        {: parser.report_error("Se esperaba '>>' para cerrar la primera dimension del arreglo", null); :}
+    | L_ARRAY expresion R_ARRAY L_ARRAY expresion error asigArr
+        {: parser.report_error("Se esperaba '>>' para cerrar la segunda dimension del arreglo", null); :}
+    ;
 
-/* SENTENCIAS */
+restoVariable
+    ::=
+    | ASSIGN expresion
+    | ASSIGN error
+        {: parser.report_error("Se esperaba una expresion despues de '<-'", null); :}
+    ;
 
-sentenciaSimple ::= decl
-                  | asignacion
-                  | expr
-                  | io
-                  | retorno
-                  | break_stmt ;
+asigArr
+    ::=
+    | ASSIGN L_BLOCK filasArreglo R_BLOCK
+    | ASSIGN error filasArreglo R_BLOCK
+        {: parser.report_error("Se esperaba '|:' para abrir la inicializacion del arreglo", null); :}
+    | ASSIGN L_BLOCK filasArreglo error
+        {: parser.report_error("Se esperaba ':|' para cerrar la inicializacion del arreglo", null); :}
+    ;
 
-/* DECLARACIONES */
+filasArreglo
+    ::= filasArreglo COMMA filaArreglo
+    | filaArreglo
+    | filasArreglo COMMA error
+        {: parser.report_error("Fila de arreglo mal formada", null); :}
+    ;
 
-decl ::= tipoRetorno SEPARATOR ID declTail ;
+filaArreglo
+    ::= L_BLOCK valoresArreglo R_BLOCK
+    | L_BLOCK valoresArreglo error
+        {: parser.report_error("Se esperaba ':|' para cerrar la fila del arreglo", null); :}
+    ;
 
-declTail ::= ASSIGN expr
-           | L_BLOCK LIT_ENTERO COMMA LIT_ENTERO R_BLOCK declArrTail
-           | /* empty */ ;
+valoresArreglo
+    ::= valoresArreglo COMMA expresion
+    | expresion
+    | valoresArreglo COMMA error
+        {: parser.report_error("Se esperaba una expresion en la lista de valores del arreglo", null); :}
+    ;
 
-declArrTail ::= ASSIGN filasArreglo
-              | /* empty */ ;
+asignacion
+    ::= ID ASSIGN expresion
+    | accesoArreglo ASSIGN expresion
+    | ID ASSIGN error
+        {: parser.report_error("Se esperaba una expresion en la asignacion", null); :}
+    | accesoArreglo ASSIGN error
+        {: parser.report_error("Se esperaba una expresion para modificar el elemento del arreglo", null); :}
+    ;
 
-/* ARREGLOS */
+accesoArreglo
+    ::= ID L_ARRAY expresion COMMA expresion R_ARRAY
+    | ID L_ARRAY expresion R_ARRAY L_ARRAY expresion R_ARRAY
+    | ID L_ARRAY expresion error expresion R_ARRAY
+        {: parser.report_error("Se esperaba ',' entre los dos indices del arreglo", null); :}
+    | ID L_ARRAY expresion COMMA expresion error
+        {: parser.report_error("Se esperaba '>>' para cerrar el acceso al arreglo", null); :}
+    | ID L_ARRAY expresion error L_ARRAY expresion R_ARRAY
+        {: parser.report_error("Se esperaba '>>' para cerrar el primer indice del arreglo", null); :}
+    | ID L_ARRAY expresion R_ARRAY L_ARRAY expresion error
+        {: parser.report_error("Se esperaba '>>' para cerrar el segundo indice del arreglo", null); :}
+    ;
 
-filasArreglo ::= filasArreglo filaArreglo
-               | filaArreglo ;
+control
+    ::= ifelse
+    | doWhile
+    | switchSt
+    ;
 
-filaArreglo ::= L_BLOCK lista_args R_BLOCK
-              | L_BLOCK error R_BLOCK  /* recuperacion: fila de arreglo invalida */
-              ;
+ifelse
+    ::= IF L_PAREN expresion R_PAREN bloque
+    | IF L_PAREN expresion R_PAREN bloque ELSE bloque
+    | IF L_PAREN error R_PAREN bloque
+        {: parser.report_error("Condicion invalida en 'if'", null); :}
+    | IF L_PAREN error R_PAREN bloque ELSE bloque
+        {: parser.report_error("Condicion invalida en 'if-else'", null); :}
+    ;
 
-/* ASIGNACIÓN */
+doWhile
+    ::= DO bloque WHILE L_PAREN expresion R_PAREN finDoWhile
+    | DO bloque WHILE L_PAREN error R_PAREN finDoWhile
+        {: parser.report_error("Condicion invalida en 'do-while'", null); :}
+    | DO bloque error L_PAREN expresion R_PAREN finDoWhile
+        {: parser.report_error("Se esperaba 'while' despues del bloque 'do'", null); :}
+    ;
 
-asignacion ::= ID asigTail ;
+finDoWhile
+    ::=
+    | END_EXPR
+    ;
 
-asigTail ::= ASSIGN expr
-           | L_ARRAY expr COMMA expr R_ARRAY ASSIGN expr ;
+switchSt
+    ::= SWITCH L_PAREN expresion R_PAREN casos
+    | SWITCH L_PAREN expresion R_PAREN L_BLOCK casos R_BLOCK
+    | SWITCH L_PAREN error R_PAREN casos
+        {: parser.report_error("Expresion invalida en 'switch'", null); :}
+    | SWITCH L_PAREN error R_PAREN L_BLOCK casos R_BLOCK
+        {: parser.report_error("Expresion invalida en 'switch'", null); :}
+    ;
 
-/* EXPRESIONES */
+casos
+    ::= casos caso
+    | caso
+    ;
 
-expr ::= exprLog ;
+caso
+    ::= CASE SEPARATOR expresion COLON bloque
+    | DEFAULT SEPARATOR COLON bloque
+    | CASE error expresion COLON bloque
+        {: parser.report_error("Se esperaba '~' despues de 'case'", null); :}
+    | CASE SEPARATOR expresion error bloque
+        {: parser.report_error("Se esperaba ':' despues del valor del 'case'", null); :}
+    | DEFAULT error COLON bloque
+        {: parser.report_error("Se esperaba '~' despues de 'default'", null); :}
+    ;
 
-exprLog ::= exprLog AND_LOG exprRel
-          | exprLog OR_LOG exprRel
-          | exprRel ;
+io
+    ::= CIN L_PAREN ID R_PAREN
+    | COUT L_PAREN expresion R_PAREN
+    | CIN error ID R_PAREN
+        {: parser.report_error("Se esperaba '<|' en 'cin'", null); :}
+    | CIN L_PAREN ID error
+        {: parser.report_error("Se esperaba '|>' para cerrar 'cin'", null); :}
+    | COUT error expresion R_PAREN
+        {: parser.report_error("Se esperaba '<|' en 'cout'", null); :}
+    | COUT L_PAREN expresion error
+        {: parser.report_error("Se esperaba '|>' para cerrar 'cout'", null); :}
+    ;
 
-exprRel ::= GREATER_T L_PAREN expr COMMA expr R_PAREN
-          | LESS_T L_PAREN expr COMMA expr R_PAREN
-          | GREATER_TE L_PAREN expr COMMA expr R_PAREN
-          | LESS_TE L_PAREN expr COMMA expr R_PAREN
-          | EQUAL_OP L_PAREN expr COMMA expr R_PAREN
-          | N_EQUAL L_PAREN expr COMMA expr R_PAREN
-          | exprArit ;
+retorno
+    ::= RETURN SEPARATOR expresion
+    | RETURN error expresion
+        {: parser.report_error("Se esperaba '~' despues de 'return'", null); :}
+    | RETURN SEPARATOR error
+        {: parser.report_error("Se esperaba una expresion despues de 'return ~'", null); :}
+    ;
 
-exprArit ::= exprArit PLUS termino
-           | exprArit MINUS termino
-           | termino ;
+breakSt
+    ::= BREAK
+    ;
 
-termino ::= termino TIMES potencia
-          | termino DIV potencia
-          | termino MOD potencia
-          | potencia ;
+expresion
+    ::= orExpr
+    ;
 
-potencia ::= factor POW potencia
-           | factor ;
+orExpr
+    ::= andExpr orTail
+    ;
 
-factor ::= MINUS factor %prec UMINUS
-         | base ;
+orTail
+    ::=
+    | OR_LOG andExpr orTail
+    | OR_LOG error
+        {: parser.report_error("Expresion invalida despues de '#'", null); :}
+    ;
 
-/* BASE (CLAVE) */
+andExpr
+    ::= notExpr andTail
+    ;
 
-base ::= literal
-       | ID idTail
-       | L_PAREN expr R_PAREN ;
+andTail
+    ::=
+    | AND_LOG notExpr andTail
+    | AND_LOG error
+        {: parser.report_error("Expresion invalida despues de '@'", null); :}
+    ;
 
-literal ::= LIT_ENTERO
-          | LIT_FLOTANTE
-          | LIT_FRACCION
-          | LIT_EXPONENTE
-          | TRUE
-          | FALSE
-          | LIT_CHAR
-          | LIT_STRING ;
+notExpr
+    ::= NOT_LOG notExpr
+    | relExpr
+    ;
 
-/* ID TAIL (factorización) */
+relExpr
+    ::= EQUAL L_PAREN expresion COMMA expresion R_PAREN
+    | N_EQUAL L_PAREN expresion COMMA expresion R_PAREN
+    | LESS_T L_PAREN expresion COMMA expresion R_PAREN
+    | LESS_TE L_PAREN expresion COMMA expresion R_PAREN
+    | GREATHER_T L_PAREN expresion COMMA expresion R_PAREN
+    | GREATHER_TE L_PAREN expresion COMMA expresion R_PAREN
+    | EQUAL L_PAREN expresion error expresion R_PAREN
+        {: parser.report_error("Se esperaba ',' entre los argumentos de 'equal'", null); :}
+    | N_EQUAL L_PAREN expresion error expresion R_PAREN
+        {: parser.report_error("Se esperaba ',' entre los argumentos de 'n_equal'", null); :}
+    | LESS_T L_PAREN expresion error expresion R_PAREN
+        {: parser.report_error("Se esperaba ',' entre los argumentos de 'less_t'", null); :}
+    | LESS_TE L_PAREN expresion error expresion R_PAREN
+        {: parser.report_error("Se esperaba ',' entre los argumentos de 'less_te'", null); :}
+    | GREATHER_T L_PAREN expresion error expresion R_PAREN
+        {: parser.report_error("Se esperaba ',' entre los argumentos de 'greather_t'", null); :}
+    | GREATHER_TE L_PAREN expresion error expresion R_PAREN
+        {: parser.report_error("Se esperaba ',' entre los argumentos de 'greather_te'", null); :}
+    | aritExpr
+    ;
 
-idTail ::= L_ARRAY expr COMMA expr R_ARRAY
-         | L_PAREN args R_PAREN
-         | /* empty */ ;
+aritExpr
+    ::= termino aritTail
+    ;
 
-/* LLAMADAS */
+aritTail
+    ::=
+    | PLUS termino aritTail
+    | MINUS termino aritTail
+    | PLUS error
+        {: parser.report_error("Expresion invalida despues de '+'", null); :}
+    | MINUS error
+        {: parser.report_error("Expresion invalida despues de '-'", null); :}
+    ;
 
-args ::= lista_args
-       | /* empty */ ;
+termino
+    ::= potencia terminoTail
+    ;
 
-lista_args ::= lista_args COMMA expr
-             | expr ;
+terminoTail
+    ::=
+    | TIMES potencia terminoTail
+    | DIV potencia terminoTail
+    | MOD potencia terminoTail
+    | TIMES error
+        {: parser.report_error("Expresion invalida despues de '*'", null); :}
+    | DIV error
+        {: parser.report_error("Expresion invalida despues de '/'", null); :}
+    | MOD error
+        {: parser.report_error("Expresion invalida despues de '%'", null); :}
+    ;
 
-/* CONTROL */
+potencia
+    ::= factor
+    | factor POW potencia
+    | factor POW error
+        {: parser.report_error("Expresion invalida despues de '^'", null); :}
+    ;
 
-control ::= ifElse
-          | doWhile
-          | switch_stmt ;
+factor
+    ::= MINUS factor
+    | INC factor
+    | DEC factor
+    | base
+    ;
 
-ifElse ::= IF L_PAREN expr R_PAREN bloque
-         | IF L_PAREN expr R_PAREN bloque ELSE bloque
-         | IF L_PAREN error R_PAREN bloque           /* recuperacion: condicion invalida en if */
-         | IF L_PAREN error R_PAREN bloque ELSE bloque ;
+base
+    ::= literal
+    | ID
+    | accesoArreglo
+    | idFuncion
+    | L_PAREN expresion R_PAREN
+    | L_PAREN expresion error
+        {: parser.report_error("Se esperaba '|>' para cerrar la expresion entre parentesis", null); :}
+    | L_PAREN error R_PAREN
+        {: parser.report_error("Expresion vacia o invalida entre '<|' y '|>'", null); :}
+    ;
 
-doWhile ::= DO bloque WHILE L_PAREN expr R_PAREN
-          | DO bloque WHILE L_PAREN error R_PAREN  /* recuperacion: condicion invalida en while */
-          ;
+idFuncion
+    ::= ID L_PAREN args R_PAREN
+    | ID L_PAREN args error
+        {: parser.report_error("Se esperaba '|>' para cerrar la llamada a funcion", null); :}
+    ;
 
-switch_stmt ::= SWITCH L_PAREN expr R_PAREN L_BLOCK casos R_BLOCK
-              | SWITCH L_PAREN error R_PAREN L_BLOCK casos R_BLOCK  /* recuperacion: expr invalida en switch */
-              ;
+args
+    ::=
+    | listaArgs
+    ;
 
-break_stmt ::= BREAK ;
+listaArgs
+    ::= listaArgs COMMA expresion
+    | expresion
+    | listaArgs COMMA error
+        {: parser.report_error("Argumento invalido en llamada a funcion", null); :}
+    ;
 
-casos ::= casos caso
-        | caso ;
-
-caso ::= CASE LIT_ENTERO SEPARATOR bloque
-       | DEFAULT SEPARATOR bloque
-       | CASE error SEPARATOR bloque  /* recuperacion: etiqueta de case invalida */
-       ;
-
-/* IO */
-
-io ::= lectura | escritura ;
-
-lectura ::= CIN SEPARATOR ID ;
-
-escritura ::= COUT SEPARATOR salida ;
-
-salida ::= salida COMMA expr
-         | expr ;
-
-retorno ::= RETURN SEPARATOR expr ;
-
+literal
+    ::= LIT_ENTERO
+    | LIT_FLOTANTE
+    | LIT_FRACCION
+    | LIT_EXPONENTE
+    | TRUE
+    | FALSE
+    | LIT_CHAR
+    | LIT_STRING
+    ;
