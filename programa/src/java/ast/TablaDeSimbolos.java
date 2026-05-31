@@ -98,6 +98,12 @@ public class TablaDeSimbolos {
                 + ubicacion + ". Se obtuvo " + operando);
     }
 
+    public void reportarCondicionNoBooleana(TipoDato recibido, int linea) {
+        String ubicacion = linea > 0 ? " en linea " + linea : "";
+        erroresSemanticos.add("Error semantico: condicion debe ser de tipo bool" + ubicacion
+                + ", se encontro " + recibido);
+    }
+
     private void reportarVariableNoDeclarada(String nombre, int linea) {
         String ubicacion = linea > 0 ? " en linea " + linea : "";
         erroresSemanticos.add("Error semantico: variable no declarada '" + nombre + "'" + ubicacion);
