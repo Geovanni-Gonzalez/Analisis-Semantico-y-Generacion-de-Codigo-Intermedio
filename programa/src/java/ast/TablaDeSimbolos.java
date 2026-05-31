@@ -86,6 +86,18 @@ public class TablaDeSimbolos {
                 + ". Se esperaba " + esperado + " y se obtuvo " + recibido);
     }
 
+    public void reportarOperacionIncompatible(String operador, TipoDato izquierda, TipoDato derecha, int linea) {
+        String ubicacion = linea > 0 ? " en linea " + linea : "";
+        erroresSemanticos.add("Error semantico: tipos incompatibles para operador '" + operador + "'"
+                + ubicacion + ". Se obtuvo " + izquierda + " y " + derecha);
+    }
+
+    public void reportarOperacionIncompatible(String operador, TipoDato operando, int linea) {
+        String ubicacion = linea > 0 ? " en linea " + linea : "";
+        erroresSemanticos.add("Error semantico: tipo incompatible para operador '" + operador + "'"
+                + ubicacion + ". Se obtuvo " + operando);
+    }
+
     private void reportarVariableNoDeclarada(String nombre, int linea) {
         String ubicacion = linea > 0 ? " en linea " + linea : "";
         erroresSemanticos.add("Error semantico: variable no declarada '" + nombre + "'" + ubicacion);

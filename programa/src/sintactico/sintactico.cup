@@ -154,21 +154,34 @@ parser code {:
 
         String operador = expresion.getOperador();
         if ("#".equals(operador) || "@".equals(operador)) {
-            return izquierda == TipoDato.BOOL && derecha == TipoDato.BOOL ? TipoDato.BOOL : TipoDato.ERROR;
+            if (izquierda == TipoDato.BOOL && derecha == TipoDato.BOOL) {
+                return TipoDato.BOOL;
+            }
+            tablaSimbolos.reportarOperacionIncompatible(operador, izquierda, derecha, expresion.getLinea());
+            return TipoDato.ERROR;
         }
         if ("equal".equals(operador) || "n_equal".equals(operador)) {
-            return izquierda == derecha ? TipoDato.BOOL : TipoDato.ERROR;
+            if (izquierda == derecha) {
+                return TipoDato.BOOL;
+            }
+            tablaSimbolos.reportarOperacionIncompatible(operador, izquierda, derecha, expresion.getLinea());
+            return TipoDato.ERROR;
         }
         if ("less_t".equals(operador) || "less_te".equals(operador)
                 || "greather_t".equals(operador) || "greather_te".equals(operador)) {
-            return izquierda.esNumerico() && derecha.esNumerico() ? TipoDato.BOOL : TipoDato.ERROR;
+            if (izquierda == derecha) {
+                return TipoDato.BOOL;
+            }
+            tablaSimbolos.reportarOperacionIncompatible(operador, izquierda, derecha, expresion.getLinea());
+            return TipoDato.ERROR;
         }
         if ("+".equals(operador) || "-".equals(operador) || "*".equals(operador)
                 || "/".equals(operador) || "%".equals(operador) || "^".equals(operador)) {
-            if (!izquierda.esNumerico() || !derecha.esNumerico()) {
-                return TipoDato.ERROR;
+            if (izquierda.esNumerico() && derecha.esNumerico() && izquierda == derecha) {
+                return izquierda;
             }
-            return izquierda == TipoDato.FLOAT || derecha == TipoDato.FLOAT ? TipoDato.FLOAT : TipoDato.INT;
+            tablaSimbolos.reportarOperacionIncompatible(operador, izquierda, derecha, expresion.getLinea());
+            return TipoDato.ERROR;
         }
 
         return TipoDato.ERROR;
@@ -182,10 +195,18 @@ parser code {:
 
         String operador = expresion.getOperador();
         if ("$".equals(operador)) {
-            return tipo == TipoDato.BOOL ? TipoDato.BOOL : TipoDato.ERROR;
+            if (tipo == TipoDato.BOOL) {
+                return TipoDato.BOOL;
+            }
+            tablaSimbolos.reportarOperacionIncompatible(operador, tipo, expresion.getLinea());
+            return TipoDato.ERROR;
         }
         if ("-".equals(operador) || "++".equals(operador) || "--".equals(operador)) {
-            return tipo.esNumerico() ? tipo : TipoDato.ERROR;
+            if (tipo.esNumerico()) {
+                return tipo;
+            }
+            tablaSimbolos.reportarOperacionIncompatible(operador, tipo, expresion.getLinea());
+            return TipoDato.ERROR;
         }
 
         return TipoDato.ERROR;
@@ -202,62 +223,7 @@ parser code {:
     }
 
     public TipoDato tipoExpresion(ExpresionNodo expresion) {
-        if (expresion == null) {
-            return TipoDato.DESCONOCIDO;
-        }
-
-        if (expresion instanceof IdentificadorNodo) {
-            Simbolo simbolo = tablaSimbolos.buscar(((IdentificadorNodo) expresion).getNombre(),
-                    expresion.getLinea());
-            expresion.setTipo(simbolo.getTipo());
-            return expresion.getTipo();
-        }
-
-        if (expresion instanceof AccesoArregloNodo) {
-            Simbolo simbolo = tablaSimbolos.buscar(((AccesoArregloNodo) expresion).getNombre(),
-                    expresion.getLinea());
-            expresion.setTipo(simbolo.getTipo());
-            return expresion.getTipo();
-        }
-
-        if (expresion instanceof LlamadaFuncionNodo) {
-            Simbolo simbolo = tablaSimbolos.buscar(((LlamadaFuncionNodo) expresion).getNombre(),
-                    expresion.getLinea());
-            expresion.setTipo(simbolo.getTipoRetorno() != null ? simbolo.getTipoRetorno() : simbolo.getTipo());
-            return expresion.getTipo();
-        }
-
-        if (expresion instanceof ExpresionUnariaNodo) {
-            ExpresionUnariaNodo unaria = (ExpresionUnariaNodo) expresion;
-            TipoDato tipoOperando = tipoExpresion(unaria.getExpresion());
-            expresion.setTipo("$".equals(unaria.getOperador()) ? TipoDato.BOOL : tipoOperando);
-            return expresion.getTipo();
-        }
-
-        if (expresion instanceof ExpresionBinariaNodo) {
-            ExpresionBinariaNodo binaria = (ExpresionBinariaNodo) expresion;
-            TipoDato tipoIzquierda = tipoExpresion(binaria.getIzquierda());
-            TipoDato tipoDerecha = tipoExpresion(binaria.getDerecha());
-            String operador = binaria.getOperador();
-
-            if ("@".equals(operador) || "#".equals(operador) || "equal".equals(operador)
-                    || "n_equal".equals(operador) || "less_t".equals(operador)
-                    || "less_te".equals(operador) || "greather_t".equals(operador)
-                    || "greather_te".equals(operador)) {
-                expresion.setTipo(TipoDato.BOOL);
-            } else if (tipoIzquierda == TipoDato.FLOAT || tipoDerecha == TipoDato.FLOAT) {
-                expresion.setTipo(TipoDato.FLOAT);
-            } else if (tipoIzquierda == TipoDato.INT && tipoDerecha == TipoDato.INT) {
-                expresion.setTipo(TipoDato.INT);
-            } else if (tipoIzquierda == TipoDato.ERROR || tipoDerecha == TipoDato.ERROR) {
-                expresion.setTipo(TipoDato.ERROR);
-            } else {
-                expresion.setTipo(TipoDato.DESCONOCIDO);
-            }
-            return expresion.getTipo();
-        }
-
-        return expresion.getTipo();
+        return evaluarTipo(expresion);
     }
 
     private void insertarSimbolo(Simbolo simbolo) {
@@ -1054,7 +1020,10 @@ breakSt
 /* Expresion general, iniciando en el nivel de menor precedencia. */
 expresion
     ::= orExpr:e
-        {: RESULT = e; :}
+        {:
+            parser.evaluarTipo(e);
+            RESULT = e;
+        :}
     ;
 
 /* Expresion disyuntiva formada por conjunciones. */
