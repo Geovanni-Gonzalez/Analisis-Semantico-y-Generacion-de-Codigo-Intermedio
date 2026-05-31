@@ -66,8 +66,90 @@ parser code {:
         insertarSimbolo(new Simbolo(nombre, tipo, CategoriaSimb.VAR, linea));
     }
 
+    public void registrarDeclaracionVariable(String nombre, TipoDato tipo, ExpresionNodo inicializador,
+                                             int linea) {
+        if (!tipo.esDeclarableVariable()) {
+            tablaSimbolos.reportarTipoDeclaracionInvalido(tipo, linea);
+            return;
+        }
+
+        if (tablaSimbolos.existeEnAlcanceActual(nombre)) {
+            insertarSimbolo(new Simbolo(nombre, tipo, CategoriaSimb.VAR, linea));
+            return;
+        }
+
+        if (inicializador != null) {
+            TipoDato tipoInicializador = tipoExpresion(inicializador);
+            if (!tipo.esCompatibleCon(tipoInicializador)) {
+                tablaSimbolos.reportarAsignacionIncompatible(tipoInicializador, tipo, linea);
+                return;
+            }
+        }
+
+        insertarSimbolo(new Simbolo(nombre, tipo, CategoriaSimb.VAR, linea));
+    }
+
     public void usarIdentificador(String nombre, int linea) {
         tablaSimbolos.buscar(nombre, linea);
+    }
+
+    public TipoDato tipoExpresion(ExpresionNodo expresion) {
+        if (expresion == null) {
+            return TipoDato.DESCONOCIDO;
+        }
+
+        if (expresion instanceof IdentificadorNodo) {
+            Simbolo simbolo = tablaSimbolos.buscar(((IdentificadorNodo) expresion).getNombre(),
+                    expresion.getLinea());
+            expresion.setTipo(simbolo.getTipo());
+            return expresion.getTipo();
+        }
+
+        if (expresion instanceof AccesoArregloNodo) {
+            Simbolo simbolo = tablaSimbolos.buscar(((AccesoArregloNodo) expresion).getNombre(),
+                    expresion.getLinea());
+            expresion.setTipo(simbolo.getTipo());
+            return expresion.getTipo();
+        }
+
+        if (expresion instanceof LlamadaFuncionNodo) {
+            Simbolo simbolo = tablaSimbolos.buscar(((LlamadaFuncionNodo) expresion).getNombre(),
+                    expresion.getLinea());
+            expresion.setTipo(simbolo.getTipoRetorno() != null ? simbolo.getTipoRetorno() : simbolo.getTipo());
+            return expresion.getTipo();
+        }
+
+        if (expresion instanceof ExpresionUnariaNodo) {
+            ExpresionUnariaNodo unaria = (ExpresionUnariaNodo) expresion;
+            TipoDato tipoOperando = tipoExpresion(unaria.getExpresion());
+            expresion.setTipo("$".equals(unaria.getOperador()) ? TipoDato.BOOL : tipoOperando);
+            return expresion.getTipo();
+        }
+
+        if (expresion instanceof ExpresionBinariaNodo) {
+            ExpresionBinariaNodo binaria = (ExpresionBinariaNodo) expresion;
+            TipoDato tipoIzquierda = tipoExpresion(binaria.getIzquierda());
+            TipoDato tipoDerecha = tipoExpresion(binaria.getDerecha());
+            String operador = binaria.getOperador();
+
+            if ("@".equals(operador) || "#".equals(operador) || "equal".equals(operador)
+                    || "n_equal".equals(operador) || "less_t".equals(operador)
+                    || "less_te".equals(operador) || "greather_t".equals(operador)
+                    || "greather_te".equals(operador)) {
+                expresion.setTipo(TipoDato.BOOL);
+            } else if (tipoIzquierda == TipoDato.FLOAT || tipoDerecha == TipoDato.FLOAT) {
+                expresion.setTipo(TipoDato.FLOAT);
+            } else if (tipoIzquierda == TipoDato.INT && tipoDerecha == TipoDato.INT) {
+                expresion.setTipo(TipoDato.INT);
+            } else if (tipoIzquierda == TipoDato.ERROR || tipoDerecha == TipoDato.ERROR) {
+                expresion.setTipo(TipoDato.ERROR);
+            } else {
+                expresion.setTipo(TipoDato.DESCONOCIDO);
+            }
+            return expresion.getTipo();
+        }
+
+        return expresion.getTipo();
     }
 
     private void insertarSimbolo(Simbolo simbolo) {
@@ -450,23 +532,23 @@ sentencia
 creacion
     ::= BOOL:t SEPARATOR ID:id restoVariable:r
         {:
-            parser.registrarVariable(id, TipoDato.BOOL, idleft);
+            parser.registrarDeclaracionVariable(id, TipoDato.BOOL, r, idleft);
             RESULT = new DeclaracionVariableNodo(tleft, tright, id, TipoDato.BOOL, r);
         :}
     | CHAR_TYPE:t SEPARATOR ID:id restoVariable:r
         {:
-            parser.registrarVariable(id, TipoDato.CHAR, idleft);
+            parser.registrarDeclaracionVariable(id, TipoDato.CHAR, r, idleft);
             RESULT = new DeclaracionVariableNodo(tleft, tright, id, TipoDato.CHAR, r);
         :}
     | STRING_TYPE:t SEPARATOR ID:id restoVariable:r
         {:
-            parser.registrarVariable(id, TipoDato.STRING, idleft);
+            parser.registrarDeclaracionVariable(id, TipoDato.STRING, r, idleft);
             RESULT = new DeclaracionVariableNodo(tleft, tright, id, TipoDato.STRING, r);
         :}
     | INT:t SEPARATOR ID:id restoNumerico:r
         {:
-            parser.registrarVariable(id, TipoDato.INT, idleft);
             DeclaracionSufijo s = (DeclaracionSufijo) r;
+            parser.registrarDeclaracionVariable(id, TipoDato.INT, s.inicializador, idleft);
             RESULT = s.esArreglo()
                     ? new DeclaracionVariableNodo(tleft, tright, id, TipoDato.INT,
                             s.filas, s.columnas, s.inicializacionArreglo)
@@ -474,8 +556,8 @@ creacion
         :}
     | FLOAT:t SEPARATOR ID:id restoNumerico:r
         {:
-            parser.registrarVariable(id, TipoDato.FLOAT, idleft);
             DeclaracionSufijo s = (DeclaracionSufijo) r;
+            parser.registrarDeclaracionVariable(id, TipoDato.FLOAT, s.inicializador, idleft);
             RESULT = s.esArreglo()
                     ? new DeclaracionVariableNodo(tleft, tright, id, TipoDato.FLOAT,
                             s.filas, s.columnas, s.inicializacionArreglo)
@@ -484,26 +566,26 @@ creacion
     | BOOL:t error ID:id restoVariable:r
         {:
             parser.report_error("Se esperaba '~' entre 'bool' y el identificador", null);
-            parser.registrarVariable(id, TipoDato.BOOL, idleft);
+            parser.registrarDeclaracionVariable(id, TipoDato.BOOL, r, idleft);
             RESULT = new DeclaracionVariableNodo(tleft, tright, id, TipoDato.BOOL, r);
         :}
     | CHAR_TYPE:t error ID:id restoVariable:r
         {:
             parser.report_error("Se esperaba '~' entre 'char' y el identificador", null);
-            parser.registrarVariable(id, TipoDato.CHAR, idleft);
+            parser.registrarDeclaracionVariable(id, TipoDato.CHAR, r, idleft);
             RESULT = new DeclaracionVariableNodo(tleft, tright, id, TipoDato.CHAR, r);
         :}
     | STRING_TYPE:t error ID:id restoVariable:r
         {:
             parser.report_error("Se esperaba '~' entre 'string' y el identificador", null);
-            parser.registrarVariable(id, TipoDato.STRING, idleft);
+            parser.registrarDeclaracionVariable(id, TipoDato.STRING, r, idleft);
             RESULT = new DeclaracionVariableNodo(tleft, tright, id, TipoDato.STRING, r);
         :}
     | INT:t error ID:id restoNumerico:r
         {:
             parser.report_error("Se esperaba '~' entre 'int' y el identificador", null);
-            parser.registrarVariable(id, TipoDato.INT, idleft);
             DeclaracionSufijo s = (DeclaracionSufijo) r;
+            parser.registrarDeclaracionVariable(id, TipoDato.INT, s.inicializador, idleft);
             RESULT = s.esArreglo()
                     ? new DeclaracionVariableNodo(tleft, tright, id, TipoDato.INT,
                             s.filas, s.columnas, s.inicializacionArreglo)
@@ -512,8 +594,8 @@ creacion
     | FLOAT:t error ID:id restoNumerico:r
         {:
             parser.report_error("Se esperaba '~' entre 'float' y el identificador", null);
-            parser.registrarVariable(id, TipoDato.FLOAT, idleft);
             DeclaracionSufijo s = (DeclaracionSufijo) r;
+            parser.registrarDeclaracionVariable(id, TipoDato.FLOAT, s.inicializador, idleft);
             RESULT = s.esArreglo()
                     ? new DeclaracionVariableNodo(tleft, tright, id, TipoDato.FLOAT,
                             s.filas, s.columnas, s.inicializacionArreglo)

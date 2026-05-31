@@ -40,6 +40,17 @@ public class TablaDeSimbolos {
         alcances.peek().put(nombre, simbolo);
     }
 
+    public void reportarTipoDeclaracionInvalido(TipoDato tipo, int linea) {
+        erroresSemanticos.add("Error semántico [línea " + linea
+                + "]: tipo declarado inválido '" + tipo + "'.");
+    }
+
+    public void reportarAsignacionIncompatible(TipoDato tipoOrigen, TipoDato tipoDestino, int linea) {
+        erroresSemanticos.add("Error semántico [línea " + linea
+                + "]: no se puede asignar tipo " + tipoOrigen
+                + " a variable de tipo " + tipoDestino + ".");
+    }
+
     public Simbolo buscar(String nombre) {
         return buscar(nombre, -1);
     }
@@ -75,8 +86,8 @@ public class TablaDeSimbolos {
     }
 
     private void reportarRedeclaracion(String nombre, int linea) {
-        String ubicacion = linea > 0 ? " en linea " + linea : "";
-        erroresSemanticos.add("Error semantico: redeclaracion de simbolo '" + nombre + "'" + ubicacion);
+        erroresSemanticos.add("Error semántico [línea " + linea
+                + "]: '" + nombre + "' ya está declarado en este alcance.");
     }
 
     private void insertarSimboloError(Simbolo simbolo) {
