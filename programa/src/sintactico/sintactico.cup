@@ -66,6 +66,10 @@ parser code {:
         insertarSimbolo(new Simbolo(nombre, tipo, CategoriaSimb.VAR, linea));
     }
 
+    public void usarIdentificador(String nombre, int linea) {
+        tablaSimbolos.buscar(nombre, linea);
+    }
+
     private void insertarSimbolo(Simbolo simbolo) {
         try {
             tablaSimbolos.insertar(simbolo);
@@ -632,7 +636,10 @@ valoresArreglo
 /* Asignacion a variable simple o posicion de arreglo. */
 asignacion
     ::= ID:id ASSIGN expresion:e
-        {: RESULT = new AsignacionNodo(idleft, idright, new IdentificadorNodo(idleft, idright, id), e); :}
+        {:
+            parser.usarIdentificador(id, idleft);
+            RESULT = new AsignacionNodo(idleft, idright, new IdentificadorNodo(idleft, idright, id), e);
+        :}
     | accesoArreglo:a ASSIGN expresion:e
         {: RESULT = new AsignacionNodo(aleft, aright, a, e); :}
     | ID:id ASSIGN error
@@ -652,9 +659,15 @@ asignacion
 /* Acceso bidimensional de arreglo con indices en una pareja o en dos pares. */
 accesoArreglo
     ::= ID:id L_ARRAY expresion:f COMMA expresion:c R_ARRAY
-        {: RESULT = new AccesoArregloNodo(idleft, idright, id, f, c); :}
+        {:
+            parser.usarIdentificador(id, idleft);
+            RESULT = new AccesoArregloNodo(idleft, idright, id, f, c);
+        :}
     | ID:id L_ARRAY expresion:f R_ARRAY L_ARRAY expresion:c R_ARRAY
-        {: RESULT = new AccesoArregloNodo(idleft, idright, id, f, c); :}
+        {:
+            parser.usarIdentificador(id, idleft);
+            RESULT = new AccesoArregloNodo(idleft, idright, id, f, c);
+        :}
     | ID:id L_ARRAY expresion:f error expresion:c R_ARRAY
         {:
             parser.report_error("Se esperaba ',' entre los dos indices del arreglo", null);
@@ -790,7 +803,10 @@ caso
 /* Entrada y salida: cin recibe un identificador y cout imprime una expresion. */
 io
     ::= CIN:c L_PAREN ID:id R_PAREN
-        {: RESULT = new EntradaNodo(cleft, cright, id); :}
+        {:
+            parser.usarIdentificador(id, idleft);
+            RESULT = new EntradaNodo(cleft, cright, id);
+        :}
     | COUT:c L_PAREN expresion:e R_PAREN
         {: RESULT = new SalidaNodo(cleft, cright, e); :}
     | CIN:c error ID:id R_PAREN
@@ -1004,7 +1020,10 @@ base
     ::= literal:l
         {: RESULT = l; :}
     | ID:id
-        {: RESULT = new IdentificadorNodo(idleft, idright, id); :}
+        {:
+            parser.usarIdentificador(id, idleft);
+            RESULT = new IdentificadorNodo(idleft, idright, id);
+        :}
     | accesoArreglo:a
         {: RESULT = a; :}
     | idFuncion:f
@@ -1026,7 +1045,10 @@ base
 /* Llamada a funcion por identificador con argumentos opcionales. */
 idFuncion
     ::= ID:id L_PAREN args:a R_PAREN
-        {: RESULT = new LlamadaFuncionNodo(idleft, idright, id, a); :}
+        {:
+            parser.usarIdentificador(id, idleft);
+            RESULT = new LlamadaFuncionNodo(idleft, idright, id, a);
+        :}
     | ID:id L_PAREN args:a error
         {:
             parser.report_error("Se esperaba '|>' para cerrar la llamada a funcion", null);
