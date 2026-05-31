@@ -309,14 +309,21 @@ parser code {:
     public void report_error(String message, Object info) {
         numErrores++;
         StringBuilder sb = new StringBuilder("[Error sintactico #" + numErrores + "]");
+        Symbol s = null;
         if (info instanceof Symbol) {
-            Symbol s = (Symbol) info;
+            s = (Symbol) info;
+        } else if (cur_token != null) {
+            s = cur_token;
+        }
+        if (s != null) {
             if (s.left > 0) {
                 sb.append(" linea ").append(s.left).append(", columna ").append(s.right);
             }
             if (s.value != null) {
                 sb.append(" token: '").append(s.value).append("'");
             }
+        } else {
+            sb.append(" linea desconocida");
         }
         sb.append(" - ").append(message);
         erroresSintacticos.add(sb.toString());
@@ -503,6 +510,17 @@ funcion
                     (String) firma[1], (TipoDato) firma[0], p,
                     new BloqueNodo(((Integer) firma[2]).intValue(), ((Integer) firma[3]).intValue(),
                             new java.util.ArrayList()), false);
+            parser.cerrarFuncion();
+        :}
+    | firmaFuncion:f L_PAREN error R_PAREN bloque:b
+        {:
+            Object[] firma = (Object[]) f;
+            java.util.List parametros = new java.util.ArrayList();
+            parser.actualizarFirmaFuncion((String) firma[1], (TipoDato) firma[0], parametros,
+                    ((Integer) firma[4]).intValue());
+            parser.report_error("Parametros invalidos en declaracion de funcion; se descarta hasta '|>'", null);
+            RESULT = new FuncionNodo(((Integer) firma[2]).intValue(), ((Integer) firma[3]).intValue(),
+                    (String) firma[1], (TipoDato) firma[0], parametros, b, false);
             parser.cerrarFuncion();
         :}
     ;
@@ -764,6 +782,36 @@ creacion
                     ? new DeclaracionVariableNodo(tleft, tright, id, TipoDato.FLOAT,
                             s.filas, s.columnas, s.inicializacionArreglo)
                     : new DeclaracionVariableNodo(tleft, tright, id, TipoDato.FLOAT, s.inicializador);
+        :}
+    | BOOL:t SEPARATOR error
+        {:
+            parser.report_error("Declaracion de variable 'bool' mal formada; se descarta hasta un sincronizador", null);
+            RESULT = new DeclaracionVariableNodo(tleft, tright, "<error>", TipoDato.BOOL,
+                    new LiteralNodo(tleft, tright, null, TipoDato.DESCONOCIDO));
+        :}
+    | CHAR_TYPE:t SEPARATOR error
+        {:
+            parser.report_error("Declaracion de variable 'char' mal formada; se descarta hasta un sincronizador", null);
+            RESULT = new DeclaracionVariableNodo(tleft, tright, "<error>", TipoDato.CHAR,
+                    new LiteralNodo(tleft, tright, null, TipoDato.DESCONOCIDO));
+        :}
+    | STRING_TYPE:t SEPARATOR error
+        {:
+            parser.report_error("Declaracion de variable 'string' mal formada; se descarta hasta un sincronizador", null);
+            RESULT = new DeclaracionVariableNodo(tleft, tright, "<error>", TipoDato.STRING,
+                    new LiteralNodo(tleft, tright, null, TipoDato.DESCONOCIDO));
+        :}
+    | INT:t SEPARATOR error
+        {:
+            parser.report_error("Declaracion de variable 'int' mal formada; se descarta hasta un sincronizador", null);
+            RESULT = new DeclaracionVariableNodo(tleft, tright, "<error>", TipoDato.INT,
+                    new LiteralNodo(tleft, tright, null, TipoDato.DESCONOCIDO));
+        :}
+    | FLOAT:t SEPARATOR error
+        {:
+            parser.report_error("Declaracion de variable 'float' mal formada; se descarta hasta un sincronizador", null);
+            RESULT = new DeclaracionVariableNodo(tleft, tright, "<error>", TipoDato.FLOAT,
+                    new LiteralNodo(tleft, tright, null, TipoDato.DESCONOCIDO));
         :}
     ;
 
