@@ -105,6 +105,10 @@ public class TablaDeSimbolos {
         return Collections.unmodifiableList(erroresSemanticos);
     }
 
+    public void reportarMainObligatorio() {
+        erroresSemanticos.add("Error semantico: el programa debe contener exactamente un método main");
+    }
+
     public void reportarAsignacionIncompatible(String nombre, TipoDato esperado, TipoDato recibido, int linea) {
         String ubicacion = linea > 0 ? " en linea " + linea : "";
         erroresSemanticos.add("Error semantico: asignacion incompatible para '" + nombre + "'" + ubicacion

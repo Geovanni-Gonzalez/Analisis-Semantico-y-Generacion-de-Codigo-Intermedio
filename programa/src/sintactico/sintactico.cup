@@ -15,14 +15,11 @@ parser code {:
 
     public void registrarMain() {
         cantidadMain++;
-        if (cantidadMain > 1) {
-            report_error("El programa debe contener un unico procedimiento inicial '__main__'", null);
-        }
     }
 
     public void verificarMain() {
         if (cantidadMain == 0) {
-            report_error("El programa debe contener exactamente un procedimiento inicial '__main__'", null);
+            tablaSimbolos.reportarMainObligatorio();
         }
     }
 
