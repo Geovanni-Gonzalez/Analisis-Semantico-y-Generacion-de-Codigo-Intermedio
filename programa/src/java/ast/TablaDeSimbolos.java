@@ -47,14 +47,12 @@ public class TablaDeSimbolos {
     }
 
     public void reportarTipoDeclaracionInvalido(TipoDato tipo, int linea) {
-        erroresSemanticos.add("Error semántico [línea " + linea
-                + "]: tipo declarado inválido '" + tipo + "'.");
+        reportar("tipo declarado inválido '" + tipo + "'", linea);
     }
 
     public void reportarAsignacionIncompatible(TipoDato tipoOrigen, TipoDato tipoDestino, int linea) {
-        erroresSemanticos.add("Error semántico [línea " + linea
-                + "]: no se puede asignar tipo " + tipoOrigen
-                + " a variable de tipo " + tipoDestino + ".");
+        reportar("no se puede asignar tipo " + tipoOrigen
+                + " a variable de tipo " + tipoDestino, linea);
     }
 
     public Simbolo buscar(String nombre) {
@@ -116,75 +114,66 @@ public class TablaDeSimbolos {
     }
 
     public void reportarMainObligatorio() {
-        erroresSemanticos.add("Error semantico: el programa debe contener exactamente un método main");
+        reportar("el programa debe contener exactamente un método main", 0);
     }
 
     public void reportarAsignacionIncompatible(String nombre, TipoDato esperado, TipoDato recibido, int linea) {
-        String ubicacion = linea > 0 ? " en linea " + linea : "";
-        erroresSemanticos.add("Error semantico: asignacion incompatible para '" + nombre + "'" + ubicacion
-                + ". Se esperaba " + esperado + " y se obtuvo " + recibido);
+        reportar("asignación incompatible para '" + nombre + "': se esperaba tipo "
+                + esperado + " y se obtuvo tipo " + recibido, linea);
     }
 
     public void reportarOperacionIncompatible(String operador, TipoDato izquierda, TipoDato derecha, int linea) {
-        String ubicacion = linea > 0 ? " en linea " + linea : "";
-        erroresSemanticos.add("Error semantico: tipos incompatibles para operador '" + operador + "'"
-                + ubicacion + ". Se obtuvo " + izquierda + " y " + derecha);
+        reportar("tipos incompatibles para operador '" + operador
+                + "': operando izquierdo de tipo " + izquierda
+                + " y operando derecho de tipo " + derecha, linea);
     }
 
     public void reportarOperacionIncompatible(String operador, TipoDato operando, int linea) {
-        String ubicacion = linea > 0 ? " en linea " + linea : "";
-        erroresSemanticos.add("Error semantico: tipo incompatible para operador '" + operador + "'"
-                + ubicacion + ". Se obtuvo " + operando);
+        reportar("tipo incompatible para operador '" + operador
+                + "': se obtuvo tipo " + operando, linea);
     }
 
     public void reportarCondicionNoBooleana(TipoDato recibido, int linea) {
-        String ubicacion = linea > 0 ? " en linea " + linea : "";
-        erroresSemanticos.add("Error semantico: condicion debe ser de tipo bool" + ubicacion
-                + ", se encontro " + recibido);
+        reportar("la condición debe ser de tipo bool, pero se encontró tipo " + recibido, linea);
     }
 
     public void reportarReturnSinValor(TipoDato esperado, int linea) {
-        String ubicacion = linea > 0 ? " en linea " + linea : "";
-        erroresSemanticos.add("Error semantico: funcion de tipo " + esperado
-                + " debe retornar un valor" + ubicacion);
+        reportar("la función de tipo " + esperado + " debe retornar un valor", linea);
     }
 
     public void reportarReturnConValorEnVoid(int linea) {
-        String ubicacion = linea > 0 ? " en linea " + linea : "";
-        erroresSemanticos.add("Error semantico: funcion void no puede retornar un valor" + ubicacion);
+        reportar("la función void no puede retornar un valor", linea);
     }
 
     public void reportarReturnTipoIncompatible(TipoDato esperado, TipoDato encontrado, int linea) {
-        String ubicacion = linea > 0 ? " en linea " + linea : "";
-        erroresSemanticos.add("Error semantico: tipo incompatible en return" + ubicacion
-                + ". Se esperaba " + esperado + " y se obtuvo " + encontrado);
+        reportar("tipo incompatible en return: se esperaba tipo " + esperado
+                + " y se obtuvo tipo " + encontrado, linea);
     }
 
     public void reportarCantidadArgumentosIncorrecta(int esperados, int encontrados, int linea) {
-        String ubicacion = linea > 0 ? " en linea " + linea : "";
-        erroresSemanticos.add("Error semantico: se esperaban " + esperados
-                + " argumentos, se encontraron " + encontrados + ubicacion);
+        reportar("cantidad de argumentos incorrecta: se esperaban " + esperados
+                + " argumentos y se encontraron " + encontrados, linea);
     }
 
     public void reportarTipoArgumentoIncorrecto(int argumento, TipoDato esperado, TipoDato encontrado, int linea) {
-        String ubicacion = linea > 0 ? " en linea " + linea : "";
-        erroresSemanticos.add("Error semantico: argumento " + argumento + ": se esperaba tipo "
-                + esperado + ", se encontró " + encontrado + ubicacion);
+        reportar("argumento " + argumento + " incompatible: se esperaba tipo "
+                + esperado + " y se encontró tipo " + encontrado, linea);
     }
 
     private void reportarVariableNoDeclarada(String nombre, int linea) {
-        String ubicacion = linea > 0 ? " en linea " + linea : "";
-        erroresSemanticos.add("Error semantico: variable no declarada '" + nombre + "'" + ubicacion);
+        reportar("variable '" + nombre + "' no declarada", linea);
     }
 
     private void reportarFuncionNoDeclarada(String nombre, int linea) {
-        String ubicacion = linea > 0 ? " en linea " + linea : "";
-        erroresSemanticos.add("Error semantico: función '" + nombre + "' no declarada" + ubicacion);
+        reportar("función '" + nombre + "' no declarada", linea);
     }
 
     private void reportarRedeclaracion(String nombre, int linea) {
-        erroresSemanticos.add("Error semántico [línea " + linea
-                + "]: '" + nombre + "' ya está declarado en este alcance.");
+        reportar("'" + nombre + "' ya está declarado en este alcance", linea);
+    }
+
+    private void reportar(String descripcion, int linea) {
+        erroresSemanticos.add(ReportadorErrores.reportarSemantico(linea, 0, descripcion));
     }
 
     private void insertarSimboloError(Simbolo simbolo) {

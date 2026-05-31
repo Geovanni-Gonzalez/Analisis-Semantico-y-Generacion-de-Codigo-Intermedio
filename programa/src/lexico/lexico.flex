@@ -1,4 +1,5 @@
 import java_cup.runtime.*;
+import ast.ReportadorErrores;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -72,8 +73,8 @@ private void errorLexico(String descripcion) {
             .replace("\r", "\\r")
             .replace("\n", "\\n")
             .replace("\t", "\\t");
-    String error = "Error lexico: " + descripcion + " '" + lexema + "' en linea " + (yyline + 1)
-            + ", columna " + (yycolumn + 1);
+    String error = ReportadorErrores.lexico(yyline + 1, yycolumn + 1,
+            descripcion + " '" + lexema + "'");
     erroresLexicos.add(error);
     if (imprimirErrores) {
         System.err.println(error);
@@ -131,8 +132,8 @@ private String informacionPara(int type, String lexema, Object value) {
 
 %eofval{
     if (yystate() == COMMENT) {
-        String error = "Error lexico: comentario multilinea sin cerrar en linea " + (yyline + 1)
-                + ", columna " + (yycolumn + 1);
+        String error = ReportadorErrores.lexico(yyline + 1, yycolumn + 1,
+                "comentario multilinea sin cerrar");
         erroresLexicos.add(error);
         if (imprimirErrores) {
             System.err.println(error);
