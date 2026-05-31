@@ -8,6 +8,8 @@ parser code {:
     private int numErrores = 0;
     private int cantidadMain = 0;
     private TipoDato tipoRetornoActual = TipoDato.DESCONOCIDO;
+    private Symbol tokenPendiente;
+    private Symbol ultimoTokenReal;
 
     public int getNumErrores() {
         return numErrores;
@@ -345,6 +347,82 @@ parser code {:
     public void unrecovered_syntax_error(Symbol curToken) throws Exception {
         report_error("No se pudo recuperar el analisis sintactico", curToken);
     }
+
+    public Symbol siguienteTokenConRecuperacion() throws Exception {
+        if (tokenPendiente != null) {
+            Symbol token = tokenPendiente;
+            tokenPendiente = null;
+            ultimoTokenReal = token;
+            return token;
+        }
+
+        Symbol actual = getScanner().next_token();
+        if (debeInsertarFinSentencia(ultimoTokenReal, actual)) {
+            tokenPendiente = actual;
+            report_error("se insertó ';' para recuperar el análisis", actual);
+            Symbol insertado = new Symbol(sym.END_EXPR, actual.left, actual.right, "!");
+            ultimoTokenReal = insertado;
+            return insertado;
+        }
+
+        ultimoTokenReal = actual;
+        return actual;
+    }
+
+    private boolean debeInsertarFinSentencia(Symbol anterior, Symbol actual) {
+        if (anterior == null || actual == null || anterior.sym == sym.END_EXPR || actual.sym == sym.EOF) {
+            return false;
+        }
+        return actual.left > anterior.left && puedeCerrarSentencia(anterior.sym)
+                && puedeIniciarNuevaUnidad(actual.sym);
+    }
+
+    private boolean puedeCerrarSentencia(int token) {
+        switch (token) {
+            case sym.ID:
+            case sym.LIT_ENTERO:
+            case sym.LIT_FLOTANTE:
+            case sym.LIT_FRACCION:
+            case sym.LIT_EXPONENTE:
+            case sym.LIT_STRING:
+            case sym.LIT_CHAR:
+            case sym.TRUE:
+            case sym.FALSE:
+            case sym.R_PAREN:
+            case sym.R_ARRAY:
+            case sym.BREAK:
+            case sym.RETURN:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    private boolean puedeIniciarNuevaUnidad(int token) {
+        switch (token) {
+            case sym.INT:
+            case sym.FLOAT:
+            case sym.BOOL:
+            case sym.CHAR_TYPE:
+            case sym.STRING_TYPE:
+            case sym.ID:
+            case sym.CIN:
+            case sym.COUT:
+            case sym.RETURN:
+            case sym.BREAK:
+            case sym.IF:
+            case sym.DO:
+            case sym.SWITCH:
+            case sym.R_BLOCK:
+                return true;
+            default:
+                return false;
+        }
+    }
+:};
+
+scan with {:
+    return siguienteTokenConRecuperacion();
 :};
 
 terminal INT, FLOAT, BOOL, CHAR_TYPE, STRING_TYPE;
@@ -675,7 +753,7 @@ sentencia
         {: RESULT = b; :}
     | creacion:c error
         {:
-            parser.report_error("Se esperaba '!' al final de la declaracion", null);
+            parser.report_error("se insertó ';' para recuperar el análisis", null);
             RESULT = c;
         :}
     | asignacion:a error
