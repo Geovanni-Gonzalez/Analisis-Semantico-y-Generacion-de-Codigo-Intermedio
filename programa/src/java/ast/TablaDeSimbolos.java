@@ -13,7 +13,6 @@ public class TablaDeSimbolos {
     public TablaDeSimbolos() {
         this.alcances = new Stack<>();
         this.erroresSemanticos = new ArrayList<>();
-        abrirAlcance();
     }
 
     public void abrirAlcance() {

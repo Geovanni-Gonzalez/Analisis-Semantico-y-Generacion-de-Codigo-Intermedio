@@ -3,6 +3,7 @@ import ast.*;
 
 parser code {:
     public final java.util.List<String> erroresSintacticos = new java.util.ArrayList<>();
+    public final TablaDeSimbolos tablaSimbolos = new TablaDeSimbolos();
     public ProgramaNodo ast;
     private int numErrores = 0;
     private int cantidadMain = 0;
@@ -21,6 +22,55 @@ parser code {:
     public void verificarMain() {
         if (cantidadMain == 0) {
             report_error("El programa debe contener exactamente un procedimiento inicial '__main__'", null);
+        }
+    }
+
+    public void abrirPrograma() {
+        tablaSimbolos.abrirAlcance();
+    }
+
+    public void cerrarPrograma() {
+        tablaSimbolos.cerrarAlcance();
+    }
+
+    public void abrirFuncion(String nombre, TipoDato tipoRetorno, int linea) {
+        registrarFuncion(nombre, tipoRetorno, linea);
+        tablaSimbolos.abrirAlcance();
+    }
+
+    public void cerrarFuncion() {
+        tablaSimbolos.cerrarAlcance();
+    }
+
+    public void abrirBloque() {
+        tablaSimbolos.abrirAlcance();
+    }
+
+    public void cerrarBloque() {
+        tablaSimbolos.cerrarAlcance();
+    }
+
+    private void registrarFuncion(String nombre, TipoDato tipoRetorno, int linea) {
+        try {
+            tablaSimbolos.insertar(new Simbolo(nombre, new java.util.ArrayList<TipoDato>(), tipoRetorno, linea));
+        } catch (IllegalArgumentException ex) {
+            report_error(ex.getMessage(), null);
+        }
+    }
+
+    public void registrarParametro(String nombre, TipoDato tipo, int linea) {
+        insertarSimbolo(new Simbolo(nombre, tipo, CategoriaSimb.PARAMETRO, linea));
+    }
+
+    public void registrarVariable(String nombre, TipoDato tipo, int linea) {
+        insertarSimbolo(new Simbolo(nombre, tipo, CategoriaSimb.VAR, linea));
+    }
+
+    private void insertarSimbolo(Simbolo simbolo) {
+        try {
+            tablaSimbolos.insertar(simbolo);
+        } catch (IllegalArgumentException ex) {
+            report_error(ex.getMessage(), null);
         }
     }
 
@@ -81,6 +131,7 @@ terminal String ID;
 non terminal ProgramaNodo programa;
 non terminal java.util.List miembros, parametrosOpt, parametros, contenido;
 non terminal FuncionNodo miembro, funcion, main;
+non terminal Object inicioPrograma, firmaFuncion, firmaMain, aperturaBloque;
 non terminal TipoDato tipo;
 non terminal ParametroNodo parametro;
 non terminal BloqueNodo bloque;
@@ -108,11 +159,20 @@ start with programa;
 
 /* Programa completo: una secuencia de miembros de nivel superior con un punto de entrada valido. */
 programa
-    ::= miembros:ms
+    ::= inicioPrograma miembros:ms
         {:
             parser.verificarMain();
             RESULT = new ProgramaNodo(msleft, msright, ms);
             parser.ast = (ProgramaNodo) RESULT;
+            parser.cerrarPrograma();
+        :}
+    ;
+
+inicioPrograma
+    ::=
+        {:
+            parser.abrirPrograma();
+            RESULT = null;
         :}
     ;
 
@@ -141,69 +201,88 @@ miembro
 
 /* Procedimiento principal: firma empty ~ __main__<| |> seguida de un bloque. */
 main
-    ::= EMPTY:e SEPARATOR MAIN L_PAREN R_PAREN bloque:b
+    ::= firmaMain:f L_PAREN R_PAREN bloque:b
         {:
+            Object[] firma = (Object[]) f;
             parser.registrarMain();
-            RESULT = new FuncionNodo(eleft, eright, "__main__", TipoDato.EMPTY,
+            RESULT = new FuncionNodo(((Integer) firma[1]).intValue(), ((Integer) firma[2]).intValue(),
+                    "__main__", (TipoDato) firma[0],
                     new java.util.ArrayList(), b, true);
+            parser.cerrarFuncion();
         :}
-    | EMPTY:e SEPARATOR MAIN L_PAREN parametros:p R_PAREN bloque:b
+    | firmaMain:f L_PAREN parametros:p R_PAREN bloque:b
         {:
+            Object[] firma = (Object[]) f;
             parser.registrarMain();
             parser.report_error("El procedimiento '__main__' no debe recibir parametros", null);
-            RESULT = new FuncionNodo(eleft, eright, "__main__", TipoDato.EMPTY, p, b, true);
+            RESULT = new FuncionNodo(((Integer) firma[1]).intValue(), ((Integer) firma[2]).intValue(),
+                    "__main__", (TipoDato) firma[0], p, b, true);
+            parser.cerrarFuncion();
         :}
-    | tipo:t SEPARATOR MAIN L_PAREN parametros:p R_PAREN bloque:b
+    | firmaMain:f error bloque:b
         {:
-            parser.registrarMain();
-            parser.report_error("El procedimiento '__main__' debe ser de tipo 'empty'", null);
-            parser.report_error("El procedimiento '__main__' no debe recibir parametros", null);
-            RESULT = new FuncionNodo(tleft, tright, "__main__", t, p, b, true);
-        :}
-    | tipo:t SEPARATOR MAIN L_PAREN R_PAREN bloque:b
-        {:
-            parser.registrarMain();
-            parser.report_error("El procedimiento '__main__' debe ser de tipo 'empty'", null);
-            RESULT = new FuncionNodo(tleft, tright, "__main__", t,
-                    new java.util.ArrayList(), b, true);
-        :}
-    | EMPTY:e error MAIN L_PAREN R_PAREN bloque:b
-        {:
-            parser.registrarMain();
-            parser.report_error("Se esperaba '~' entre 'empty' y '__main__'", null);
-            RESULT = new FuncionNodo(eleft, eright, "__main__", TipoDato.EMPTY,
-                    new java.util.ArrayList(), b, true);
-        :}
-    | EMPTY:e error MAIN L_PAREN parametros:p R_PAREN bloque:b
-        {:
-            parser.registrarMain();
-            parser.report_error("Se esperaba '~' entre 'empty' y '__main__'", null);
-            parser.report_error("El procedimiento '__main__' no debe recibir parametros", null);
-            RESULT = new FuncionNodo(eleft, eright, "__main__", TipoDato.EMPTY, p, b, true);
-        :}
-    | EMPTY:e SEPARATOR MAIN error bloque:b
-        {:
+            Object[] firma = (Object[]) f;
             parser.registrarMain();
             parser.report_error("Se esperaba '<| |>' en la firma de '__main__'", null);
-            RESULT = new FuncionNodo(eleft, eright, "__main__", TipoDato.EMPTY,
+            RESULT = new FuncionNodo(((Integer) firma[1]).intValue(), ((Integer) firma[2]).intValue(),
+                    "__main__", (TipoDato) firma[0],
                     new java.util.ArrayList(), b, true);
+            parser.cerrarFuncion();
+        :}
+    ;
+
+firmaMain
+    ::= EMPTY:e SEPARATOR MAIN
+        {:
+            parser.abrirFuncion("__main__", TipoDato.EMPTY, eleft);
+            RESULT = new Object[] { TipoDato.EMPTY, Integer.valueOf(eleft), Integer.valueOf(eright) };
+        :}
+    | tipo:t SEPARATOR MAIN
+        {:
+            parser.abrirFuncion("__main__", t, tleft);
+            parser.report_error("El procedimiento '__main__' debe ser de tipo 'empty'", null);
+            RESULT = new Object[] { t, Integer.valueOf(tleft), Integer.valueOf(tright) };
+        :}
+    | EMPTY:e error MAIN
+        {:
+            parser.abrirFuncion("__main__", TipoDato.EMPTY, eleft);
+            parser.report_error("Se esperaba '~' entre 'empty' y '__main__'", null);
+            RESULT = new Object[] { TipoDato.EMPTY, Integer.valueOf(eleft), Integer.valueOf(eright) };
         :}
     ;
 
 /* Funcion regular: tipo de retorno, nombre, parametros opcionales y cuerpo en bloque. */
 funcion
-    ::= tipo:t SEPARATOR ID:id L_PAREN parametrosOpt:p R_PAREN bloque:b
-        {: RESULT = new FuncionNodo(tleft, tright, id, t, p, b, false); :}
-    | tipo:t error ID:id L_PAREN parametrosOpt:p R_PAREN bloque:b
+    ::= firmaFuncion:f L_PAREN parametrosOpt:p R_PAREN bloque:b
         {:
-            parser.report_error("Se esperaba '~' entre el tipo y el nombre de la funcion", null);
-            RESULT = new FuncionNodo(tleft, tright, id, t, p, b, false);
+            Object[] firma = (Object[]) f;
+            RESULT = new FuncionNodo(((Integer) firma[2]).intValue(), ((Integer) firma[3]).intValue(),
+                    (String) firma[1], (TipoDato) firma[0], p, b, false);
+            parser.cerrarFuncion();
         :}
-    | tipo:t SEPARATOR ID:id L_PAREN parametrosOpt:p R_PAREN error
+    | firmaFuncion:f L_PAREN parametrosOpt:p R_PAREN error
         {:
+            Object[] firma = (Object[]) f;
             parser.report_error("Se esperaba un bloque '|: ... :|' en el cuerpo de la funcion", null);
-            RESULT = new FuncionNodo(tleft, tright, id, t, p,
-                    new BloqueNodo(tleft, tright, new java.util.ArrayList()), false);
+            RESULT = new FuncionNodo(((Integer) firma[2]).intValue(), ((Integer) firma[3]).intValue(),
+                    (String) firma[1], (TipoDato) firma[0], p,
+                    new BloqueNodo(((Integer) firma[2]).intValue(), ((Integer) firma[3]).intValue(),
+                            new java.util.ArrayList()), false);
+            parser.cerrarFuncion();
+        :}
+    ;
+
+firmaFuncion
+    ::= tipo:t SEPARATOR ID:id
+        {:
+            parser.abrirFuncion(id, t, idleft);
+            RESULT = new Object[] { t, id, Integer.valueOf(tleft), Integer.valueOf(tright) };
+        :}
+    | tipo:t error ID:id
+        {:
+            parser.abrirFuncion(id, t, idleft);
+            parser.report_error("Se esperaba '~' entre el tipo y el nombre de la funcion", null);
+            RESULT = new Object[] { t, id, Integer.valueOf(tleft), Integer.valueOf(tright) };
         :}
     ;
 
@@ -252,27 +331,43 @@ parametros
 /* Parametro formal: tipo, separador y nombre. */
 parametro
     ::= tipo:t SEPARATOR ID:id
-        {: RESULT = new ParametroNodo(tleft, tright, id, t); :}
+        {:
+            parser.registrarParametro(id, t, idleft);
+            RESULT = new ParametroNodo(tleft, tright, id, t);
+        :}
     | tipo:t error ID:id
         {:
             parser.report_error("Se esperaba '~' entre el tipo y el nombre del parametro", null);
+            parser.registrarParametro(id, t, idleft);
             RESULT = new ParametroNodo(tleft, tright, id, t);
         :}
     ;
 
 /* Bloque de codigo delimitado por |: y :|. */
 bloque
-    ::= L_BLOCK:b contenido:c R_BLOCK
-        {: RESULT = new BloqueNodo(bleft, bright, c); :}
-    | L_BLOCK:b contenido:c error R_BLOCK
+    ::= aperturaBloque:b contenido:c R_BLOCK
+        {:
+            RESULT = new BloqueNodo(bleft, bright, c);
+            parser.cerrarBloque();
+        :}
+    | aperturaBloque:b contenido:c error R_BLOCK
         {:
             parser.report_error("Se descarta contenido invalido hasta el cierre seguro ':|'", null);
             RESULT = new BloqueNodo(bleft, bright, c);
+            parser.cerrarBloque();
         :}
     | error R_BLOCK
         {:
             parser.report_error("Se esperaba '|:' para abrir el bloque", null);
             RESULT = new BloqueNodo(0, 0, new java.util.ArrayList());
+        :}
+    ;
+
+aperturaBloque
+    ::= L_BLOCK
+        {:
+            parser.abrirBloque();
+            RESULT = null;
         :}
     ;
 
@@ -350,13 +445,23 @@ sentencia
 /* Declaracion de variable escalar o arreglo con inicializacion opcional. */
 creacion
     ::= BOOL:t SEPARATOR ID:id restoVariable:r
-        {: RESULT = new DeclaracionVariableNodo(tleft, tright, id, TipoDato.BOOL, r); :}
+        {:
+            parser.registrarVariable(id, TipoDato.BOOL, idleft);
+            RESULT = new DeclaracionVariableNodo(tleft, tright, id, TipoDato.BOOL, r);
+        :}
     | CHAR_TYPE:t SEPARATOR ID:id restoVariable:r
-        {: RESULT = new DeclaracionVariableNodo(tleft, tright, id, TipoDato.CHAR, r); :}
+        {:
+            parser.registrarVariable(id, TipoDato.CHAR, idleft);
+            RESULT = new DeclaracionVariableNodo(tleft, tright, id, TipoDato.CHAR, r);
+        :}
     | STRING_TYPE:t SEPARATOR ID:id restoVariable:r
-        {: RESULT = new DeclaracionVariableNodo(tleft, tright, id, TipoDato.STRING, r); :}
+        {:
+            parser.registrarVariable(id, TipoDato.STRING, idleft);
+            RESULT = new DeclaracionVariableNodo(tleft, tright, id, TipoDato.STRING, r);
+        :}
     | INT:t SEPARATOR ID:id restoNumerico:r
         {:
+            parser.registrarVariable(id, TipoDato.INT, idleft);
             DeclaracionSufijo s = (DeclaracionSufijo) r;
             RESULT = s.esArreglo()
                     ? new DeclaracionVariableNodo(tleft, tright, id, TipoDato.INT,
@@ -365,6 +470,7 @@ creacion
         :}
     | FLOAT:t SEPARATOR ID:id restoNumerico:r
         {:
+            parser.registrarVariable(id, TipoDato.FLOAT, idleft);
             DeclaracionSufijo s = (DeclaracionSufijo) r;
             RESULT = s.esArreglo()
                     ? new DeclaracionVariableNodo(tleft, tright, id, TipoDato.FLOAT,
@@ -374,21 +480,25 @@ creacion
     | BOOL:t error ID:id restoVariable:r
         {:
             parser.report_error("Se esperaba '~' entre 'bool' y el identificador", null);
+            parser.registrarVariable(id, TipoDato.BOOL, idleft);
             RESULT = new DeclaracionVariableNodo(tleft, tright, id, TipoDato.BOOL, r);
         :}
     | CHAR_TYPE:t error ID:id restoVariable:r
         {:
             parser.report_error("Se esperaba '~' entre 'char' y el identificador", null);
+            parser.registrarVariable(id, TipoDato.CHAR, idleft);
             RESULT = new DeclaracionVariableNodo(tleft, tright, id, TipoDato.CHAR, r);
         :}
     | STRING_TYPE:t error ID:id restoVariable:r
         {:
             parser.report_error("Se esperaba '~' entre 'string' y el identificador", null);
+            parser.registrarVariable(id, TipoDato.STRING, idleft);
             RESULT = new DeclaracionVariableNodo(tleft, tright, id, TipoDato.STRING, r);
         :}
     | INT:t error ID:id restoNumerico:r
         {:
             parser.report_error("Se esperaba '~' entre 'int' y el identificador", null);
+            parser.registrarVariable(id, TipoDato.INT, idleft);
             DeclaracionSufijo s = (DeclaracionSufijo) r;
             RESULT = s.esArreglo()
                     ? new DeclaracionVariableNodo(tleft, tright, id, TipoDato.INT,
@@ -398,6 +508,7 @@ creacion
     | FLOAT:t error ID:id restoNumerico:r
         {:
             parser.report_error("Se esperaba '~' entre 'float' y el identificador", null);
+            parser.registrarVariable(id, TipoDato.FLOAT, idleft);
             DeclaracionSufijo s = (DeclaracionSufijo) r;
             RESULT = s.esArreglo()
                     ? new DeclaracionVariableNodo(tleft, tright, id, TipoDato.FLOAT,
