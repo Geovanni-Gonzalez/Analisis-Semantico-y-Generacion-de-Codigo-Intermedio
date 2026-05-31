@@ -69,6 +69,31 @@ public class TablaDeSimbolos {
         return simboloError;
     }
 
+    public Simbolo buscarFuncion(String nombre, int linea) {
+        for (int i = alcances.size() - 1; i >= 0; i--) {
+            Simbolo simbolo = alcances.get(i).get(nombre);
+            if (simbolo != null && simbolo.getCategoria() == CategoriaSimb.FUNCION) {
+                return simbolo;
+            }
+        }
+
+        reportarFuncionNoDeclarada(nombre, linea);
+        return new Simbolo(nombre, TipoDato.ERROR, CategoriaSimb.FUNCION, linea);
+    }
+
+    public void actualizarFirmaFuncion(String nombre, List<TipoDato> tiposParametros,
+                                       TipoDato tipoRetorno, int linea) {
+        for (int i = alcances.size() - 1; i >= 0; i--) {
+            HashMap<String, Simbolo> alcance = alcances.get(i);
+            Simbolo simbolo = alcance.get(nombre);
+            if (simbolo != null && simbolo.getCategoria() == CategoriaSimb.FUNCION
+                    && simbolo.getLinea() == linea) {
+                alcance.put(nombre, new Simbolo(nombre, tiposParametros, tipoRetorno, simbolo.getLinea()));
+                return;
+            }
+        }
+    }
+
     public boolean existeEnAlcanceActual(String nombre) {
         if (alcances.isEmpty()) {
             return false;
@@ -104,9 +129,26 @@ public class TablaDeSimbolos {
                 + ", se encontro " + recibido);
     }
 
+    public void reportarCantidadArgumentosIncorrecta(int esperados, int encontrados, int linea) {
+        String ubicacion = linea > 0 ? " en linea " + linea : "";
+        erroresSemanticos.add("Error semantico: se esperaban " + esperados
+                + " argumentos, se encontraron " + encontrados + ubicacion);
+    }
+
+    public void reportarTipoArgumentoIncorrecto(int argumento, TipoDato esperado, TipoDato encontrado, int linea) {
+        String ubicacion = linea > 0 ? " en linea " + linea : "";
+        erroresSemanticos.add("Error semantico: argumento " + argumento + ": se esperaba tipo "
+                + esperado + ", se encontró " + encontrado + ubicacion);
+    }
+
     private void reportarVariableNoDeclarada(String nombre, int linea) {
         String ubicacion = linea > 0 ? " en linea " + linea : "";
         erroresSemanticos.add("Error semantico: variable no declarada '" + nombre + "'" + ubicacion);
+    }
+
+    private void reportarFuncionNoDeclarada(String nombre, int linea) {
+        String ubicacion = linea > 0 ? " en linea " + linea : "";
+        erroresSemanticos.add("Error semantico: función '" + nombre + "' no declarada" + ubicacion);
     }
 
     private void reportarRedeclaracion(String nombre, int linea) {
