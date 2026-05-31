@@ -226,6 +226,16 @@ parser code {:
         return evaluarTipo(expresion);
     }
 
+    public void verificarCondicionBooleana(ExpresionNodo condicion) {
+        TipoDato tipo = evaluarTipo(condicion);
+        if (tipo == TipoDato.ERROR || tipo == TipoDato.DESCONOCIDO) {
+            return;
+        }
+        if (tipo != TipoDato.BOOL) {
+            tablaSimbolos.reportarCondicionNoBooleana(tipo, condicion.getLinea());
+        }
+    }
+
     private void insertarSimbolo(Simbolo simbolo) {
         try {
             tablaSimbolos.insertar(simbolo);
@@ -866,9 +876,15 @@ control
 /* Condicional if con bloque obligatorio y else opcional. */
 ifelse
     ::= IF:i L_PAREN expresion:e R_PAREN bloque:b
-        {: RESULT = new IfNodo(ileft, iright, e, b, null); :}
+        {:
+            parser.verificarCondicionBooleana(e);
+            RESULT = new IfNodo(ileft, iright, e, b, null);
+        :}
     | IF:i L_PAREN expresion:e R_PAREN bloque:b ELSE bloque:eb
-        {: RESULT = new IfNodo(ileft, iright, e, b, eb); :}
+        {:
+            parser.verificarCondicionBooleana(e);
+            RESULT = new IfNodo(ileft, iright, e, b, eb);
+        :}
     | IF:i L_PAREN error R_PAREN bloque:b
         {:
             parser.report_error("Condicion invalida en 'if'", null);
@@ -884,7 +900,10 @@ ifelse
 /* Ciclo do-while: bloque do seguido de condicion while. */
 doWhile
     ::= DO:d bloque:b WHILE L_PAREN expresion:e R_PAREN finDoWhile
-        {: RESULT = new WhileNodo(dleft, dright, e, b, true); :}
+        {:
+            parser.verificarCondicionBooleana(e);
+            RESULT = new WhileNodo(dleft, dright, e, b, true);
+        :}
     | DO:d bloque:b WHILE L_PAREN error R_PAREN finDoWhile
         {:
             parser.report_error("Condicion invalida en 'do-while'", null);
