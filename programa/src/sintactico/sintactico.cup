@@ -308,26 +308,27 @@ parser code {:
     @Override
     public void report_error(String message, Object info) {
         numErrores++;
-        StringBuilder sb = new StringBuilder("[Error sintactico #" + numErrores + "]");
+        StringBuilder descripcion = new StringBuilder("(#" + numErrores + ") ");
         Symbol s = null;
         if (info instanceof Symbol) {
             s = (Symbol) info;
         } else if (cur_token != null) {
             s = cur_token;
         }
+        int linea = 0;
+        int columna = 0;
         if (s != null) {
             if (s.left > 0) {
-                sb.append(" linea ").append(s.left).append(", columna ").append(s.right);
+                linea = s.left;
+                columna = s.right;
             }
             if (s.value != null) {
-                sb.append(" token: '").append(s.value).append("'");
+                descripcion.append("token '").append(s.value).append("': ");
             }
-        } else {
-            sb.append(" linea desconocida");
         }
-        sb.append(" - ").append(message);
-        erroresSintacticos.add(sb.toString());
-        System.err.println(sb.toString());
+        descripcion.append(message);
+        String error = ReportadorErrores.reportarSintactico(linea, columna, descripcion.toString());
+        erroresSintacticos.add(error);
     }
 
     @Override

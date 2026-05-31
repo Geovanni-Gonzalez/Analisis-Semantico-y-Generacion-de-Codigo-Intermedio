@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java_cup.runtime.Symbol;
+import ast.ReportadorErrores;
 
 public class Main {
     public static void main(String[] args) throws Exception {
@@ -36,7 +37,8 @@ public class Main {
             parser.parse();
         } catch (Exception ex) {
             sintaxisCompleta = false;
-            parser.erroresSintacticos.add("Error sintactico fatal: " + ex.getMessage());
+            parser.erroresSintacticos.add(ReportadorErrores.reportarSintactico(0, 0,
+                    "error fatal del parser: " + ex.getMessage()));
         }
 
         boolean aceptado = sintaxisCompleta
