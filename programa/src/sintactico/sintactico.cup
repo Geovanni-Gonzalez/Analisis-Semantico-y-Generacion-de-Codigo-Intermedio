@@ -93,6 +93,114 @@ parser code {:
         tablaSimbolos.buscar(nombre, linea);
     }
 
+    public void verificarAsignacion(AsignacionNodo asignacion) {
+        TipoDato tipoDestino = evaluarTipo(asignacion.getDestino());
+        TipoDato tipoValor = evaluarTipo(asignacion.getValor());
+
+        if (tipoDestino == TipoDato.ERROR || tipoValor == TipoDato.ERROR
+                || tipoDestino == TipoDato.DESCONOCIDO || tipoValor == TipoDato.DESCONOCIDO) {
+            return;
+        }
+
+        if (tipoDestino != tipoValor) {
+            tablaSimbolos.reportarAsignacionIncompatible(nombreDestino(asignacion.getDestino()),
+                    tipoDestino, tipoValor, asignacion.getLinea());
+        }
+    }
+
+    public TipoDato evaluarTipo(ExpresionNodo expresion) {
+        if (expresion == null) {
+            return TipoDato.ERROR;
+        }
+
+        TipoDato tipoActual = expresion.getTipo();
+        if (tipoActual != TipoDato.DESCONOCIDO) {
+            return tipoActual;
+        }
+
+        TipoDato tipo = TipoDato.ERROR;
+        if (expresion instanceof IdentificadorNodo) {
+            IdentificadorNodo id = (IdentificadorNodo) expresion;
+            tipo = tablaSimbolos.buscar(id.getNombre(), id.getLinea()).getTipo();
+        } else if (expresion instanceof AccesoArregloNodo) {
+            AccesoArregloNodo acceso = (AccesoArregloNodo) expresion;
+            evaluarTipo(acceso.getFila());
+            evaluarTipo(acceso.getColumnaIndice());
+            tipo = tablaSimbolos.buscar(acceso.getNombre(), acceso.getLinea()).getTipo();
+        } else if (expresion instanceof LlamadaFuncionNodo) {
+            LlamadaFuncionNodo llamada = (LlamadaFuncionNodo) expresion;
+            for (ExpresionNodo arg : llamada.getArgumentos()) {
+                evaluarTipo(arg);
+            }
+            Simbolo simbolo = tablaSimbolos.buscar(llamada.getNombre(), llamada.getLinea());
+            tipo = simbolo.getTipoRetorno() != null ? simbolo.getTipoRetorno() : simbolo.getTipo();
+        } else if (expresion instanceof ExpresionBinariaNodo) {
+            tipo = evaluarTipoBinaria((ExpresionBinariaNodo) expresion);
+        } else if (expresion instanceof ExpresionUnariaNodo) {
+            tipo = evaluarTipoUnaria((ExpresionUnariaNodo) expresion);
+        }
+
+        expresion.setTipo(tipo);
+        return tipo;
+    }
+
+    private TipoDato evaluarTipoBinaria(ExpresionBinariaNodo expresion) {
+        TipoDato izquierda = evaluarTipo(expresion.getIzquierda());
+        TipoDato derecha = evaluarTipo(expresion.getDerecha());
+        if (izquierda == TipoDato.ERROR || derecha == TipoDato.ERROR
+                || izquierda == TipoDato.DESCONOCIDO || derecha == TipoDato.DESCONOCIDO) {
+            return TipoDato.ERROR;
+        }
+
+        String operador = expresion.getOperador();
+        if ("#".equals(operador) || "@".equals(operador)) {
+            return izquierda == TipoDato.BOOL && derecha == TipoDato.BOOL ? TipoDato.BOOL : TipoDato.ERROR;
+        }
+        if ("equal".equals(operador) || "n_equal".equals(operador)) {
+            return izquierda == derecha ? TipoDato.BOOL : TipoDato.ERROR;
+        }
+        if ("less_t".equals(operador) || "less_te".equals(operador)
+                || "greather_t".equals(operador) || "greather_te".equals(operador)) {
+            return izquierda.esNumerico() && derecha.esNumerico() ? TipoDato.BOOL : TipoDato.ERROR;
+        }
+        if ("+".equals(operador) || "-".equals(operador) || "*".equals(operador)
+                || "/".equals(operador) || "%".equals(operador) || "^".equals(operador)) {
+            if (!izquierda.esNumerico() || !derecha.esNumerico()) {
+                return TipoDato.ERROR;
+            }
+            return izquierda == TipoDato.FLOAT || derecha == TipoDato.FLOAT ? TipoDato.FLOAT : TipoDato.INT;
+        }
+
+        return TipoDato.ERROR;
+    }
+
+    private TipoDato evaluarTipoUnaria(ExpresionUnariaNodo expresion) {
+        TipoDato tipo = evaluarTipo(expresion.getExpresion());
+        if (tipo == TipoDato.ERROR || tipo == TipoDato.DESCONOCIDO) {
+            return TipoDato.ERROR;
+        }
+
+        String operador = expresion.getOperador();
+        if ("$".equals(operador)) {
+            return tipo == TipoDato.BOOL ? TipoDato.BOOL : TipoDato.ERROR;
+        }
+        if ("-".equals(operador) || "++".equals(operador) || "--".equals(operador)) {
+            return tipo.esNumerico() ? tipo : TipoDato.ERROR;
+        }
+
+        return TipoDato.ERROR;
+    }
+
+    private String nombreDestino(ExpresionNodo destino) {
+        if (destino instanceof IdentificadorNodo) {
+            return ((IdentificadorNodo) destino).getNombre();
+        }
+        if (destino instanceof AccesoArregloNodo) {
+            return ((AccesoArregloNodo) destino).getNombre();
+        }
+        return "<desconocido>";
+    }
+
     public TipoDato tipoExpresion(ExpresionNodo expresion) {
         if (expresion == null) {
             return TipoDato.DESCONOCIDO;
@@ -720,10 +828,17 @@ asignacion
     ::= ID:id ASSIGN expresion:e
         {:
             parser.usarIdentificador(id, idleft);
-            RESULT = new AsignacionNodo(idleft, idright, new IdentificadorNodo(idleft, idright, id), e);
+            AsignacionNodo asignacion = new AsignacionNodo(idleft, idright,
+                    new IdentificadorNodo(idleft, idright, id), e);
+            parser.verificarAsignacion(asignacion);
+            RESULT = asignacion;
         :}
     | accesoArreglo:a ASSIGN expresion:e
-        {: RESULT = new AsignacionNodo(aleft, aright, a, e); :}
+        {:
+            AsignacionNodo asignacion = new AsignacionNodo(aleft, aright, a, e);
+            parser.verificarAsignacion(asignacion);
+            RESULT = asignacion;
+        :}
     | ID:id ASSIGN error
         {:
             parser.report_error("Se esperaba una expresion en la asignacion", null);
