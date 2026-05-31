@@ -1,0 +1,2 @@
+Archivo fuente: C:\Users\geova\Github Desktop Repos\Analisis-Semantico-y-Generacion-de-Codigo-Intermedio\test\multiples_errores.lang
+El archivo fuente NO puede ser generado por la gramatica.

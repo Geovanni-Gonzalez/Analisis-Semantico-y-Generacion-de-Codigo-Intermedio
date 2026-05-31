@@ -1,0 +1,12 @@
+ERRORES LEXICOS
+Error léxico [línea 12, col 1]: literal char vacio ''''
+Error léxico [línea 13, col 1]: literal char mal formado ''ab''
+
+ERRORES SINTACTICOS
+Error sintáctico [línea 4, col 11]: (#1) token 'y': Syntax error
+Error sintáctico [línea 4, col 21]: (#2) token '!': Se esperaba '~' entre 'float' y el identificador
+
+ERRORES SEMANTICOS
+Error semántico [línea 5, col 1]: asignación incompatible para 'x': se esperaba tipo int y se obtuvo tipo string
+Error semántico [línea 6, col 1]: variable 'noDeclarada' no declarada
+Error semántico [línea 7, col 1]: la condición debe ser de tipo bool, pero se encontró tipo int
