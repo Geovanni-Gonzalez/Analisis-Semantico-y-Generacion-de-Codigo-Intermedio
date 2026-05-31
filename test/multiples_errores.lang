@@ -1,0 +1,13 @@
+empty ~ __main__<| |>
+|:
+    int ~ x <- 10 !
+    float y <- 3.14 !
+    x <- "texto" !
+    noDeclarada <- 5 !
+    if <|x|>
+    |:
+        int ~ interno <- 1 !
+    :|
+:|
+''
+'ab'

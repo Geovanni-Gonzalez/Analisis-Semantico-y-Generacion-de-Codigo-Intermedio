@@ -101,7 +101,8 @@ classDiagram
 ```
 
 ## Capturas o demo
-Por documentar. Se recomienda agregar capturas de la pantalla principal o un GIF corto de uso.
+Ver la documentacion de la prueba de recuperacion con multiples errores:
+[`documentación/recuperacion_multiples_errores.md`](documentación/recuperacion_multiples_errores.md).
 
 ## Estado del proyecto
 Proyecto académico en evolución.
