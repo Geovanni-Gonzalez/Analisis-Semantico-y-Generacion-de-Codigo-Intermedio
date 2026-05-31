@@ -58,6 +58,14 @@ parser code {:
         }
     }
 
+    public void actualizarFirmaFuncion(String nombre, TipoDato tipoRetorno, java.util.List parametros, int linea) {
+        java.util.List<TipoDato> tiposParametros = new java.util.ArrayList<TipoDato>();
+        for (Object parametro : parametros) {
+            tiposParametros.add(((ParametroNodo) parametro).getTipo());
+        }
+        tablaSimbolos.actualizarFirmaFuncion(nombre, tiposParametros, tipoRetorno, linea);
+    }
+
     public void registrarParametro(String nombre, TipoDato tipo, int linea) {
         insertarSimbolo(new Simbolo(nombre, tipo, CategoriaSimb.PARAMETRO, linea));
     }
@@ -128,12 +136,7 @@ parser code {:
             evaluarTipo(acceso.getColumnaIndice());
             tipo = tablaSimbolos.buscar(acceso.getNombre(), acceso.getLinea()).getTipo();
         } else if (expresion instanceof LlamadaFuncionNodo) {
-            LlamadaFuncionNodo llamada = (LlamadaFuncionNodo) expresion;
-            for (ExpresionNodo arg : llamada.getArgumentos()) {
-                evaluarTipo(arg);
-            }
-            Simbolo simbolo = tablaSimbolos.buscar(llamada.getNombre(), llamada.getLinea());
-            tipo = simbolo.getTipoRetorno() != null ? simbolo.getTipoRetorno() : simbolo.getTipo();
+            tipo = evaluarTipoLlamada((LlamadaFuncionNodo) expresion);
         } else if (expresion instanceof ExpresionBinariaNodo) {
             tipo = evaluarTipoBinaria((ExpresionBinariaNodo) expresion);
         } else if (expresion instanceof ExpresionUnariaNodo) {
@@ -142,6 +145,36 @@ parser code {:
 
         expresion.setTipo(tipo);
         return tipo;
+    }
+
+    private TipoDato evaluarTipoLlamada(LlamadaFuncionNodo llamada) {
+        Simbolo funcion = tablaSimbolos.buscarFuncion(llamada.getNombre(), llamada.getLinea());
+        if (funcion.getTipo() == TipoDato.ERROR) {
+            return TipoDato.ERROR;
+        }
+
+        java.util.List<TipoDato> parametros = funcion.getTiposParametros();
+        java.util.List<ExpresionNodo> argumentos = llamada.getArgumentos();
+        if (parametros.size() != argumentos.size()) {
+            tablaSimbolos.reportarCantidadArgumentosIncorrecta(parametros.size(), argumentos.size(),
+                    llamada.getLinea());
+            return TipoDato.ERROR;
+        }
+
+        for (int i = 0; i < argumentos.size(); i++) {
+            TipoDato tipoArgumento = evaluarTipo(argumentos.get(i));
+            TipoDato tipoParametro = parametros.get(i);
+            if (tipoArgumento == TipoDato.ERROR || tipoArgumento == TipoDato.DESCONOCIDO) {
+                return TipoDato.ERROR;
+            }
+            if (tipoArgumento != tipoParametro) {
+                tablaSimbolos.reportarTipoArgumentoIncorrecto(i + 1, tipoParametro, tipoArgumento,
+                        argumentos.get(i).getLinea());
+                return TipoDato.ERROR;
+            }
+        }
+
+        return funcion.getTipoRetorno() != null ? funcion.getTipoRetorno() : funcion.getTipo();
     }
 
     private TipoDato evaluarTipoBinaria(ExpresionBinariaNodo expresion) {
@@ -426,6 +459,8 @@ funcion
     ::= firmaFuncion:f L_PAREN parametrosOpt:p R_PAREN bloque:b
         {:
             Object[] firma = (Object[]) f;
+            parser.actualizarFirmaFuncion((String) firma[1], (TipoDato) firma[0], p,
+                    ((Integer) firma[4]).intValue());
             RESULT = new FuncionNodo(((Integer) firma[2]).intValue(), ((Integer) firma[3]).intValue(),
                     (String) firma[1], (TipoDato) firma[0], p, b, false);
             parser.cerrarFuncion();
@@ -433,6 +468,8 @@ funcion
     | firmaFuncion:f L_PAREN parametrosOpt:p R_PAREN error
         {:
             Object[] firma = (Object[]) f;
+            parser.actualizarFirmaFuncion((String) firma[1], (TipoDato) firma[0], p,
+                    ((Integer) firma[4]).intValue());
             parser.report_error("Se esperaba un bloque '|: ... :|' en el cuerpo de la funcion", null);
             RESULT = new FuncionNodo(((Integer) firma[2]).intValue(), ((Integer) firma[3]).intValue(),
                     (String) firma[1], (TipoDato) firma[0], p,
@@ -446,13 +483,15 @@ firmaFuncion
     ::= tipo:t SEPARATOR ID:id
         {:
             parser.abrirFuncion(id, t, idleft);
-            RESULT = new Object[] { t, id, Integer.valueOf(tleft), Integer.valueOf(tright) };
+            RESULT = new Object[] { t, id, Integer.valueOf(tleft), Integer.valueOf(tright),
+                    Integer.valueOf(idleft) };
         :}
     | tipo:t error ID:id
         {:
             parser.abrirFuncion(id, t, idleft);
             parser.report_error("Se esperaba '~' entre el tipo y el nombre de la funcion", null);
-            RESULT = new Object[] { t, id, Integer.valueOf(tleft), Integer.valueOf(tright) };
+            RESULT = new Object[] { t, id, Integer.valueOf(tleft), Integer.valueOf(tright),
+                    Integer.valueOf(idleft) };
         :}
     ;
 
@@ -1231,7 +1270,6 @@ base
 idFuncion
     ::= ID:id L_PAREN args:a R_PAREN
         {:
-            parser.usarIdentificador(id, idleft);
             RESULT = new LlamadaFuncionNodo(idleft, idright, id, a);
         :}
     | ID:id L_PAREN args:a error
