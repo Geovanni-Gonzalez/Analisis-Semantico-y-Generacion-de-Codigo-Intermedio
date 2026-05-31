@@ -3,16 +3,22 @@ package ast;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.Stack;
 
 public class TablaDeSimbolos {
     private final Stack<HashMap<String, Simbolo>> alcances;
     private final List<String> erroresSemanticos;
+    private final Set<String> variablesNoDeclaradasReportadas;
+    private final Set<String> funcionesNoDeclaradasReportadas;
 
     public TablaDeSimbolos() {
         this.alcances = new Stack<>();
         this.erroresSemanticos = new ArrayList<>();
+        this.variablesNoDeclaradasReportadas = new HashSet<>();
+        this.funcionesNoDeclaradasReportadas = new HashSet<>();
     }
 
     public void abrirAlcance() {
@@ -63,7 +69,9 @@ public class TablaDeSimbolos {
             }
         }
 
-        reportarVariableNoDeclarada(nombre, linea);
+        if (variablesNoDeclaradasReportadas.add(nombre)) {
+            reportarVariableNoDeclarada(nombre, linea);
+        }
         Simbolo simboloError = new Simbolo(nombre, TipoDato.ERROR, CategoriaSimb.VAR, linea);
         insertarSimboloError(simboloError);
         return simboloError;
@@ -77,7 +85,9 @@ public class TablaDeSimbolos {
             }
         }
 
-        reportarFuncionNoDeclarada(nombre, linea);
+        if (funcionesNoDeclaradasReportadas.add(nombre)) {
+            reportarFuncionNoDeclarada(nombre, linea);
+        }
         return new Simbolo(nombre, TipoDato.ERROR, CategoriaSimb.FUNCION, linea);
     }
 
