@@ -129,6 +129,23 @@ public class TablaDeSimbolos {
                 + ", se encontro " + recibido);
     }
 
+    public void reportarReturnSinValor(TipoDato esperado, int linea) {
+        String ubicacion = linea > 0 ? " en linea " + linea : "";
+        erroresSemanticos.add("Error semantico: funcion de tipo " + esperado
+                + " debe retornar un valor" + ubicacion);
+    }
+
+    public void reportarReturnConValorEnVoid(int linea) {
+        String ubicacion = linea > 0 ? " en linea " + linea : "";
+        erroresSemanticos.add("Error semantico: funcion void no puede retornar un valor" + ubicacion);
+    }
+
+    public void reportarReturnTipoIncompatible(TipoDato esperado, TipoDato encontrado, int linea) {
+        String ubicacion = linea > 0 ? " en linea " + linea : "";
+        erroresSemanticos.add("Error semantico: tipo incompatible en return" + ubicacion
+                + ". Se esperaba " + esperado + " y se obtuvo " + encontrado);
+    }
+
     public void reportarCantidadArgumentosIncorrecta(int esperados, int encontrados, int linea) {
         String ubicacion = linea > 0 ? " en linea " + linea : "";
         erroresSemanticos.add("Error semantico: se esperaban " + esperados

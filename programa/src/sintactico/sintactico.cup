@@ -7,6 +7,7 @@ parser code {:
     public ProgramaNodo ast;
     private int numErrores = 0;
     private int cantidadMain = 0;
+    private TipoDato tipoRetornoActual = TipoDato.DESCONOCIDO;
 
     public int getNumErrores() {
         return numErrores;
@@ -35,11 +36,13 @@ parser code {:
 
     public void abrirFuncion(String nombre, TipoDato tipoRetorno, int linea) {
         registrarFuncion(nombre, tipoRetorno, linea);
+        tipoRetornoActual = tipoRetorno;
         tablaSimbolos.abrirAlcance();
     }
 
     public void cerrarFuncion() {
         tablaSimbolos.cerrarAlcance();
+        tipoRetornoActual = TipoDato.DESCONOCIDO;
     }
 
     public void abrirBloque() {
@@ -269,6 +272,34 @@ parser code {:
         }
     }
 
+    public void verificarReturn(ReturnNodo retorno) {
+        TipoDato tipoEsperado = tipoRetornoActual;
+        ExpresionNodo valor = retorno.getValor();
+        boolean funcionVoid = tipoEsperado == TipoDato.EMPTY || tipoEsperado == TipoDato.VOID;
+
+        if (valor == null) {
+            if (!funcionVoid && tipoEsperado != TipoDato.ERROR && tipoEsperado != TipoDato.DESCONOCIDO) {
+                tablaSimbolos.reportarReturnSinValor(tipoEsperado, retorno.getLinea());
+            }
+            return;
+        }
+
+        if (funcionVoid) {
+            tablaSimbolos.reportarReturnConValorEnVoid(retorno.getLinea());
+            evaluarTipo(valor);
+            return;
+        }
+
+        TipoDato tipoRecibido = evaluarTipo(valor);
+        if (tipoEsperado == TipoDato.ERROR || tipoEsperado == TipoDato.DESCONOCIDO
+                || tipoRecibido == TipoDato.ERROR || tipoRecibido == TipoDato.DESCONOCIDO) {
+            return;
+        }
+        if (tipoEsperado != tipoRecibido) {
+            tablaSimbolos.reportarReturnTipoIncompatible(tipoEsperado, tipoRecibido, retorno.getLinea());
+        }
+    }
+
     private void insertarSimbolo(Simbolo simbolo) {
         try {
             tablaSimbolos.insertar(simbolo);
@@ -312,7 +343,7 @@ parser code {:
 :};
 
 terminal INT, FLOAT, BOOL, CHAR_TYPE, STRING_TYPE;
-terminal EMPTY, MAIN, RETURN, BREAK;
+terminal EMPTY, VOID, MAIN, RETURN, BREAK;
 terminal IF, ELSE, DO, WHILE, SWITCH, CASE, DEFAULT;
 terminal CIN, COUT;
 terminal Boolean TRUE, FALSE;
@@ -491,6 +522,19 @@ firmaFuncion
             parser.abrirFuncion(id, t, idleft);
             parser.report_error("Se esperaba '~' entre el tipo y el nombre de la funcion", null);
             RESULT = new Object[] { t, id, Integer.valueOf(tleft), Integer.valueOf(tright),
+                    Integer.valueOf(idleft) };
+        :}
+    | VOID:v SEPARATOR ID:id
+        {:
+            parser.abrirFuncion(id, TipoDato.VOID, idleft);
+            RESULT = new Object[] { TipoDato.VOID, id, Integer.valueOf(vleft), Integer.valueOf(vright),
+                    Integer.valueOf(idleft) };
+        :}
+    | VOID:v error ID:id
+        {:
+            parser.abrirFuncion(id, TipoDato.VOID, idleft);
+            parser.report_error("Se esperaba '~' entre el tipo y el nombre de la funcion", null);
+            RESULT = new Object[] { TipoDato.VOID, id, Integer.valueOf(vleft), Integer.valueOf(vright),
                     Integer.valueOf(idleft) };
         :}
     ;
@@ -1055,17 +1099,30 @@ io
 /* Retorno de funcion con separador y expresion. */
 retorno
     ::= RETURN:r SEPARATOR expresion:e
-        {: RESULT = new ReturnNodo(rleft, rright, e); :}
-    | RETURN:r error expresion:e
         {:
-            parser.report_error("Se esperaba '~' despues de 'return'", null);
-            RESULT = new ReturnNodo(rleft, rright, e);
+            ReturnNodo retorno = new ReturnNodo(rleft, rright, e);
+            parser.verificarReturn(retorno);
+            RESULT = retorno;
+        :}
+    | RETURN:r
+        {:
+            ReturnNodo retorno = new ReturnNodo(rleft, rright, null);
+            parser.verificarReturn(retorno);
+            RESULT = retorno;
+        :}
+    | RETURN:r expresion:e
+        {:
+            ReturnNodo retorno = new ReturnNodo(rleft, rright, e);
+            parser.verificarReturn(retorno);
+            RESULT = retorno;
         :}
     | RETURN:r SEPARATOR error
         {:
             parser.report_error("Se esperaba una expresion despues de 'return ~'", null);
-            RESULT = new ReturnNodo(rleft, rright,
+            ReturnNodo retorno = new ReturnNodo(rleft, rright,
                     new LiteralNodo(rleft, rright, null, TipoDato.DESCONOCIDO));
+            parser.verificarReturn(retorno);
+            RESULT = retorno;
         :}
     ;
 

@@ -167,6 +167,7 @@ STRING = [^\r\n\"]*
 "char"          { return symbol(sym.CHAR_TYPE); }
 "string"        { return symbol(sym.STRING_TYPE); }
 
+"void"          { return symbol(sym.VOID); }
 "empty"         { return symbol(sym.EMPTY); }
 "__main__"      { return symbol(sym.MAIN); }
 "return"        { return symbol(sym.RETURN); }
