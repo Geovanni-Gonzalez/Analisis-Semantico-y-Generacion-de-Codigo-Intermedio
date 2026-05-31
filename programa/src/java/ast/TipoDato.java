@@ -15,6 +15,10 @@ public enum TipoDato {
         return this == INT || this == FLOAT;
     }
 
+    public boolean esDeclarableVariable() {
+        return this == INT || this == FLOAT || this == BOOL || this == CHAR || this == STRING;
+    }
+
     public boolean esCompatibleCon(TipoDato otro) {
         if (this == ERROR || otro == ERROR) {
             return true;
