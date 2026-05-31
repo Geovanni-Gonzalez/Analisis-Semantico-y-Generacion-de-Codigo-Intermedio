@@ -41,7 +41,8 @@ public class Main {
 
         boolean aceptado = sintaxisCompleta
                 && lexerTokens.getErroresLexicos().isEmpty()
-                && parser.getNumErrores() == 0;
+                && parser.getNumErrores() == 0
+                && parser.tablaSimbolos.getErroresSemanticos().isEmpty();
 
         escribirTokens(salida.resolve("tokens_report.txt"), lexerTokens);
         escribirTablaSimbolos(salida.resolve("tabla_simbolos.txt"), lexerTokens);
@@ -117,6 +118,19 @@ public class Main {
                 writer.newLine();
             } else {
                 for (String error : parser.erroresSintacticos) {
+                    writer.write(error);
+                    writer.newLine();
+                }
+            }
+
+            writer.newLine();
+            writer.write("ERRORES SEMANTICOS");
+            writer.newLine();
+            if (parser.tablaSimbolos.getErroresSemanticos().isEmpty()) {
+                writer.write("Sin errores semanticos.");
+                writer.newLine();
+            } else {
+                for (String error : parser.tablaSimbolos.getErroresSemanticos()) {
                     writer.write(error);
                     writer.newLine();
                 }

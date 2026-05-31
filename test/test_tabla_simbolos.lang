@@ -1,0 +1,15 @@
+empty ~ __main__<| |>
+|:
+    int ~ declarada <- 1 !
+    noDeclarada <- declarada !
+    int ~ repetida <- 2 !
+    int ~ repetida <- 3 !
+    int ~ sombra <- 10 !
+    if <| true |>
+    |:
+        int ~ sombra <- 20 !
+        int ~ desdeExterno <- declarada + sombra !
+        cout <| desdeExterno |> !
+    :|
+    cout <| sombra |> !
+:|

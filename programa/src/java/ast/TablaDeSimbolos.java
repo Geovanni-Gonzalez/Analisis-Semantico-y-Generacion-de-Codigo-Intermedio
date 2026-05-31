@@ -33,8 +33,8 @@ public class TablaDeSimbolos {
 
         String nombre = simbolo.getNombre();
         if (existeEnAlcanceActual(nombre)) {
-            throw new IllegalArgumentException(
-                    "El simbolo '" + nombre + "' ya existe en el alcance actual.");
+            reportarRedeclaracion(nombre, simbolo.getLinea());
+            return;
         }
 
         alcances.peek().put(nombre, simbolo);
@@ -72,6 +72,11 @@ public class TablaDeSimbolos {
     private void reportarVariableNoDeclarada(String nombre, int linea) {
         String ubicacion = linea > 0 ? " en linea " + linea : "";
         erroresSemanticos.add("Error semantico: variable no declarada '" + nombre + "'" + ubicacion);
+    }
+
+    private void reportarRedeclaracion(String nombre, int linea) {
+        String ubicacion = linea > 0 ? " en linea " + linea : "";
+        erroresSemanticos.add("Error semantico: redeclaracion de simbolo '" + nombre + "'" + ubicacion);
     }
 
     private void insertarSimboloError(Simbolo simbolo) {
