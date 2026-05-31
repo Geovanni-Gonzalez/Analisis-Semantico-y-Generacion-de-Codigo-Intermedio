@@ -69,6 +69,12 @@ public class TablaDeSimbolos {
         return Collections.unmodifiableList(erroresSemanticos);
     }
 
+    public void reportarAsignacionIncompatible(String nombre, TipoDato esperado, TipoDato recibido, int linea) {
+        String ubicacion = linea > 0 ? " en linea " + linea : "";
+        erroresSemanticos.add("Error semantico: asignacion incompatible para '" + nombre + "'" + ubicacion
+                + ". Se esperaba " + esperado + " y se obtuvo " + recibido);
+    }
+
     private void reportarVariableNoDeclarada(String nombre, int linea) {
         String ubicacion = linea > 0 ? " en linea " + linea : "";
         erroresSemanticos.add("Error semantico: variable no declarada '" + nombre + "'" + ubicacion);
