@@ -1,0 +1,28 @@
+int ~ incrementar<|int ~ valor|>
+|:
+    return ~ valor + 1 !
+:|
+
+empty ~ __main__<| |>
+|:
+    int ~ x <- 2 !
+    int ~ limite <- 5 !
+    int ~ resultado <- 0 !
+
+    if <|less_t<|x, limite|>|>
+    |:
+        resultado <- incrementar<|x|> !
+    :|
+    else
+    |:
+        resultado <- x !
+    :|
+
+    do
+    |:
+        resultado <- incrementar<|resultado|> !
+    :|
+    while <|less_t<|resultado, limite|>|> !
+
+    cout <|resultado|> !
+:|

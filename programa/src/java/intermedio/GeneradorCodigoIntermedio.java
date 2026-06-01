@@ -15,6 +15,7 @@ import ast.LlamadaFuncionNodo;
 import ast.Nodo;
 import ast.ProgramaNodo;
 import ast.ReturnNodo;
+import ast.SalidaNodo;
 import ast.TipoDato;
 import ast.WhileNodo;
 import java.util.ArrayList;
@@ -62,6 +63,8 @@ public class GeneradorCodigoIntermedio {
             generarWhile((WhileNodo) nodo);
         } else if (nodo instanceof ExpresionSentenciaNodo) {
             generarExpresionSentencia((ExpresionSentenciaNodo) nodo);
+        } else if (nodo instanceof SalidaNodo) {
+            generarSalida((SalidaNodo) nodo);
         }
     }
 
@@ -86,6 +89,10 @@ public class GeneradorCodigoIntermedio {
 
     private void generarExpresionSentencia(ExpresionSentenciaNodo sentencia) {
         generarExpresion(sentencia.getExpresion());
+    }
+
+    private void generarSalida(SalidaNodo salida) {
+        instrucciones.add(new Instruccion(Operacion.PRINT, generarExpresion(salida.getValor())));
     }
 
     private void generarIf(IfNodo sentencia) {

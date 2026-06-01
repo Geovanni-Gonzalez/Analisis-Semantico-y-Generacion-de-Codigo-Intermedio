@@ -1,0 +1,32 @@
+// Codigo intermedio
+// Fecha: 2026-05-31
+// Archivo fuente: generacion_completa.lang
+// Integrantes: Geovanni Gonzalez
+
+	begin_function incrementar
+	_t0 = valor + 1
+	return _t0
+	end_function incrementar
+	begin_function __main__
+	x = 2
+	limite = 5
+	resultado = 0
+	_t1 = x < limite
+	if_false _t1 goto _L0
+	param x
+	_t2 = call incrementar, 1
+	resultado = _t2
+	goto _L1
+_L0:
+	resultado = x
+_L1:
+_L2:
+	param resultado
+	_t3 = call incrementar, 1
+	resultado = _t3
+	_t4 = resultado < limite
+	if_false _t4 goto _L3
+	goto _L2
+_L3:
+	print resultado
+	end_function __main__

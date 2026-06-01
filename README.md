@@ -139,6 +139,9 @@ classDiagram
 Ver la documentacion de la prueba de recuperacion con multiples errores:
 [`documentación/recuperacion_multiples_errores.md`](documentación/recuperacion_multiples_errores.md).
 
+Ver tambien la prueba E2E de equivalencia entre fuente y codigo intermedio:
+[`documentación/generacion_completa_equivalencia.md`](documentación/generacion_completa_equivalencia.md).
+
 ## Estado del proyecto
 Proyecto académico en evolución.
 

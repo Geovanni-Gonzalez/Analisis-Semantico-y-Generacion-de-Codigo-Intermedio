@@ -20,6 +20,7 @@ public enum Operacion {
     IF_FALSE,
     PARAM,
     CALL,
+    PRINT,
     RETURN,
     LABEL,
     INICIO_FUNC,

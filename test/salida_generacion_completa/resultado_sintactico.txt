@@ -1,0 +1,2 @@
+Archivo fuente: C:\Users\geova\Github Desktop Repos\Analisis-Semantico-y-Generacion-de-Codigo-Intermedio\test\generacion_completa.lang
+El archivo fuente puede ser generado por la gramatica.
