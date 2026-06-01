@@ -8,6 +8,7 @@ import ast.ExpresionNodo;
 import ast.ExpresionUnariaNodo;
 import ast.FuncionNodo;
 import ast.IdentificadorNodo;
+import ast.IfNodo;
 import ast.LiteralNodo;
 import ast.LlamadaFuncionNodo;
 import ast.Nodo;
@@ -19,10 +20,12 @@ import java.util.List;
 public class GeneradorCodigoIntermedio {
     private final List<Instruccion> instrucciones = new ArrayList<>();
     private int contadorTemporales;
+    private int contadorEtiquetas;
 
     public List<Instruccion> generar(ProgramaNodo programa) {
         instrucciones.clear();
         contadorTemporales = 0;
+        contadorEtiquetas = 0;
         for (FuncionNodo funcion : programa.getFunciones()) {
             generarFuncion(funcion);
         }
@@ -50,6 +53,8 @@ public class GeneradorCodigoIntermedio {
             generarReturn((ReturnNodo) nodo);
         } else if (nodo instanceof BloqueNodo) {
             generarBloque((BloqueNodo) nodo);
+        } else if (nodo instanceof IfNodo) {
+            generarIf((IfNodo) nodo);
         }
     }
 
@@ -70,6 +75,25 @@ public class GeneradorCodigoIntermedio {
     private void generarReturn(ReturnNodo retorno) {
         String valor = retorno.getValor() == null ? null : generarExpresion(retorno.getValor());
         instrucciones.add(new Instruccion(Operacion.RETURN, null, valor));
+    }
+
+    private void generarIf(IfNodo sentencia) {
+        String condicion = generarExpresion(sentencia.getCondicion());
+        String etiquetaElseOFin = nuevaEtiqueta();
+
+        instrucciones.add(new Instruccion(Operacion.IF_FALSE, etiquetaElseOFin, condicion));
+        generarBloque(sentencia.getBloqueEntonces());
+
+        if (sentencia.getBloqueSino() == null) {
+            instrucciones.add(new Instruccion(Operacion.LABEL, etiquetaElseOFin));
+            return;
+        }
+
+        String etiquetaFin = nuevaEtiqueta();
+        instrucciones.add(new Instruccion(Operacion.GOTO, etiquetaFin));
+        instrucciones.add(new Instruccion(Operacion.LABEL, etiquetaElseOFin));
+        generarBloque(sentencia.getBloqueSino());
+        instrucciones.add(new Instruccion(Operacion.LABEL, etiquetaFin));
     }
 
     private String generarExpresion(ExpresionNodo expresion) {
@@ -119,6 +143,10 @@ public class GeneradorCodigoIntermedio {
 
     private String nuevoTemporal() {
         return "_t" + contadorTemporales++;
+    }
+
+    private String nuevaEtiqueta() {
+        return "_L" + contadorEtiquetas++;
     }
 
     private Operacion operacionBinaria(String operador) {
