@@ -1,12 +1,9 @@
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.Reader;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java_cup.runtime.Symbol;
-import ast.ReportadorErrores;
+import pipeline.Compilador;
+import pipeline.ResultadoCompilacion;
+import reporte.EscritorReportes;
 
 public class Main {
     public static void main(String[] args) throws Exception {
@@ -26,128 +23,30 @@ public class Main {
                 : Paths.get("salida").toAbsolutePath().normalize();
         Files.createDirectories(salida);
 
-        MiLexer lexerTokens = crearLexer(fuente);
-        consumirTokens(lexerTokens);
+        ResultadoCompilacion resultado = new Compilador().compilar(fuente);
 
-        MiLexer lexerParser = crearLexer(fuente);
-        lexerParser.setImprimirErrores(false);
-        Parser parser = new Parser(lexerParser);
-        boolean sintaxisCompleta = true;
-        try {
-            parser.parse();
-        } catch (Exception ex) {
-            sintaxisCompleta = false;
-            parser.erroresSintacticos.add(ReportadorErrores.reportarSintactico(0, 0,
-                    "error fatal del parser: " + ex.getMessage()));
-        }
-
-        boolean aceptado = sintaxisCompleta
-                && lexerTokens.getErroresLexicos().isEmpty()
-                && parser.getNumErrores() == 0
-                && parser.tablaSimbolos.getErroresSemanticos().isEmpty();
-
-        escribirTokens(salida.resolve("tokens_report.txt"), lexerTokens);
-        escribirTablaSimbolos(salida.resolve("tabla_simbolos.txt"), lexerTokens);
-        escribirErrores(salida.resolve("errores_report.txt"), lexerTokens, parser);
-        escribirResultado(salida.resolve("resultado_sintactico.txt"), fuente, aceptado);
+        EscritorReportes.escribirTokens(salida.resolve("tokens_report.txt"),
+                resultado.getLexerTokens().getTokens());
+        EscritorReportes.escribirTablaSimbolos(salida.resolve("tabla_simbolos.txt"),
+                resultado.getLexerTokens().getTokens());
+        EscritorReportes.escribirErrores(salida.resolve("errores_report.txt"),
+                resultado.getLexerTokens().getErroresLexicos(),
+                resultado.getParser().erroresSintacticos,
+                resultado.getParser().tablaSimbolos.getErroresSemanticos());
+        EscritorReportes.escribirResultado(salida.resolve("resultado_sintactico.txt"), fuente,
+                resultado.isAceptado());
+        EscritorReportes.escribirCodigoIntermedio(salida.resolve("codigo_intermedio.txt"),
+                resultado.getCodigoIntermedio());
 
         System.out.println("Archivo analizado: " + fuente);
-        System.out.println(aceptado
+        System.out.println(resultado.isAceptado()
                 ? "El archivo fuente puede ser generado por la gramatica."
                 : "El archivo fuente NO puede ser generado por la gramatica.");
         System.out.println("Reporte de tokens: " + salida.resolve("tokens_report.txt"));
         System.out.println("Tabla de simbolos: " + salida.resolve("tabla_simbolos.txt"));
         System.out.println("Reporte de errores: " + salida.resolve("errores_report.txt"));
         System.out.println("Resultado sintactico: " + salida.resolve("resultado_sintactico.txt"));
+        System.out.println("Codigo intermedio: " + salida.resolve("codigo_intermedio.txt"));
     }
 
-    private static MiLexer crearLexer(Path fuente) throws Exception {
-        Reader reader = Files.newBufferedReader(fuente, StandardCharsets.UTF_8);
-        return new MiLexer(reader);
-    }
-
-    private static void consumirTokens(MiLexer lexer) throws Exception {
-        Symbol token;
-        do {
-            token = lexer.next_token();
-        } while (token.sym != sym.EOF);
-    }
-
-    private static void escribirTokens(Path archivo, MiLexer lexer) throws Exception {
-        try (BufferedWriter writer = Files.newBufferedWriter(archivo, StandardCharsets.UTF_8)) {
-            writer.write("ID_TOKEN\tTOKEN\tLEXEMA\tLINEA\tCOLUMNA\tTABLA\tINFORMACION");
-            writer.newLine();
-            for (MiLexer.TokenInfo token : lexer.getTokens()) {
-                writer.write(token.id + "\t" + token.nombre + "\t" + token.lexema + "\t"
-                        + token.linea + "\t" + token.columna + "\t" + token.tabla + "\t"
-                        + token.informacion);
-                writer.newLine();
-            }
-        }
-    }
-
-    private static void escribirTablaSimbolos(Path archivo, MiLexer lexer) throws Exception {
-        try (BufferedWriter writer = Files.newBufferedWriter(archivo, StandardCharsets.UTF_8)) {
-            writer.write("TABLA\tLEXEMA\tTOKEN\tLINEA\tCOLUMNA\tINFORMACION");
-            writer.newLine();
-            for (MiLexer.TokenInfo token : lexer.getTokens()) {
-                writer.write(token.tabla + "\t" + token.lexema + "\t" + token.nombre + "\t"
-                        + token.linea + "\t" + token.columna + "\t" + token.informacion);
-                writer.newLine();
-            }
-        }
-    }
-
-    private static void escribirErrores(Path archivo, MiLexer lexer, Parser parser) throws Exception {
-        try (BufferedWriter writer = Files.newBufferedWriter(archivo, StandardCharsets.UTF_8)) {
-            writer.write("ERRORES LEXICOS");
-            writer.newLine();
-            if (lexer.getErroresLexicos().isEmpty()) {
-                writer.write("Sin errores lexicos.");
-                writer.newLine();
-            } else {
-                for (String error : lexer.getErroresLexicos()) {
-                    writer.write(error);
-                    writer.newLine();
-                }
-            }
-
-            writer.newLine();
-            writer.write("ERRORES SINTACTICOS");
-            writer.newLine();
-            if (parser.erroresSintacticos.isEmpty()) {
-                writer.write("Sin errores sintacticos.");
-                writer.newLine();
-            } else {
-                for (String error : parser.erroresSintacticos) {
-                    writer.write(error);
-                    writer.newLine();
-                }
-            }
-
-            writer.newLine();
-            writer.write("ERRORES SEMANTICOS");
-            writer.newLine();
-            if (parser.tablaSimbolos.getErroresSemanticos().isEmpty()) {
-                writer.write("Sin errores semanticos.");
-                writer.newLine();
-            } else {
-                for (String error : parser.tablaSimbolos.getErroresSemanticos()) {
-                    writer.write(error);
-                    writer.newLine();
-                }
-            }
-        }
-    }
-
-    private static void escribirResultado(Path archivo, Path fuente, boolean aceptado) throws Exception {
-        try (BufferedWriter writer = Files.newBufferedWriter(archivo, StandardCharsets.UTF_8)) {
-            writer.write("Archivo fuente: " + fuente);
-            writer.newLine();
-            writer.write(aceptado
-                    ? "El archivo fuente puede ser generado por la gramatica."
-                    : "El archivo fuente NO puede ser generado por la gramatica.");
-            writer.newLine();
-        }
-    }
 }

@@ -54,6 +54,22 @@
                             </target>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>smoke-tests</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <java classname="CompiladorSmokeTest"
+                                      fork="true"
+                                      failonerror="true">
+                                    <classpath refid="maven.test.classpath"/>
+                                </java>
+                            </target>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
 

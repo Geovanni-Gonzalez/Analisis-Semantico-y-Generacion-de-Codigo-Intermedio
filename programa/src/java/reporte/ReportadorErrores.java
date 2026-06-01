@@ -1,10 +1,10 @@
-package ast;
+package reporte;
 
 public final class ReportadorErrores {
     public enum Tipo {
-        LEXICO("léxico"),
-        SINTACTICO("sintáctico"),
-        SEMANTICO("semántico");
+        LEXICO("lexico"),
+        SINTACTICO("sintactico"),
+        SEMANTICO("semantico");
 
         private final String etiqueta;
 
@@ -49,7 +49,7 @@ public final class ReportadorErrores {
     public static String formatear(Tipo tipo, int linea, int columna, String descripcion) {
         int lineaNormalizada = linea > 0 ? linea : 1;
         int columnaNormalizada = columna > 0 ? columna : 1;
-        return "Error " + tipo.etiqueta + " [línea " + lineaNormalizada
+        return "Error " + tipo.etiqueta + " [linea " + lineaNormalizada
                 + ", col " + columnaNormalizada + "]: " + descripcion;
     }
 }
