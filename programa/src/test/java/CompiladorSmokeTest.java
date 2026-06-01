@@ -1,5 +1,6 @@
 import ast.AsignacionNodo;
 import ast.BloqueNodo;
+import ast.DeclaracionVariableNodo;
 import ast.ExpresionBinariaNodo;
 import ast.ExpresionNodo;
 import ast.ExpresionUnariaNodo;
@@ -36,6 +37,7 @@ public class CompiladorSmokeTest {
         }
 
         verificarCodigoIntermedioExpresiones();
+        verificarCodigoIntermedioDeclaracionesYAsignaciones();
     }
 
     private static void verificarCodigoIntermedioExpresiones() {
@@ -87,5 +89,42 @@ public class CompiladorSmokeTest {
 
     private static IdentificadorNodo id(String nombre) {
         return new IdentificadorNodo(1, 1, nombre);
+    }
+
+    private static void verificarCodigoIntermedioDeclaracionesYAsignaciones() {
+        ExpresionNodo sumaInicializador = new ExpresionBinariaNodo(1, 1, "+",
+                id("a"), id("b"));
+
+        ProgramaNodo programa = new ProgramaNodo(1, 1, Arrays.asList(
+                new FuncionNodo(1, 1, "main", TipoDato.VOID, Arrays.asList(),
+                        new BloqueNodo(1, 1, Arrays.asList(
+                                new DeclaracionVariableNodo(1, 1, "x", TipoDato.INT,
+                                        sumaInicializador),
+                                new AsignacionNodo(1, 1, id("x"),
+                                        new LiteralNodo(1, 1, 5, TipoDato.INT)),
+                                new DeclaracionVariableNodo(1, 1, "y", TipoDato.INT,
+                                        (ExpresionNodo) null))),
+                        true)));
+
+        List<Instruccion> instrucciones = new GeneradorCodigoIntermedio().generar(programa);
+        List<String> esperado = Arrays.asList(
+                "inicio_func main",
+                "_t0 = a + b",
+                "x = _t0",
+                "x = 5",
+                "fin_func main");
+
+        if (instrucciones.size() != esperado.size()) {
+            throw new AssertionError("Cantidad de instrucciones esperada: "
+                    + esperado.size() + ", actual: " + instrucciones.size());
+        }
+
+        for (int i = 0; i < esperado.size(); i++) {
+            String actual = instrucciones.get(i).toString();
+            if (!esperado.get(i).equals(actual)) {
+                throw new AssertionError("Instruccion " + i + " esperada: "
+                        + esperado.get(i) + ", actual: " + actual);
+            }
+        }
     }
 }

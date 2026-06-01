@@ -2,6 +2,7 @@ package intermedio;
 
 import ast.AsignacionNodo;
 import ast.BloqueNodo;
+import ast.DeclaracionVariableNodo;
 import ast.ExpresionBinariaNodo;
 import ast.ExpresionNodo;
 import ast.ExpresionUnariaNodo;
@@ -43,11 +44,21 @@ public class GeneradorCodigoIntermedio {
     private void generarNodo(Nodo nodo) {
         if (nodo instanceof AsignacionNodo) {
             generarAsignacion((AsignacionNodo) nodo);
+        } else if (nodo instanceof DeclaracionVariableNodo) {
+            generarDeclaracionVariable((DeclaracionVariableNodo) nodo);
         } else if (nodo instanceof ReturnNodo) {
             generarReturn((ReturnNodo) nodo);
         } else if (nodo instanceof BloqueNodo) {
             generarBloque((BloqueNodo) nodo);
         }
+    }
+
+    private void generarDeclaracionVariable(DeclaracionVariableNodo declaracion) {
+        if (declaracion.getInicializador() == null) {
+            return;
+        }
+        String valor = generarExpresion(declaracion.getInicializador());
+        instrucciones.add(new Instruccion(Operacion.ASIG, declaracion.getNombre(), valor));
     }
 
     private void generarAsignacion(AsignacionNodo asignacion) {
