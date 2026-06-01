@@ -252,8 +252,8 @@ non terminal SwitchNodo switchSt;
 non terminal java.util.List casos;
 non terminal CasoSwitchNodo caso;
 non terminal SentenciaNodo io, retorno, breakSt;
-non terminal ExpresionNodo expresion, orExpr, andExpr, notExpr;
-non terminal ExpresionNodo relExpr, aritExpr, termino, potencia, factor, base, literal;
+non terminal ExpresionNodo expresion, expresionLog, expresionRelTernaria, expresionRelBinaria;
+non terminal ExpresionNodo expresionArit, termino, potencia, factor, base, literal;
 non terminal LlamadaFuncionNodo idFuncion;
 non terminal java.util.List args, listaArgs;
 
@@ -841,16 +841,6 @@ accesoArreglo
     | ID:id L_ARRAY expresion:f R_ARRAY L_ARRAY expresion:c error
         {:
             parser.report_error("Se esperaba '>>' para cerrar el acceso al arreglo", null);
-            RESULT = new AccesoArregloNodo(idleft, idright, id, f, c);
-        :}
-    | ID:id error expresion:f R_ARRAY L_ARRAY expresion:c R_ARRAY
-        {:
-            parser.report_error("Se esperaba '<<' para cerrar el primer indice del arreglo", null);
-            RESULT = new AccesoArregloNodo(idleft, idright, id, f, c);
-        :}
-    | ID:id L_ARRAY expresion:f R_ARRAY error expresion:c R_ARRAY
-        {:
-            parser.report_error("Se esperaba '<<' para cerrar el segundo indice del arreglo", null);
             RESULT = new AccesoArregloNodo(idleft, idright, id, f, c);
         :}
     ;
