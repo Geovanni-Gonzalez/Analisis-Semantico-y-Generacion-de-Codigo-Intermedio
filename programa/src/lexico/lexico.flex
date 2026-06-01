@@ -219,13 +219,30 @@ STRING = [^\r\n\"]*
 \"{STRING}(\r|\n) { errorLexico("cadena sin cerrar"); }
 
 {ID}            { return symbol(sym.ID, yytext()); }
-
-"\u00A1\u00A1".* { /* ignorar */ }
-\{\-            { yybegin(COMMENT); }
-<COMMENT>\-\}   { yybegin(YYINITIAL); }
-<COMMENT>[^-\r\n]+ { /* ignorar */ }
-<COMMENT>\r|\n  { /* ignorar */ }
-<COMMENT>-      { /* ignorar */ }
 [ \t\r\n]+      { /* ignorar */ }
+/* Comentarios de línea */
+"¡¡".* { /* ignorar */ }
+
+/* Comentarios multilínea */
+"{-" {
+    yybegin(COMMENT);
+}
+
+<COMMENT> "-}" {
+    yybegin(YYINITIAL);
+}
+
+/* consumir cualquier cosa excepto el cierre */
+<COMMENT> [^-]+ { }
+
+<COMMENT> "-" { }
+
+<COMMENT> \r|\n { }
+
+<COMMENT><<EOF>> {
+    errorLexico("comentario multilinea sin cerrar");
+    return new Symbol(sym.EOF);
+}
+
 
 .               { errorLexico(); }
