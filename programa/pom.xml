@@ -40,10 +40,10 @@
                         </goals>
                         <configuration>
                             <target>
-                                <mkdir dir="${project.build.directory}/generated-sources/cup"/>
+                                <mkdir dir="${project.build.directory}/generated-sources/cup/sintactico"/>
                                 <java jar="${project.basedir}/src/lib/java-cup-11a.jar"
                                       fork="true"
-                                      dir="${project.build.directory}/generated-sources/cup"
+                                      dir="${project.build.directory}/generated-sources/cup/sintactico"
                                       failonerror="true">
                                     <arg value="-parser"/>
                                     <arg value="Parser"/>

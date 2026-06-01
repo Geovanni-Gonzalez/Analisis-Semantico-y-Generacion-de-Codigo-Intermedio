@@ -5,6 +5,7 @@ import ast.BloqueNodo;
 import ast.DeclaracionVariableNodo;
 import ast.ExpresionBinariaNodo;
 import ast.ExpresionNodo;
+import ast.ExpresionSentenciaNodo;
 import ast.ExpresionUnariaNodo;
 import ast.FuncionNodo;
 import ast.IdentificadorNodo;
@@ -14,6 +15,7 @@ import ast.LlamadaFuncionNodo;
 import ast.Nodo;
 import ast.ProgramaNodo;
 import ast.ReturnNodo;
+import ast.TipoDato;
 import ast.WhileNodo;
 import java.util.ArrayList;
 import java.util.List;
@@ -58,6 +60,8 @@ public class GeneradorCodigoIntermedio {
             generarIf((IfNodo) nodo);
         } else if (nodo instanceof WhileNodo) {
             generarWhile((WhileNodo) nodo);
+        } else if (nodo instanceof ExpresionSentenciaNodo) {
+            generarExpresionSentencia((ExpresionSentenciaNodo) nodo);
         }
     }
 
@@ -78,6 +82,10 @@ public class GeneradorCodigoIntermedio {
     private void generarReturn(ReturnNodo retorno) {
         String valor = retorno.getValor() == null ? null : generarExpresion(retorno.getValor());
         instrucciones.add(new Instruccion(Operacion.RETURN, null, valor));
+    }
+
+    private void generarExpresionSentencia(ExpresionSentenciaNodo sentencia) {
+        generarExpresion(sentencia.getExpresion());
     }
 
     private void generarIf(IfNodo sentencia) {
@@ -160,10 +168,19 @@ public class GeneradorCodigoIntermedio {
         for (ExpresionNodo argumento : llamada.getArgumentos()) {
             instrucciones.add(new Instruccion(Operacion.PARAM, generarExpresion(argumento)));
         }
+        if (esLlamadaVoid(llamada)) {
+            instrucciones.add(new Instruccion(Operacion.CALL, null, llamada.getNombre(),
+                    String.valueOf(llamada.getArgumentos().size())));
+            return null;
+        }
         String temporal = nuevoTemporal();
         instrucciones.add(new Instruccion(Operacion.CALL, temporal, llamada.getNombre(),
                 String.valueOf(llamada.getArgumentos().size())));
         return temporal;
+    }
+
+    private boolean esLlamadaVoid(LlamadaFuncionNodo llamada) {
+        return llamada.getTipo() == TipoDato.VOID || llamada.getTipo() == TipoDato.EMPTY;
     }
 
     private String nuevoTemporal() {
