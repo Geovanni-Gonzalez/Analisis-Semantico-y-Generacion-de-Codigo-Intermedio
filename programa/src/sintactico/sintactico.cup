@@ -1284,28 +1284,54 @@ expresionArit
 /* Termino multiplicativo formado por potencias. */
 termino
     ::= termino:l TIMES:o potencia:r
-        {: RESULT = new ExpresionBinariaNodo(oleft, oright, "*", l, r); :}
+        {:
+            RESULT = new ExpresionBinariaNodo(
+                oleft, oright, "*", l, r);
+        :}
+
     | termino:l DIV:o potencia:r
-        {: RESULT = new ExpresionBinariaNodo(oleft, oright, "/", l, r); :}
+        {:
+            RESULT = new ExpresionBinariaNodo(
+                oleft, oright, "/", l, r);
+        :}
+
     | termino:l MOD:o potencia:r
-        {: RESULT = new ExpresionBinariaNodo(oleft, oright, "%", l, r); :}
-    | TIMES:o error
         {:
-            parser.report_error("Expresion invalida despues de '*'", null);
-            RESULT = new LiteralNodo(oleft, oright, null, TipoDato.DESCONOCIDO);
+            RESULT = new ExpresionBinariaNodo(
+                oleft, oright, "%", l, r);
         :}
-    | DIV:o error
-        {:
-            parser.report_error("Expresion invalida despues de '/'", null);
-            RESULT = new LiteralNodo(oleft, oright, null, TipoDato.DESCONOCIDO);
-        :}
-    | MOD:o error
-        {:
-            parser.report_error("Expresion invalida despues de '%'", null);
-            RESULT = new LiteralNodo(oleft, oright, null, TipoDato.DESCONOCIDO);
-        :}
+
     | potencia:e
-        {: RESULT = e; :}
+        {:
+            RESULT = e;
+        :}
+
+    | termino:l TIMES:o error
+        {:
+            parser.report_error(
+                "Expresion invalida despues de '*'",
+                null);
+
+            RESULT = l;
+        :}
+
+    | termino:l DIV:o error
+        {:
+            parser.report_error(
+                "Expresion invalida despues de '/'",
+                null);
+
+            RESULT = l;
+        :}
+
+    | termino:l MOD:o error
+        {:
+            parser.report_error(
+                "Expresion invalida despues de '%'",
+                null);
+
+            RESULT = l;
+        :}
     ;
 
 /* Potencia con asociatividad a la derecha. */
