@@ -1,0 +1,8 @@
+ERRORES LEXICOS
+Sin errores lexicos.
+
+ERRORES SINTACTICOS
+Sin errores sintacticos.
+
+ERRORES SEMANTICOS
+Sin errores semanticos.

@@ -1,0 +1,2 @@
+Archivo fuente: C:\Users\geova\Github Desktop Repos\Analisis-Semantico-y-Generacion-de-Codigo-Intermedio\programa\test_verificacion\01_minimo_valido.chip
+El archivo fuente puede ser generado por la gramatica.

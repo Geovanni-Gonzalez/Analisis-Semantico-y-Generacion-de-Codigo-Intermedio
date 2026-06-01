@@ -1,0 +1,8 @@
+TABLA	LEXEMA	TOKEN	LINEA	COLUMNA	INFORMACION
+Tabla de palabras reservadas y simbolos	empty	EMPTY	1	1	lexema=empty
+Tabla de palabras reservadas y simbolos	~	SEPARATOR	1	7	lexema=~
+Tabla de palabras reservadas y simbolos	__main__	MAIN	1	9	lexema=__main__
+Tabla de palabras reservadas y simbolos	<|	L_PAREN	1	17	lexema=<|
+Tabla de palabras reservadas y simbolos	|>	R_PAREN	1	20	lexema=|>
+Tabla de palabras reservadas y simbolos	|:	L_BLOCK	2	1	lexema=|:
+Tabla de palabras reservadas y simbolos	:|	R_BLOCK	3	1	lexema=:|

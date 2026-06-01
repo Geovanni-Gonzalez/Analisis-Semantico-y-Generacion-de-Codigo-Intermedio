@@ -1,0 +1,18 @@
+ID_TOKEN	TOKEN	LEXEMA	LINEA	COLUMNA	TABLA	INFORMACION
+7	EMPTY	empty	1	1	Tabla de palabras reservadas y simbolos	lexema=empty
+47	SEPARATOR	~	1	7	Tabla de palabras reservadas y simbolos	lexema=~
+9	MAIN	__main__	1	9	Tabla de palabras reservadas y simbolos	lexema=__main__
+41	L_PAREN	<|	1	17	Tabla de palabras reservadas y simbolos	lexema=<|
+42	R_PAREN	|>	1	20	Tabla de palabras reservadas y simbolos	lexema=|>
+43	L_BLOCK	|:	2	1	Tabla de palabras reservadas y simbolos	lexema=|:
+2	INT	int	3	5	Tabla de palabras reservadas y simbolos	lexema=int
+47	SEPARATOR	~	3	9	Tabla de palabras reservadas y simbolos	lexema=~
+57	ID	x	3	11	Tabla de identificadores	lexema=x, clase=identificador
+40	ASSIGN	<-	3	13	Tabla de palabras reservadas y simbolos	lexema=<-
+55	LIT_ENTERO	10	3	16	Tabla de literales/constantes	lexema=10, valor=10
+20	COUT	cout	4	5	Tabla de palabras reservadas y simbolos	lexema=cout
+41	L_PAREN	<|	4	10	Tabla de palabras reservadas y simbolos	lexema=<|
+57	ID	x	4	12	Tabla de identificadores	lexema=x, clase=identificador
+42	R_PAREN	|>	4	13	Tabla de palabras reservadas y simbolos	lexema=|>
+50	END_EXPR	!	4	15	Tabla de palabras reservadas y simbolos	lexema=!
+44	R_BLOCK	:|	5	1	Tabla de palabras reservadas y simbolos	lexema=:|

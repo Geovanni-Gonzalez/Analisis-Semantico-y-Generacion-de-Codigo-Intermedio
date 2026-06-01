@@ -1,0 +1,8 @@
+ERRORES LEXICOS
+Sin errores lexicos.
+
+ERRORES SINTACTICOS
+Error sintactico [linea 4, col 5]: (#1) token 'cout': se inserto ';' para recuperar el analisis
+
+ERRORES SEMANTICOS
+Sin errores semanticos.
