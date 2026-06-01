@@ -1244,23 +1244,41 @@ expresionRelBinaria
     ;
 
 /* Expresion aditiva formada por terminos. */
-aritExpr
-    ::= aritExpr:l PLUS:o termino:r
-        {: RESULT = new ExpresionBinariaNodo(oleft, oright, "+", l, r); :}
-    | aritExpr:l MINUS:o termino:r
-        {: RESULT = new ExpresionBinariaNodo(oleft, oright, "-", l, r); :}
-    | PLUS:o error
+expresionArit
+    ::= expresionArit:l PLUS:o termino:r
         {:
-            parser.report_error("Expresion invalida despues de '+'", null);
-            RESULT = new LiteralNodo(oleft, oright, null, TipoDato.DESCONOCIDO);
+            RESULT = new ExpresionBinariaNodo(
+                oleft, oright, "+", l, r);
         :}
-    | MINUS:o error
+
+    | expresionArit:l MINUS:o termino:r
         {:
-            parser.report_error("Expresion invalida despues de '-'", null);
-            RESULT = new LiteralNodo(oleft, oright, null, TipoDato.DESCONOCIDO);
+            RESULT = new ExpresionBinariaNodo(
+                oleft, oright, "-", l, r);
         :}
+
     | termino:e
-        {: RESULT = e; :}
+        {:
+            RESULT = e;
+        :}
+
+    | expresionArit:l PLUS:o error
+        {:
+            parser.report_error(
+                "Expresion invalida despues de '+'",
+                null);
+
+            RESULT = l;
+        :}
+
+    | expresionArit:l MINUS:o error
+        {:
+            parser.report_error(
+                "Expresion invalida despues de '-'",
+                null);
+
+            RESULT = l;
+        :}
     ;
 
 /* Termino multiplicativo formado por potencias. */
