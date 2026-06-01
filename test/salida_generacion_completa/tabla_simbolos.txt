@@ -1,0 +1,92 @@
+TABLA	LEXEMA	TOKEN	LINEA	COLUMNA	INFORMACION
+Tabla de palabras reservadas y simbolos	int	INT	1	1	lexema=int
+Tabla de palabras reservadas y simbolos	~	SEPARATOR	1	5	lexema=~
+Tabla de identificadores	incrementar	ID	1	7	lexema=incrementar, clase=identificador
+Tabla de palabras reservadas y simbolos	<|	L_PAREN	1	18	lexema=<|
+Tabla de palabras reservadas y simbolos	int	INT	1	20	lexema=int
+Tabla de palabras reservadas y simbolos	~	SEPARATOR	1	24	lexema=~
+Tabla de identificadores	valor	ID	1	26	lexema=valor, clase=identificador
+Tabla de palabras reservadas y simbolos	|>	R_PAREN	1	31	lexema=|>
+Tabla de palabras reservadas y simbolos	|:	L_BLOCK	2	1	lexema=|:
+Tabla de palabras reservadas y simbolos	return	RETURN	3	5	lexema=return
+Tabla de palabras reservadas y simbolos	~	SEPARATOR	3	12	lexema=~
+Tabla de identificadores	valor	ID	3	14	lexema=valor, clase=identificador
+Tabla de palabras reservadas y simbolos	+	PLUS	3	20	lexema=+
+Tabla de literales/constantes	1	LIT_ENTERO	3	22	lexema=1, valor=1
+Tabla de palabras reservadas y simbolos	!	END_EXPR	3	24	lexema=!
+Tabla de palabras reservadas y simbolos	:|	R_BLOCK	4	1	lexema=:|
+Tabla de palabras reservadas y simbolos	empty	EMPTY	6	1	lexema=empty
+Tabla de palabras reservadas y simbolos	~	SEPARATOR	6	7	lexema=~
+Tabla de palabras reservadas y simbolos	__main__	MAIN	6	9	lexema=__main__
+Tabla de palabras reservadas y simbolos	<|	L_PAREN	6	17	lexema=<|
+Tabla de palabras reservadas y simbolos	|>	R_PAREN	6	20	lexema=|>
+Tabla de palabras reservadas y simbolos	|:	L_BLOCK	7	1	lexema=|:
+Tabla de palabras reservadas y simbolos	int	INT	8	5	lexema=int
+Tabla de palabras reservadas y simbolos	~	SEPARATOR	8	9	lexema=~
+Tabla de identificadores	x	ID	8	11	lexema=x, clase=identificador
+Tabla de palabras reservadas y simbolos	<-	ASSIGN	8	13	lexema=<-
+Tabla de literales/constantes	2	LIT_ENTERO	8	16	lexema=2, valor=2
+Tabla de palabras reservadas y simbolos	!	END_EXPR	8	18	lexema=!
+Tabla de palabras reservadas y simbolos	int	INT	9	5	lexema=int
+Tabla de palabras reservadas y simbolos	~	SEPARATOR	9	9	lexema=~
+Tabla de identificadores	limite	ID	9	11	lexema=limite, clase=identificador
+Tabla de palabras reservadas y simbolos	<-	ASSIGN	9	18	lexema=<-
+Tabla de literales/constantes	5	LIT_ENTERO	9	21	lexema=5, valor=5
+Tabla de palabras reservadas y simbolos	!	END_EXPR	9	23	lexema=!
+Tabla de palabras reservadas y simbolos	int	INT	10	5	lexema=int
+Tabla de palabras reservadas y simbolos	~	SEPARATOR	10	9	lexema=~
+Tabla de identificadores	resultado	ID	10	11	lexema=resultado, clase=identificador
+Tabla de palabras reservadas y simbolos	<-	ASSIGN	10	21	lexema=<-
+Tabla de literales/constantes	0	LIT_ENTERO	10	24	lexema=0, valor=0
+Tabla de palabras reservadas y simbolos	!	END_EXPR	10	26	lexema=!
+Tabla de palabras reservadas y simbolos	if	IF	12	5	lexema=if
+Tabla de palabras reservadas y simbolos	<|	L_PAREN	12	8	lexema=<|
+Tabla de palabras reservadas y simbolos	less_t	LESS_T	12	10	lexema=less_t
+Tabla de palabras reservadas y simbolos	<|	L_PAREN	12	16	lexema=<|
+Tabla de identificadores	x	ID	12	18	lexema=x, clase=identificador
+Tabla de palabras reservadas y simbolos	,	COMMA	12	19	lexema=,
+Tabla de identificadores	limite	ID	12	21	lexema=limite, clase=identificador
+Tabla de palabras reservadas y simbolos	|>	R_PAREN	12	27	lexema=|>
+Tabla de palabras reservadas y simbolos	|>	R_PAREN	12	29	lexema=|>
+Tabla de palabras reservadas y simbolos	|:	L_BLOCK	13	5	lexema=|:
+Tabla de identificadores	resultado	ID	14	9	lexema=resultado, clase=identificador
+Tabla de palabras reservadas y simbolos	<-	ASSIGN	14	19	lexema=<-
+Tabla de identificadores	incrementar	ID	14	22	lexema=incrementar, clase=identificador
+Tabla de palabras reservadas y simbolos	<|	L_PAREN	14	33	lexema=<|
+Tabla de identificadores	x	ID	14	35	lexema=x, clase=identificador
+Tabla de palabras reservadas y simbolos	|>	R_PAREN	14	36	lexema=|>
+Tabla de palabras reservadas y simbolos	!	END_EXPR	14	39	lexema=!
+Tabla de palabras reservadas y simbolos	:|	R_BLOCK	15	5	lexema=:|
+Tabla de palabras reservadas y simbolos	else	ELSE	16	5	lexema=else
+Tabla de palabras reservadas y simbolos	|:	L_BLOCK	17	5	lexema=|:
+Tabla de identificadores	resultado	ID	18	9	lexema=resultado, clase=identificador
+Tabla de palabras reservadas y simbolos	<-	ASSIGN	18	19	lexema=<-
+Tabla de identificadores	x	ID	18	22	lexema=x, clase=identificador
+Tabla de palabras reservadas y simbolos	!	END_EXPR	18	24	lexema=!
+Tabla de palabras reservadas y simbolos	:|	R_BLOCK	19	5	lexema=:|
+Tabla de palabras reservadas y simbolos	do	DO	21	5	lexema=do
+Tabla de palabras reservadas y simbolos	|:	L_BLOCK	22	5	lexema=|:
+Tabla de identificadores	resultado	ID	23	9	lexema=resultado, clase=identificador
+Tabla de palabras reservadas y simbolos	<-	ASSIGN	23	19	lexema=<-
+Tabla de identificadores	incrementar	ID	23	22	lexema=incrementar, clase=identificador
+Tabla de palabras reservadas y simbolos	<|	L_PAREN	23	33	lexema=<|
+Tabla de identificadores	resultado	ID	23	35	lexema=resultado, clase=identificador
+Tabla de palabras reservadas y simbolos	|>	R_PAREN	23	44	lexema=|>
+Tabla de palabras reservadas y simbolos	!	END_EXPR	23	47	lexema=!
+Tabla de palabras reservadas y simbolos	:|	R_BLOCK	24	5	lexema=:|
+Tabla de palabras reservadas y simbolos	while	WHILE	25	5	lexema=while
+Tabla de palabras reservadas y simbolos	<|	L_PAREN	25	11	lexema=<|
+Tabla de palabras reservadas y simbolos	less_t	LESS_T	25	13	lexema=less_t
+Tabla de palabras reservadas y simbolos	<|	L_PAREN	25	19	lexema=<|
+Tabla de identificadores	resultado	ID	25	21	lexema=resultado, clase=identificador
+Tabla de palabras reservadas y simbolos	,	COMMA	25	30	lexema=,
+Tabla de identificadores	limite	ID	25	32	lexema=limite, clase=identificador
+Tabla de palabras reservadas y simbolos	|>	R_PAREN	25	38	lexema=|>
+Tabla de palabras reservadas y simbolos	|>	R_PAREN	25	40	lexema=|>
+Tabla de palabras reservadas y simbolos	!	END_EXPR	25	43	lexema=!
+Tabla de palabras reservadas y simbolos	cout	COUT	27	5	lexema=cout
+Tabla de palabras reservadas y simbolos	<|	L_PAREN	27	10	lexema=<|
+Tabla de identificadores	resultado	ID	27	12	lexema=resultado, clase=identificador
+Tabla de palabras reservadas y simbolos	|>	R_PAREN	27	21	lexema=|>
+Tabla de palabras reservadas y simbolos	!	END_EXPR	27	24	lexema=!
+Tabla de palabras reservadas y simbolos	:|	R_BLOCK	28	1	lexema=:|

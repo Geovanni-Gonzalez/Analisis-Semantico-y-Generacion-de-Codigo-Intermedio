@@ -66,6 +66,8 @@ public class Instruccion {
                 return "param " + operandoUnico();
             case CALL:
                 return formatearCall();
+            case PRINT:
+                return "print " + operandoUnico();
             case RETURN:
                 return op1 == null ? "return" : "return " + op1;
             case LABEL:

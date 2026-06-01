@@ -13,6 +13,7 @@ import ast.LlamadaFuncionNodo;
 import ast.ParametroNodo;
 import ast.ProgramaNodo;
 import ast.ReturnNodo;
+import ast.SalidaNodo;
 import ast.TipoDato;
 import ast.WhileNodo;
 import intermedio.GeneradorCodigoIntermedio;
@@ -50,6 +51,7 @@ public class CompiladorSmokeTest {
         verificarCodigoIntermedioIf();
         verificarCodigoIntermedioIfElse();
         verificarCodigoIntermedioWhile();
+        verificarCodigoIntermedioSalida();
         verificarEtiquetasUnicasEntreIfYWhile();
         verificarCodigoIntermedioFuncionesYLlamadas();
         verificarEscritorCodigo(compilador, valido, invalido);
@@ -201,6 +203,22 @@ public class CompiladorSmokeTest {
                 "x = _t1",
                 "goto _L0",
                 "_L1:",
+                "end_function main");
+
+        verificarInstrucciones(instrucciones, esperado);
+    }
+
+    private static void verificarCodigoIntermedioSalida() {
+        ProgramaNodo programa = new ProgramaNodo(1, 1, Arrays.asList(
+                new FuncionNodo(1, 1, "main", TipoDato.VOID, Arrays.asList(),
+                        new BloqueNodo(1, 1, Arrays.asList(
+                                new SalidaNodo(1, 1, id("resultado")))),
+                        true)));
+
+        List<Instruccion> instrucciones = new GeneradorCodigoIntermedio().generar(programa);
+        List<String> esperado = Arrays.asList(
+                "begin_function main",
+                "print resultado",
                 "end_function main");
 
         verificarInstrucciones(instrucciones, esperado);
