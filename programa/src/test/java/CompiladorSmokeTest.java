@@ -3,12 +3,16 @@ import ast.BloqueNodo;
 import ast.DeclaracionVariableNodo;
 import ast.ExpresionBinariaNodo;
 import ast.ExpresionNodo;
+import ast.ExpresionSentenciaNodo;
 import ast.ExpresionUnariaNodo;
 import ast.FuncionNodo;
 import ast.IdentificadorNodo;
 import ast.IfNodo;
 import ast.LiteralNodo;
+import ast.LlamadaFuncionNodo;
+import ast.ParametroNodo;
 import ast.ProgramaNodo;
+import ast.ReturnNodo;
 import ast.TipoDato;
 import ast.WhileNodo;
 import intermedio.GeneradorCodigoIntermedio;
@@ -44,6 +48,7 @@ public class CompiladorSmokeTest {
         verificarCodigoIntermedioIfElse();
         verificarCodigoIntermedioWhile();
         verificarEtiquetasUnicasEntreIfYWhile();
+        verificarCodigoIntermedioFuncionesYLlamadas();
     }
 
     private static void verificarCodigoIntermedioExpresiones() {
@@ -67,7 +72,7 @@ public class CompiladorSmokeTest {
 
         List<Instruccion> instrucciones = new GeneradorCodigoIntermedio().generar(programa);
         List<String> esperado = Arrays.asList(
-                "inicio_func main",
+                "begin_function main",
                 "_t0 = b * c",
                 "_t1 = a + _t0",
                 "r1 = _t1",
@@ -77,7 +82,7 @@ public class CompiladorSmokeTest {
                 "r3 = _t3",
                 "_t4 = 3 + z",
                 "r4 = _t4",
-                "fin_func main");
+                "end_function main");
 
         verificarInstrucciones(instrucciones, esperado);
     }
@@ -103,11 +108,11 @@ public class CompiladorSmokeTest {
 
         List<Instruccion> instrucciones = new GeneradorCodigoIntermedio().generar(programa);
         List<String> esperado = Arrays.asList(
-                "inicio_func main",
+                "begin_function main",
                 "_t0 = a + b",
                 "x = _t0",
                 "x = 5",
-                "fin_func main");
+                "end_function main");
 
         verificarInstrucciones(instrucciones, esperado);
     }
@@ -127,12 +132,12 @@ public class CompiladorSmokeTest {
 
         List<Instruccion> instrucciones = new GeneradorCodigoIntermedio().generar(programa);
         List<String> esperado = Arrays.asList(
-                "inicio_func main",
+                "begin_function main",
                 "_t0 = x < 10",
                 "if_false _t0 goto _L0",
                 "y = 1",
                 "_L0:",
-                "fin_func main");
+                "end_function main");
 
         verificarInstrucciones(instrucciones, esperado);
     }
@@ -155,7 +160,7 @@ public class CompiladorSmokeTest {
 
         List<Instruccion> instrucciones = new GeneradorCodigoIntermedio().generar(programa);
         List<String> esperado = Arrays.asList(
-                "inicio_func main",
+                "begin_function main",
                 "_t0 = x > 0",
                 "if_false _t0 goto _L0",
                 "y = 1",
@@ -163,7 +168,7 @@ public class CompiladorSmokeTest {
                 "_L0:",
                 "y = 2",
                 "_L1:",
-                "fin_func main");
+                "end_function main");
 
         verificarInstrucciones(instrucciones, esperado);
     }
@@ -184,7 +189,7 @@ public class CompiladorSmokeTest {
 
         List<Instruccion> instrucciones = new GeneradorCodigoIntermedio().generar(programa);
         List<String> esperado = Arrays.asList(
-                "inicio_func main",
+                "begin_function main",
                 "_L0:",
                 "_t0 = x < 3",
                 "if_false _t0 goto _L1",
@@ -192,7 +197,7 @@ public class CompiladorSmokeTest {
                 "x = _t1",
                 "goto _L0",
                 "_L1:",
-                "fin_func main");
+                "end_function main");
 
         verificarInstrucciones(instrucciones, esperado);
     }
@@ -219,7 +224,7 @@ public class CompiladorSmokeTest {
 
         List<Instruccion> instrucciones = new GeneradorCodigoIntermedio().generar(programa);
         List<String> esperado = Arrays.asList(
-                "inicio_func main",
+                "begin_function main",
                 "_t0 = x < 10",
                 "if_false _t0 goto _L0",
                 "y = 1",
@@ -231,7 +236,55 @@ public class CompiladorSmokeTest {
                 "x = _t2",
                 "goto _L1",
                 "_L2:",
-                "fin_func main");
+                "end_function main");
+
+        verificarInstrucciones(instrucciones, esperado);
+    }
+
+    private static void verificarCodigoIntermedioFuncionesYLlamadas() {
+        LlamadaFuncionNodo llamadaConRetorno = new LlamadaFuncionNodo(1, 1, "foo",
+                Arrays.asList(id("a"), id("b")));
+        llamadaConRetorno.setTipo(TipoDato.INT);
+        LlamadaFuncionNodo llamadaVoid = new LlamadaFuncionNodo(1, 1, "bar",
+                Arrays.asList(id("a")));
+        llamadaVoid.setTipo(TipoDato.EMPTY);
+
+        ProgramaNodo programa = new ProgramaNodo(1, 1, Arrays.asList(
+                new FuncionNodo(1, 1, "foo", TipoDato.INT,
+                        Arrays.asList(new ParametroNodo(1, 1, "a", TipoDato.INT),
+                                new ParametroNodo(1, 1, "b", TipoDato.INT)),
+                        new BloqueNodo(1, 1, Arrays.asList(
+                                new ReturnNodo(1, 1, new ExpresionBinariaNodo(1, 1, "+",
+                                        id("a"), id("b"))))),
+                        false),
+                new FuncionNodo(1, 1, "bar", TipoDato.EMPTY,
+                        Arrays.asList(new ParametroNodo(1, 1, "a", TipoDato.INT)),
+                        new BloqueNodo(1, 1, Arrays.asList(
+                                new ReturnNodo(1, 1, null))),
+                        false),
+                new FuncionNodo(1, 1, "main", TipoDato.EMPTY, Arrays.asList(),
+                        new BloqueNodo(1, 1, Arrays.asList(
+                                new AsignacionNodo(1, 1, id("r"), llamadaConRetorno),
+                                new ExpresionSentenciaNodo(1, 1, llamadaVoid))),
+                        true)));
+
+        List<Instruccion> instrucciones = new GeneradorCodigoIntermedio().generar(programa);
+        List<String> esperado = Arrays.asList(
+                "begin_function foo",
+                "_t0 = a + b",
+                "return _t0",
+                "end_function foo",
+                "begin_function bar",
+                "return",
+                "end_function bar",
+                "begin_function main",
+                "param a",
+                "param b",
+                "_t1 = call foo, 2",
+                "r = _t1",
+                "param a",
+                "call bar, 1",
+                "end_function main");
 
         verificarInstrucciones(instrucciones, esperado);
     }

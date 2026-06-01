@@ -71,9 +71,9 @@ public class Instruccion {
             case LABEL:
                 return resultado + ":";
             case INICIO_FUNC:
-                return "inicio_func " + resultado;
+                return "begin_function " + resultado;
             case FIN_FUNC:
-                return resultado == null ? "fin_func" : "fin_func " + resultado;
+                return resultado == null ? "end_function" : "end_function " + resultado;
             default:
                 throw new IllegalStateException("Operacion no soportada: " + op);
         }
