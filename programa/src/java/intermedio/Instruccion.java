@@ -1,5 +1,12 @@
 package intermedio;
 
+/**
+ * Instruccion atomica del codigo intermedio.
+ *
+ * <p>La clase mantiene una estructura simple de hasta tres operandos y concentra
+ * el formateo textual del `.ic`, lo que evita duplicar cadenas en el generador
+ * y en las pruebas.</p>
+ */
 public class Instruccion {
     public final Operacion op;
     public final String resultado;

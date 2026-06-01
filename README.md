@@ -136,6 +136,9 @@ classDiagram
 ```
 
 ## Capturas o demo
+Ver la guia de documentacion interna del compilador:
+[`documentación/documentacion_interna.md`](documentación/documentacion_interna.md).
+
 Ver la documentacion de la prueba de recuperacion con multiples errores:
 [`documentación/recuperacion_multiples_errores.md`](documentación/recuperacion_multiples_errores.md).
 

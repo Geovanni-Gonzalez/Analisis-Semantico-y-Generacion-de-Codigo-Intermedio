@@ -21,6 +21,13 @@ import ast.WhileNodo;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Recorre el AST aceptado y emite instrucciones de tres direcciones.
+ *
+ * <p>Esta clase no valida tipos: asume que el programa ya paso por el analisis
+ * semantico. Su responsabilidad es traducir nodos a temporales, etiquetas,
+ * saltos, llamadas y salida observable.</p>
+ */
 public class GeneradorCodigoIntermedio {
     private final List<Instruccion> instrucciones = new ArrayList<>();
     private int contadorTemporales;
@@ -153,6 +160,11 @@ public class GeneradorCodigoIntermedio {
         if (expresion instanceof LlamadaFuncionNodo) {
             return generarLlamada((LlamadaFuncionNodo) expresion);
         }
+        /*
+         * Valor defensivo para expresiones aun no implementadas en el IR. En un
+         * programa aceptado no deberia aparecer, pero facilita detectar huecos
+         * durante nuevas extensiones.
+         */
         return "<expr>";
     }
 

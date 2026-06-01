@@ -1,5 +1,8 @@
 package intermedio;
 
+/**
+ * Operaciones soportadas por el codigo de tres direcciones del proyecto.
+ */
 public enum Operacion {
     ASIG,
     SUMA,

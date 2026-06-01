@@ -10,6 +10,14 @@ import java.util.Set;
 import java.util.Stack;
 import reporte.ReportadorErrores;
 
+/**
+ * Tabla de simbolos con alcances anidados y acumulacion de errores semanticos.
+ *
+ * <p>La cima de la pila representa el alcance actual. Las busquedas se hacen
+ * desde el alcance mas interno hacia el global para respetar sombreado y
+ * visibilidad. Cuando falta un simbolo, se registra un simbolo de error para
+ * que el analisis pueda continuar sin reportes repetidos.</p>
+ */
 public class TablaDeSimbolos {
     private final Stack<HashMap<String, Simbolo>> alcances;
     private final List<String> erroresSemanticos;

@@ -7,6 +7,13 @@ import java.util.List;
 import lexico.MiLexer;
 import sintactico.Parser;
 
+/**
+ * Resultado inmutable de una corrida del pipeline.
+ *
+ * <p>Expone tanto los objetos internos necesarios para reportes como las
+ * banderas de aceptacion que deciden si el programa puede producir codigo
+ * intermedio.</p>
+ */
 public class ResultadoCompilacion {
     private final Path fuente;
     private final MiLexer lexerTokens;

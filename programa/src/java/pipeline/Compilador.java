@@ -14,7 +14,20 @@ import reporte.ReportadorErrores;
 import sintactico.Parser;
 import sintactico.sym;
 
+/**
+ * Fachada reutilizable del compilador.
+ *
+ * <p>Centraliza el flujo completo para que la CLI y las pruebas no dupliquen
+ * la secuencia lexer -> parser -> semantica -> codigo intermedio. La clase
+ * ejecuta una pasada lexica independiente para conservar el reporte completo
+ * de tokens y una segunda pasada para alimentar al parser.</p>
+ */
 public class Compilador {
+    /**
+     * Compila un archivo fuente y devuelve todos los artefactos en memoria.
+     * El codigo intermedio se genera solamente si no existen errores lexicos,
+     * sintacticos ni semanticos.
+     */
     public ResultadoCompilacion compilar(Path fuente) throws Exception {
         MiLexer lexerTokens = crearLexer(fuente);
         consumirTokens(lexerTokens);
