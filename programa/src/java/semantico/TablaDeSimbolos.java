@@ -41,12 +41,6 @@ public class TablaDeSimbolos {
 
         String nombre = simbolo.getNombre();
         if (existeEnAlcanceActual(nombre)) {
-            Simbolo existente = alcances.peek().get(nombre);
-
-            if (existente.getTipo() == TipoDato.ERROR) {
-                alcances.peek().put(nombre, simbolo);
-                return;
-            }
             reportarRedeclaracion(nombre, simbolo.getLinea());
             return;
         }
@@ -78,10 +72,9 @@ public class TablaDeSimbolos {
         if (variablesNoDeclaradasReportadas.add(nombre)) {
             reportarVariableNoDeclarada(nombre, linea);
         }
-        Simbolo simboloError = new Simbolo(nombre, TipoDato.ERROR, CategoriaSimb.VAR, linea);
-        insertarSimboloError(simboloError);
-        return simboloError;
+        return new Simbolo(nombre, TipoDato.ERROR, CategoriaSimb.VAR, linea);
     }
+
 
     public Simbolo buscarFuncion(String nombre, int linea) {
         for (int i = alcances.size() - 1; i >= 0; i--) {
