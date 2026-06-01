@@ -6,6 +6,7 @@ import ast.ExpresionNodo;
 import ast.ExpresionUnariaNodo;
 import ast.FuncionNodo;
 import ast.IdentificadorNodo;
+import ast.IfNodo;
 import ast.LiteralNodo;
 import ast.ProgramaNodo;
 import ast.TipoDato;
@@ -38,6 +39,8 @@ public class CompiladorSmokeTest {
 
         verificarCodigoIntermedioExpresiones();
         verificarCodigoIntermedioDeclaracionesYAsignaciones();
+        verificarCodigoIntermedioIf();
+        verificarCodigoIntermedioIfElse();
     }
 
     private static void verificarCodigoIntermedioExpresiones() {
@@ -73,18 +76,7 @@ public class CompiladorSmokeTest {
                 "r4 = _t4",
                 "fin_func main");
 
-        if (instrucciones.size() != esperado.size()) {
-            throw new AssertionError("Cantidad de instrucciones esperada: "
-                    + esperado.size() + ", actual: " + instrucciones.size());
-        }
-
-        for (int i = 0; i < esperado.size(); i++) {
-            String actual = instrucciones.get(i).toString();
-            if (!esperado.get(i).equals(actual)) {
-                throw new AssertionError("Instruccion " + i + " esperada: "
-                        + esperado.get(i) + ", actual: " + actual);
-            }
-        }
+        verificarInstrucciones(instrucciones, esperado);
     }
 
     private static IdentificadorNodo id(String nombre) {
@@ -114,6 +106,66 @@ public class CompiladorSmokeTest {
                 "x = 5",
                 "fin_func main");
 
+        verificarInstrucciones(instrucciones, esperado);
+    }
+
+    private static void verificarCodigoIntermedioIf() {
+        ExpresionNodo condicion = new ExpresionBinariaNodo(1, 1, "less_t",
+                id("x"), new LiteralNodo(1, 1, 10, TipoDato.INT));
+        BloqueNodo bloqueEntonces = new BloqueNodo(1, 1, Arrays.asList(
+                new AsignacionNodo(1, 1, id("y"),
+                        new LiteralNodo(1, 1, 1, TipoDato.INT))));
+
+        ProgramaNodo programa = new ProgramaNodo(1, 1, Arrays.asList(
+                new FuncionNodo(1, 1, "main", TipoDato.VOID, Arrays.asList(),
+                        new BloqueNodo(1, 1, Arrays.asList(
+                                new IfNodo(1, 1, condicion, bloqueEntonces, null))),
+                        true)));
+
+        List<Instruccion> instrucciones = new GeneradorCodigoIntermedio().generar(programa);
+        List<String> esperado = Arrays.asList(
+                "inicio_func main",
+                "_t0 = x < 10",
+                "if_false _t0 goto _L0",
+                "y = 1",
+                "_L0:",
+                "fin_func main");
+
+        verificarInstrucciones(instrucciones, esperado);
+    }
+
+    private static void verificarCodigoIntermedioIfElse() {
+        ExpresionNodo condicion = new ExpresionBinariaNodo(1, 1, "greather_t",
+                id("x"), new LiteralNodo(1, 1, 0, TipoDato.INT));
+        BloqueNodo bloqueEntonces = new BloqueNodo(1, 1, Arrays.asList(
+                new AsignacionNodo(1, 1, id("y"),
+                        new LiteralNodo(1, 1, 1, TipoDato.INT))));
+        BloqueNodo bloqueSino = new BloqueNodo(1, 1, Arrays.asList(
+                new AsignacionNodo(1, 1, id("y"),
+                        new LiteralNodo(1, 1, 2, TipoDato.INT))));
+
+        ProgramaNodo programa = new ProgramaNodo(1, 1, Arrays.asList(
+                new FuncionNodo(1, 1, "main", TipoDato.VOID, Arrays.asList(),
+                        new BloqueNodo(1, 1, Arrays.asList(
+                                new IfNodo(1, 1, condicion, bloqueEntonces, bloqueSino))),
+                        true)));
+
+        List<Instruccion> instrucciones = new GeneradorCodigoIntermedio().generar(programa);
+        List<String> esperado = Arrays.asList(
+                "inicio_func main",
+                "_t0 = x > 0",
+                "if_false _t0 goto _L0",
+                "y = 1",
+                "goto _L1",
+                "_L0:",
+                "y = 2",
+                "_L1:",
+                "fin_func main");
+
+        verificarInstrucciones(instrucciones, esperado);
+    }
+
+    private static void verificarInstrucciones(List<Instruccion> instrucciones, List<String> esperado) {
         if (instrucciones.size() != esperado.size()) {
             throw new AssertionError("Cantidad de instrucciones esperada: "
                     + esperado.size() + ", actual: " + instrucciones.size());
