@@ -1,7 +1,3 @@
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.Reader;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -11,6 +7,9 @@ import ast.GeneradorCodigo;
 import ast.Instruccion;
 import ast.ProgramaNodo;
 import ast.ReportadorErrores;
+import pipeline.Compilador;
+import pipeline.ResultadoCompilacion;
+import reporte.EscritorReportes;
 
 public class Main {
     public static void main(String[] args) throws Exception {
@@ -50,27 +49,19 @@ public class Main {
                 && parser.getNumErrores() == 0
                 && parser.tablaSimbolos.getErroresSemanticos().isEmpty();
 
-        GeneradorCodigo generador = GeneradorCodigo.getInstancia();
-        generador.reiniciar();
-        if (aceptado && parser.ast != null) {
-            generarCodigoIntermedio(parser.ast, generador);
-        }
-
         escribirTokens(salida.resolve("tokens_report.txt"), lexerTokens);
         escribirTablaSimbolos(salida.resolve("tabla_simbolos.txt"), lexerTokens);
         escribirErrores(salida.resolve("errores_report.txt"), lexerTokens, parser);
         escribirResultado(salida.resolve("resultado_sintactico.txt"), fuente, aceptado);
-        escribirCodigoIntermedio(salida.resolve("codigo_intermedio.txt"), generador);
 
         System.out.println("Archivo analizado: " + fuente);
-        System.out.println(aceptado
+        System.out.println(resultado.isAceptado()
                 ? "El archivo fuente puede ser generado por la gramatica."
                 : "El archivo fuente NO puede ser generado por la gramatica.");
         System.out.println("Reporte de tokens: " + salida.resolve("tokens_report.txt"));
         System.out.println("Tabla de simbolos: " + salida.resolve("tabla_simbolos.txt"));
         System.out.println("Reporte de errores: " + salida.resolve("errores_report.txt"));
         System.out.println("Resultado sintactico: " + salida.resolve("resultado_sintactico.txt"));
-        System.out.println("Codigo intermedio: " + salida.resolve("codigo_intermedio.txt"));
     }
 
     private static MiLexer crearLexer(Path fuente) throws Exception {
@@ -160,23 +151,6 @@ public class Main {
                     ? "El archivo fuente puede ser generado por la gramatica."
                     : "El archivo fuente NO puede ser generado por la gramatica.");
             writer.newLine();
-        }
-    }
-
-    private static void generarCodigoIntermedio(ProgramaNodo programa, GeneradorCodigo generador) {
-        for (FuncionNodo funcion : programa.getFunciones()) {
-            String nombre = funcion.isPrincipal() ? "__main__" : funcion.getNombre();
-            generador.emitir(new Instruccion("inicio_func " + nombre));
-            generador.emitir(new Instruccion("fin_func " + nombre));
-        }
-    }
-
-    private static void escribirCodigoIntermedio(Path archivo, GeneradorCodigo generador) throws Exception {
-        try (BufferedWriter writer = Files.newBufferedWriter(archivo, StandardCharsets.UTF_8)) {
-            for (Instruccion instruccion : generador.getInstrucciones()) {
-                writer.write(instruccion.toString());
-                writer.newLine();
-            }
         }
     }
 }

@@ -1,5 +1,6 @@
-package ast;
+package semantico;
 
+import ast.TipoDato;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

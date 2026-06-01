@@ -1,12 +1,17 @@
+package lexico;
+
 import java_cup.runtime.*;
-import ast.ReportadorErrores;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import reporte.ReportadorErrores;
+import reporte.TokenInfo;
+import sintactico.sym;
 
 %%
 
 %class MiLexer
+%public
 %unicode
 %cup
 %line
@@ -14,27 +19,6 @@ import java.util.List;
 %state COMMENT
 
 %{
-public static class TokenInfo {
-    public final int id;
-    public final String nombre;
-    public final String lexema;
-    public final int linea;
-    public final int columna;
-    public final String tabla;
-    public final String informacion;
-
-    public TokenInfo(int id, String nombre, String lexema, int linea, int columna,
-                     String tabla, String informacion) {
-        this.id = id;
-        this.nombre = nombre;
-        this.lexema = lexema;
-        this.linea = linea;
-        this.columna = columna;
-        this.tabla = tabla;
-        this.informacion = informacion;
-    }
-}
-
 private final List<TokenInfo> tokens = new ArrayList<>();
 private final List<String> erroresLexicos = new ArrayList<>();
 private boolean imprimirErrores = true;
