@@ -1072,16 +1072,39 @@ expresionLog
     ;
 
 /* Expresion conjuntiva formada por negaciones o comparaciones. */
-andExpr
-    ::= andExpr:l AND_LOG:o notExpr:r
-        {: RESULT = new ExpresionBinariaNodo(oleft, oright, "@", l, r); :}
-    | AND_LOG:o error
-        {:
-            parser.report_error("Expresion invalida despues de '@'", null);
-            RESULT = new LiteralNodo(oleft, oright, null, TipoDato.DESCONOCIDO);
-        :}
-    | notExpr:e
+expresionRelTernaria
+    ::= EQUAL:o L_PAREN expresion:l COMMA expresion:r R_PAREN
+        {: RESULT = new ExpresionBinariaNodo(oleft, oright, "equal", l, r); :}
+
+    | N_EQUAL:o L_PAREN expresion:l COMMA expresion:r R_PAREN
+        {: RESULT = new ExpresionBinariaNodo(oleft, oright, "n_equal", l, r); :}
+
+    | expresionRelBinaria:e
         {: RESULT = e; :}
+
+    | EQUAL:o L_PAREN expresion:l error expresion:r R_PAREN
+        {:
+            parser.report_error("Se esperaba ',' entre los argumentos de 'equal'", null);
+            RESULT = new ExpresionBinariaNodo(oleft, oright, "equal", l, r);
+        :}
+
+    | N_EQUAL:o L_PAREN expresion:l error expresion:r R_PAREN
+        {:
+            parser.report_error("Se esperaba ',' entre los argumentos de 'n_equal'", null);
+            RESULT = new ExpresionBinariaNodo(oleft, oright, "n_equal", l, r);
+        :}
+
+    | EQUAL:o L_PAREN expresion:l COMMA expresion:r error
+        {:
+            parser.report_error("Se esperaba '|>' para cerrar 'equal'", null);
+            RESULT = new ExpresionBinariaNodo(oleft, oright, "equal", l, r);
+        :}
+
+    | N_EQUAL:o L_PAREN expresion:l COMMA expresion:r error
+        {:
+            parser.report_error("Se esperaba '|>' para cerrar 'n_equal'", null);
+            RESULT = new ExpresionBinariaNodo(oleft, oright, "n_equal", l, r);
+        :}
     ;
 
 /* Negacion logica o expresion relacional. */
