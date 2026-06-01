@@ -183,6 +183,7 @@ STRING = [^\r\n\"]*
 "-"             { return symbol(sym.MINUS); }
 "*"             { return symbol(sym.TIMES); }
 "/"             { return symbol(sym.DIV); }
+"//"            { return symbol(sym.DIV); }
 "%"             { return symbol(sym.MOD); }
 "^"             { return symbol(sym.POW); }
 
