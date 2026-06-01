@@ -14,6 +14,7 @@ import ast.LlamadaFuncionNodo;
 import ast.Nodo;
 import ast.ProgramaNodo;
 import ast.ReturnNodo;
+import ast.WhileNodo;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,6 +56,8 @@ public class GeneradorCodigoIntermedio {
             generarBloque((BloqueNodo) nodo);
         } else if (nodo instanceof IfNodo) {
             generarIf((IfNodo) nodo);
+        } else if (nodo instanceof WhileNodo) {
+            generarWhile((WhileNodo) nodo);
         }
     }
 
@@ -94,6 +97,28 @@ public class GeneradorCodigoIntermedio {
         instrucciones.add(new Instruccion(Operacion.LABEL, etiquetaElseOFin));
         generarBloque(sentencia.getBloqueSino());
         instrucciones.add(new Instruccion(Operacion.LABEL, etiquetaFin));
+    }
+
+    private void generarWhile(WhileNodo sentencia) {
+        String etiquetaInicio = nuevaEtiqueta();
+        String etiquetaSalida = nuevaEtiqueta();
+
+        instrucciones.add(new Instruccion(Operacion.LABEL, etiquetaInicio));
+
+        if (sentencia.isDoWhile()) {
+            generarBloque(sentencia.getCuerpo());
+            String condicion = generarExpresion(sentencia.getCondicion());
+            instrucciones.add(new Instruccion(Operacion.IF_FALSE, etiquetaSalida, condicion));
+            instrucciones.add(new Instruccion(Operacion.GOTO, etiquetaInicio));
+            instrucciones.add(new Instruccion(Operacion.LABEL, etiquetaSalida));
+            return;
+        }
+
+        String condicion = generarExpresion(sentencia.getCondicion());
+        instrucciones.add(new Instruccion(Operacion.IF_FALSE, etiquetaSalida, condicion));
+        generarBloque(sentencia.getCuerpo());
+        instrucciones.add(new Instruccion(Operacion.GOTO, etiquetaInicio));
+        instrucciones.add(new Instruccion(Operacion.LABEL, etiquetaSalida));
     }
 
     private String generarExpresion(ExpresionNodo expresion) {
