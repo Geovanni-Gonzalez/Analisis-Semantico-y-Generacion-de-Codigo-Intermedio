@@ -769,6 +769,11 @@ filaArreglo
             parser.report_error("Se esperaba ':|' para cerrar la fila del arreglo", null);
             RESULT = vs;
         :}
+    | error valoresArreglo:vs R_BLOCK
+        {:
+            parser.report_error("Se esperaba '|:' para abrir la fila del arreglo", null);
+            RESULT = vs;
+        :}
     ;
 
 /* Valores de una fila de arreglo separados por coma. */
