@@ -1336,15 +1336,24 @@ termino
 
 /* Potencia con asociatividad a la derecha. */
 potencia
-    ::= factor:e
-        {: RESULT = e; :}
-    | factor:l POW:o potencia:r
-        {: RESULT = new ExpresionBinariaNodo(oleft, oright, "^", l, r); :}
+    ::= factor:l POW:o potencia:r
+        {:
+            RESULT = new ExpresionBinariaNodo(
+                oleft, oright, "^", l, r);
+        :}
+
+    | factor:e
+        {:
+            RESULT = e;
+        :}
+
     | factor:l POW:o error
         {:
-            parser.report_error("Expresion invalida despues de '^'", null);
-            RESULT = new ExpresionBinariaNodo(oleft, oright, "^", l,
-                    new LiteralNodo(oleft, oright, null, TipoDato.DESCONOCIDO));
+            parser.report_error(
+                "Expresion invalida despues de '^'",
+                null);
+
+            RESULT = l;
         :}
     ;
 
