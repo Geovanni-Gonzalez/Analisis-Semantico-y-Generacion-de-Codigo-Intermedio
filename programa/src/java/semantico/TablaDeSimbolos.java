@@ -1,5 +1,6 @@
-package ast;
+package semantico;
 
+import ast.TipoDato;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -7,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.Stack;
+import reporte.ReportadorErrores;
 
 public class TablaDeSimbolos {
     private final Stack<HashMap<String, Simbolo>> alcances;
@@ -47,7 +49,7 @@ public class TablaDeSimbolos {
     }
 
     public void reportarTipoDeclaracionInvalido(TipoDato tipo, int linea) {
-        reportar("tipo declarado inválido '" + tipo + "'", linea);
+        reportar("tipo declarado invalido '" + tipo + "'", linea);
     }
 
     public void reportarAsignacionIncompatible(TipoDato tipoOrigen, TipoDato tipoDestino, int linea) {
@@ -114,11 +116,11 @@ public class TablaDeSimbolos {
     }
 
     public void reportarMainObligatorio() {
-        reportar("el programa debe contener exactamente un método main", 0);
+        reportar("el programa debe contener exactamente un metodo main", 0);
     }
 
     public void reportarAsignacionIncompatible(String nombre, TipoDato esperado, TipoDato recibido, int linea) {
-        reportar("asignación incompatible para '" + nombre + "': se esperaba tipo "
+        reportar("asignacion incompatible para '" + nombre + "': se esperaba tipo "
                 + esperado + " y se obtuvo tipo " + recibido, linea);
     }
 
@@ -134,15 +136,15 @@ public class TablaDeSimbolos {
     }
 
     public void reportarCondicionNoBooleana(TipoDato recibido, int linea) {
-        reportar("la condición debe ser de tipo bool, pero se encontró tipo " + recibido, linea);
+        reportar("la condicion debe ser de tipo bool, pero se encontro tipo " + recibido, linea);
     }
 
     public void reportarReturnSinValor(TipoDato esperado, int linea) {
-        reportar("la función de tipo " + esperado + " debe retornar un valor", linea);
+        reportar("la funcion de tipo " + esperado + " debe retornar un valor", linea);
     }
 
     public void reportarReturnConValorEnVoid(int linea) {
-        reportar("la función void no puede retornar un valor", linea);
+        reportar("la funcion void no puede retornar un valor", linea);
     }
 
     public void reportarReturnTipoIncompatible(TipoDato esperado, TipoDato encontrado, int linea) {
@@ -157,7 +159,7 @@ public class TablaDeSimbolos {
 
     public void reportarTipoArgumentoIncorrecto(int argumento, TipoDato esperado, TipoDato encontrado, int linea) {
         reportar("argumento " + argumento + " incompatible: se esperaba tipo "
-                + esperado + " y se encontró tipo " + encontrado, linea);
+                + esperado + " y se encontro tipo " + encontrado, linea);
     }
 
     private void reportarVariableNoDeclarada(String nombre, int linea) {
@@ -165,11 +167,11 @@ public class TablaDeSimbolos {
     }
 
     private void reportarFuncionNoDeclarada(String nombre, int linea) {
-        reportar("función '" + nombre + "' no declarada", linea);
+        reportar("funcion '" + nombre + "' no declarada", linea);
     }
 
     private void reportarRedeclaracion(String nombre, int linea) {
-        reportar("'" + nombre + "' ya está declarado en este alcance", linea);
+        reportar("'" + nombre + "' ya esta declarado en este alcance", linea);
     }
 
     private void reportar(String descripcion, int linea) {

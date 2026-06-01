@@ -29,6 +29,9 @@ parser.java
 sym.java
 target/
 programa/target/
+programa/build/
+programa/salida*/
+salida/
 
 # IntelliJ IDEA
 .idea/
