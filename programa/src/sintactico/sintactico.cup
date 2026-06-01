@@ -1360,13 +1360,27 @@ potencia
 /* Factor: prefijos unarios o base de expresion. */
 factor
     ::= MINUS:o factor:e
-        {: RESULT = new ExpresionUnariaNodo(oleft, oright, "-", e); :}
+        {:
+            RESULT = new ExpresionUnariaNodo(
+                oleft, oright, "-", e);
+        :}
+
     | INC:o factor:e
-        {: RESULT = new ExpresionUnariaNodo(oleft, oright, "++", e); :}
+        {:
+            RESULT = new ExpresionUnariaNodo(
+                oleft, oright, "++", e);
+        :}
+
     | DEC:o factor:e
-        {: RESULT = new ExpresionUnariaNodo(oleft, oright, "--", e); :}
+        {:
+            RESULT = new ExpresionUnariaNodo(
+                oleft, oright, "--", e);
+        :}
+
     | base:e
-        {: RESULT = e; :}
+        {:
+            RESULT = e;
+        :}
     ;
 
 /* Base de expresion: literal, identificador, arreglo, llamada o parentesis. */
