@@ -257,6 +257,10 @@ non terminal ExpresionNodo expresionArit, termino, potencia, factor, base, liter
 non terminal LlamadaFuncionNodo idFuncion;
 non terminal java.util.List args, listaArgs;
 
+precedence left OR_LOG;
+precedence left AND_LOG;
+precedence right NOT_LOG;
+
 start with programa;
 
 /* Programa completo: una secuencia de miembros de nivel superior con un punto de entrada valido. */
@@ -1041,13 +1045,13 @@ expresion
     ;
 /* Expresion disyuntiva formada por conjunciones. */
 expresionLog
-    ::= expresionLog:l AND_LOG:o expresionRelTernaria:r
+    ::= expresionLog:l AND_LOG:o expresionLog:r
         {: RESULT = new ExpresionBinariaNodo(oleft, oright, "@", l, r); :}
 
-    | expresionLog:l OR_LOG:o expresionRelTernaria:r
+    | expresionLog:l OR_LOG:o expresionLog:r
         {: RESULT = new ExpresionBinariaNodo(oleft, oright, "#", l, r); :}
 
-    | NOT_LOG:o expresionRelTernaria:e
+    | NOT_LOG:o expresionLog:e
         {: RESULT = new ExpresionUnariaNodo(oleft, oright, "$", e); :}
 
     | expresionRelTernaria:e
