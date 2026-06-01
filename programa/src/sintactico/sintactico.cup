@@ -823,34 +823,29 @@ asignacion
 
 /* Acceso bidimensional de arreglo con indices en una pareja o en dos pares. */
 accesoArreglo
-    ::= ID:id L_ARRAY expresion:f COMMA expresion:c R_ARRAY
+    ::= ID:id L_ARRAY expresion:f R_ARRAY L_ARRAY expresion:c R_ARRAY
         {:
             parser.usarIdentificador(id, idleft);
-            RESULT = new AccesoArregloNodo(idleft, idright, id, f, c);
-        :}
-    | ID:id L_ARRAY expresion:f R_ARRAY L_ARRAY expresion:c R_ARRAY
-        {:
-            parser.usarIdentificador(id, idleft);
-            RESULT = new AccesoArregloNodo(idleft, idright, id, f, c);
-        :}
-    | ID:id L_ARRAY expresion:f error expresion:c R_ARRAY
-        {:
-            parser.report_error("Se esperaba ',' entre los dos indices del arreglo", null);
-            RESULT = new AccesoArregloNodo(idleft, idright, id, f, c);
-        :}
-    | ID:id L_ARRAY expresion:f COMMA expresion:c error
-        {:
-            parser.report_error("Se esperaba '>>' para cerrar el acceso al arreglo", null);
             RESULT = new AccesoArregloNodo(idleft, idright, id, f, c);
         :}
     | ID:id L_ARRAY expresion:f error L_ARRAY expresion:c R_ARRAY
         {:
-            parser.report_error("Se esperaba '>>' para cerrar el primer indice del arreglo", null);
+            parser.report_error("Se esperaba '>>' para cerrar el acceso al arreglo", null);
             RESULT = new AccesoArregloNodo(idleft, idright, id, f, c);
         :}
     | ID:id L_ARRAY expresion:f R_ARRAY L_ARRAY expresion:c error
         {:
-            parser.report_error("Se esperaba '>>' para cerrar el segundo indice del arreglo", null);
+            parser.report_error("Se esperaba '>>' para cerrar el acceso al arreglo", null);
+            RESULT = new AccesoArregloNodo(idleft, idright, id, f, c);
+        :}
+    | ID:id error expresion:f R_ARRAY L_ARRAY expresion:c R_ARRAY
+        {:
+            parser.report_error("Se esperaba '<<' para cerrar el primer indice del arreglo", null);
+            RESULT = new AccesoArregloNodo(idleft, idright, id, f, c);
+        :}
+    | ID:id L_ARRAY expresion:f R_ARRAY error expresion:c R_ARRAY
+        {:
+            parser.report_error("Se esperaba '<<' para cerrar el segundo indice del arreglo", null);
             RESULT = new AccesoArregloNodo(idleft, idright, id, f, c);
         :}
     ;
