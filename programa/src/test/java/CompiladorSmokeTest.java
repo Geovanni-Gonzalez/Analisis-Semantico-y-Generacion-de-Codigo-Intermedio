@@ -17,11 +17,14 @@ import ast.TipoDato;
 import ast.WhileNodo;
 import intermedio.GeneradorCodigoIntermedio;
 import intermedio.Instruccion;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import pipeline.Compilador;
 import pipeline.ResultadoCompilacion;
+import reporte.EscritorCodigo;
 
 public class CompiladorSmokeTest {
     public static void main(String[] args) throws Exception {
@@ -49,6 +52,7 @@ public class CompiladorSmokeTest {
         verificarCodigoIntermedioWhile();
         verificarEtiquetasUnicasEntreIfYWhile();
         verificarCodigoIntermedioFuncionesYLlamadas();
+        verificarEscritorCodigo(compilador, valido, invalido);
     }
 
     private static void verificarCodigoIntermedioExpresiones() {
@@ -301,6 +305,61 @@ public class CompiladorSmokeTest {
                 throw new AssertionError("Instruccion " + i + " esperada: "
                         + esperado.get(i) + ", actual: " + actual);
             }
+        }
+    }
+
+    private static void verificarEscritorCodigo(Compilador compilador,
+                                                ResultadoCompilacion valido,
+                                                ResultadoCompilacion invalido) throws Exception {
+        Path salida = Files.createTempDirectory("codigo-intermedio-test");
+
+        Path archivoValido = EscritorCodigo.escribir(salida, valido);
+        if (!archivoValido.getFileName().toString().equals("01_minimo_valido.ic")) {
+            throw new AssertionError("El archivo .ic debe derivarse del nombre fuente.");
+        }
+        if (!Files.isRegularFile(archivoValido)) {
+            throw new AssertionError("El caso valido debe generar archivo .ic.");
+        }
+
+        List<String> lineas = Files.readAllLines(archivoValido);
+        assertContiene(lineas.get(1), "// Fecha: ");
+        assertContiene(lineas.get(2), "01_minimo_valido.chip");
+        assertContiene(lineas.get(3), "// Integrantes: ");
+        assertContiene(lineas.get(5), "\tbegin_function");
+
+        ResultadoCompilacion conEtiqueta = compilador.compilar(
+                Paths.get("test_verificacion/07_if_else.chip"));
+        Path archivoConEtiqueta = EscritorCodigo.escribir(salida, conEtiqueta);
+        List<String> lineasConEtiqueta = Files.readAllLines(archivoConEtiqueta);
+        boolean etiquetaSinIndentacion = false;
+        boolean instruccionIndentada = false;
+        for (String linea : lineasConEtiqueta) {
+            if (linea.matches("_L\\d+:")) {
+                etiquetaSinIndentacion = true;
+            }
+            if (linea.startsWith("\tif_false ")) {
+                instruccionIndentada = true;
+            }
+            if (linea.startsWith("\t_L")) {
+                throw new AssertionError("Las etiquetas no deben tener indentacion.");
+            }
+        }
+        if (!etiquetaSinIndentacion) {
+            throw new AssertionError("Debe existir al menos una etiqueta sin indentacion.");
+        }
+        if (!instruccionIndentada) {
+            throw new AssertionError("Las instrucciones deben tener una tabulacion.");
+        }
+
+        Path archivoInvalido = EscritorCodigo.escribir(salida, invalido);
+        if (Files.exists(archivoInvalido)) {
+            throw new AssertionError("No debe generarse archivo .ic cuando hay errores.");
+        }
+    }
+
+    private static void assertContiene(String texto, String esperado) {
+        if (!texto.contains(esperado)) {
+            throw new AssertionError("Se esperaba encontrar '" + esperado + "' en: " + texto);
         }
     }
 }
