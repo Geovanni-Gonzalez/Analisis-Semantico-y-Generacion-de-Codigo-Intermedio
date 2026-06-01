@@ -1074,93 +1074,173 @@ expresionLog
 /* Expresion conjuntiva formada por negaciones o comparaciones. */
 expresionRelTernaria
     ::= EQUAL:o L_PAREN expresion:l COMMA expresion:r R_PAREN
-        {: RESULT = new ExpresionBinariaNodo(oleft, oright, "equal", l, r); :}
+        {:
+            RESULT = new ExpresionBinariaNodo(
+                oleft, oright, "equal", l, r);
+        :}
 
     | N_EQUAL:o L_PAREN expresion:l COMMA expresion:r R_PAREN
-        {: RESULT = new ExpresionBinariaNodo(oleft, oright, "n_equal", l, r); :}
+        {:
+            RESULT = new ExpresionBinariaNodo(
+                oleft, oright, "n_equal", l, r);
+        :}
 
     | expresionRelBinaria:e
-        {: RESULT = e; :}
+        {:
+            RESULT = e;
+        :}
 
     | EQUAL:o L_PAREN expresion:l error expresion:r R_PAREN
         {:
-            parser.report_error("Se esperaba ',' entre los argumentos de 'equal'", null);
-            RESULT = new ExpresionBinariaNodo(oleft, oright, "equal", l, r);
+            parser.report_error(
+                "Se esperaba ',' entre los argumentos de 'equal'",
+                null);
+
+            RESULT = new ExpresionBinariaNodo(
+                oleft, oright, "equal", l, r);
         :}
 
     | N_EQUAL:o L_PAREN expresion:l error expresion:r R_PAREN
         {:
-            parser.report_error("Se esperaba ',' entre los argumentos de 'n_equal'", null);
-            RESULT = new ExpresionBinariaNodo(oleft, oright, "n_equal", l, r);
+            parser.report_error(
+                "Se esperaba ',' entre los argumentos de 'n_equal'",
+                null);
+
+            RESULT = new ExpresionBinariaNodo(
+                oleft, oright, "n_equal", l, r);
         :}
 
     | EQUAL:o L_PAREN expresion:l COMMA expresion:r error
         {:
-            parser.report_error("Se esperaba '|>' para cerrar 'equal'", null);
-            RESULT = new ExpresionBinariaNodo(oleft, oright, "equal", l, r);
+            parser.report_error(
+                "Se esperaba '|>' para cerrar 'equal'",
+                null);
+
+            RESULT = new ExpresionBinariaNodo(
+                oleft, oright, "equal", l, r);
         :}
 
     | N_EQUAL:o L_PAREN expresion:l COMMA expresion:r error
         {:
-            parser.report_error("Se esperaba '|>' para cerrar 'n_equal'", null);
-            RESULT = new ExpresionBinariaNodo(oleft, oright, "n_equal", l, r);
-        :}
-    ;
+            parser.report_error(
+                "Se esperaba '|>' para cerrar 'n_equal'",
+                null);
 
-/* Negacion logica o expresion relacional. */
-notExpr
-    ::= NOT_LOG:o notExpr:e
-        {: RESULT = new ExpresionUnariaNodo(oleft, oright, "$", e); :}
-    | relExpr:e
-        {: RESULT = e; :}
+            RESULT = new ExpresionBinariaNodo(
+                oleft, oright, "n_equal", l, r);
+        :}
     ;
 
 /* Comparacion funcional o expresion aritmetica sin comparador. */
-relExpr
-    ::= EQUAL:o L_PAREN expresion:l COMMA expresion:r R_PAREN
-        {: RESULT = new ExpresionBinariaNodo(oleft, oright, "equal", l, r); :}
-    | N_EQUAL:o L_PAREN expresion:l COMMA expresion:r R_PAREN
-        {: RESULT = new ExpresionBinariaNodo(oleft, oright, "n_equal", l, r); :}
-    | LESS_T:o L_PAREN expresion:l COMMA expresion:r R_PAREN
-        {: RESULT = new ExpresionBinariaNodo(oleft, oright, "less_t", l, r); :}
+expresionRelBinaria
+    ::= LESS_T:o L_PAREN expresion:l COMMA expresion:r R_PAREN
+        {:
+            RESULT = new ExpresionBinariaNodo(
+                oleft, oright, "less_t", l, r);
+        :}
+
     | LESS_TE:o L_PAREN expresion:l COMMA expresion:r R_PAREN
-        {: RESULT = new ExpresionBinariaNodo(oleft, oright, "less_te", l, r); :}
+        {:
+            RESULT = new ExpresionBinariaNodo(
+                oleft, oright, "less_te", l, r);
+        :}
+
     | GREATHER_T:o L_PAREN expresion:l COMMA expresion:r R_PAREN
-        {: RESULT = new ExpresionBinariaNodo(oleft, oright, "greather_t", l, r); :}
+        {:
+            RESULT = new ExpresionBinariaNodo(
+                oleft, oright, "greather_t", l, r);
+        :}
+
     | GREATHER_TE:o L_PAREN expresion:l COMMA expresion:r R_PAREN
-        {: RESULT = new ExpresionBinariaNodo(oleft, oright, "greather_te", l, r); :}
-    | EQUAL:o L_PAREN expresion:l error expresion:r R_PAREN
         {:
-            parser.report_error("Se esperaba ',' entre los argumentos de 'equal'", null);
-            RESULT = new ExpresionBinariaNodo(oleft, oright, "equal", l, r);
+            RESULT = new ExpresionBinariaNodo(
+                oleft, oright, "greather_te", l, r);
         :}
-    | N_EQUAL:o L_PAREN expresion:l error expresion:r R_PAREN
+
+    | expresionArit:e
         {:
-            parser.report_error("Se esperaba ',' entre los argumentos de 'n_equal'", null);
-            RESULT = new ExpresionBinariaNodo(oleft, oright, "n_equal", l, r);
+            RESULT = e;
         :}
+
     | LESS_T:o L_PAREN expresion:l error expresion:r R_PAREN
         {:
-            parser.report_error("Se esperaba ',' entre los argumentos de 'less_t'", null);
-            RESULT = new ExpresionBinariaNodo(oleft, oright, "less_t", l, r);
+            parser.report_error(
+                "Se esperaba ',' entre los argumentos de 'less_t'",
+                null);
+
+            RESULT = new ExpresionBinariaNodo(
+                oleft, oright, "less_t", l, r);
         :}
+
     | LESS_TE:o L_PAREN expresion:l error expresion:r R_PAREN
         {:
-            parser.report_error("Se esperaba ',' entre los argumentos de 'less_te'", null);
-            RESULT = new ExpresionBinariaNodo(oleft, oright, "less_te", l, r);
+            parser.report_error(
+                "Se esperaba ',' entre los argumentos de 'less_te'",
+                null);
+
+            RESULT = new ExpresionBinariaNodo(
+                oleft, oright, "less_te", l, r);
         :}
+
     | GREATHER_T:o L_PAREN expresion:l error expresion:r R_PAREN
         {:
-            parser.report_error("Se esperaba ',' entre los argumentos de 'greather_t'", null);
-            RESULT = new ExpresionBinariaNodo(oleft, oright, "greather_t", l, r);
+            parser.report_error(
+                "Se esperaba ',' entre los argumentos de 'greather_t'",
+                null);
+
+            RESULT = new ExpresionBinariaNodo(
+                oleft, oright, "greather_t", l, r);
         :}
+
     | GREATHER_TE:o L_PAREN expresion:l error expresion:r R_PAREN
         {:
-            parser.report_error("Se esperaba ',' entre los argumentos de 'greather_te'", null);
-            RESULT = new ExpresionBinariaNodo(oleft, oright, "greather_te", l, r);
+            parser.report_error(
+                "Se esperaba ',' entre los argumentos de 'greather_te'",
+                null);
+
+            RESULT = new ExpresionBinariaNodo(
+                oleft, oright, "greather_te", l, r);
         :}
-    | aritExpr:e
-        {: RESULT = e; :}
+
+    | LESS_T:o L_PAREN expresion:l COMMA expresion:r error
+        {:
+            parser.report_error(
+                "Se esperaba '|>' para cerrar 'less_t'",
+                null);
+
+            RESULT = new ExpresionBinariaNodo(
+                oleft, oright, "less_t", l, r);
+        :}
+
+    | LESS_TE:o L_PAREN expresion:l COMMA expresion:r error
+        {:
+            parser.report_error(
+                "Se esperaba '|>' para cerrar 'less_te'",
+                null);
+
+            RESULT = new ExpresionBinariaNodo(
+                oleft, oright, "less_te", l, r);
+        :}
+
+    | GREATHER_T:o L_PAREN expresion:l COMMA expresion:r error
+        {:
+            parser.report_error(
+                "Se esperaba '|>' para cerrar 'greather_t'",
+                null);
+
+            RESULT = new ExpresionBinariaNodo(
+                oleft, oright, "greather_t", l, r);
+        :}
+
+    | GREATHER_TE:o L_PAREN expresion:l COMMA expresion:r error
+        {:
+            parser.report_error(
+                "Se esperaba '|>' para cerrar 'greather_te'",
+                null);
+
+            RESULT = new ExpresionBinariaNodo(
+                oleft, oright, "greather_te", l, r);
+        :}
     ;
 
 /* Expresion aditiva formada por terminos. */
