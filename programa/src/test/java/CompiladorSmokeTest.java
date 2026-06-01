@@ -10,6 +10,7 @@ import ast.IfNodo;
 import ast.LiteralNodo;
 import ast.ProgramaNodo;
 import ast.TipoDato;
+import ast.WhileNodo;
 import intermedio.GeneradorCodigoIntermedio;
 import intermedio.Instruccion;
 import java.nio.file.Paths;
@@ -41,6 +42,8 @@ public class CompiladorSmokeTest {
         verificarCodigoIntermedioDeclaracionesYAsignaciones();
         verificarCodigoIntermedioIf();
         verificarCodigoIntermedioIfElse();
+        verificarCodigoIntermedioWhile();
+        verificarEtiquetasUnicasEntreIfYWhile();
     }
 
     private static void verificarCodigoIntermedioExpresiones() {
@@ -160,6 +163,74 @@ public class CompiladorSmokeTest {
                 "_L0:",
                 "y = 2",
                 "_L1:",
+                "fin_func main");
+
+        verificarInstrucciones(instrucciones, esperado);
+    }
+
+    private static void verificarCodigoIntermedioWhile() {
+        ExpresionNodo condicion = new ExpresionBinariaNodo(1, 1, "less_t",
+                id("x"), new LiteralNodo(1, 1, 3, TipoDato.INT));
+        BloqueNodo cuerpo = new BloqueNodo(1, 1, Arrays.asList(
+                new AsignacionNodo(1, 1, id("x"),
+                        new ExpresionBinariaNodo(1, 1, "+", id("x"),
+                                new LiteralNodo(1, 1, 1, TipoDato.INT)))));
+
+        ProgramaNodo programa = new ProgramaNodo(1, 1, Arrays.asList(
+                new FuncionNodo(1, 1, "main", TipoDato.VOID, Arrays.asList(),
+                        new BloqueNodo(1, 1, Arrays.asList(
+                                new WhileNodo(1, 1, condicion, cuerpo, false))),
+                        true)));
+
+        List<Instruccion> instrucciones = new GeneradorCodigoIntermedio().generar(programa);
+        List<String> esperado = Arrays.asList(
+                "inicio_func main",
+                "_L0:",
+                "_t0 = x < 3",
+                "if_false _t0 goto _L1",
+                "_t1 = x + 1",
+                "x = _t1",
+                "goto _L0",
+                "_L1:",
+                "fin_func main");
+
+        verificarInstrucciones(instrucciones, esperado);
+    }
+
+    private static void verificarEtiquetasUnicasEntreIfYWhile() {
+        ExpresionNodo condicionIf = new ExpresionBinariaNodo(1, 1, "less_t",
+                id("x"), new LiteralNodo(1, 1, 10, TipoDato.INT));
+        BloqueNodo bloqueEntonces = new BloqueNodo(1, 1, Arrays.asList(
+                new AsignacionNodo(1, 1, id("y"),
+                        new LiteralNodo(1, 1, 1, TipoDato.INT))));
+        ExpresionNodo condicionWhile = new ExpresionBinariaNodo(1, 1, "greather_t",
+                id("x"), new LiteralNodo(1, 1, 0, TipoDato.INT));
+        BloqueNodo cuerpoWhile = new BloqueNodo(1, 1, Arrays.asList(
+                new AsignacionNodo(1, 1, id("x"),
+                        new ExpresionBinariaNodo(1, 1, "-", id("x"),
+                                new LiteralNodo(1, 1, 1, TipoDato.INT)))));
+
+        ProgramaNodo programa = new ProgramaNodo(1, 1, Arrays.asList(
+                new FuncionNodo(1, 1, "main", TipoDato.VOID, Arrays.asList(),
+                        new BloqueNodo(1, 1, Arrays.asList(
+                                new IfNodo(1, 1, condicionIf, bloqueEntonces, null),
+                                new WhileNodo(1, 1, condicionWhile, cuerpoWhile, false))),
+                        true)));
+
+        List<Instruccion> instrucciones = new GeneradorCodigoIntermedio().generar(programa);
+        List<String> esperado = Arrays.asList(
+                "inicio_func main",
+                "_t0 = x < 10",
+                "if_false _t0 goto _L0",
+                "y = 1",
+                "_L0:",
+                "_L1:",
+                "_t1 = x > 0",
+                "if_false _t1 goto _L2",
+                "_t2 = x - 1",
+                "x = _t2",
+                "goto _L1",
+                "_L2:",
                 "fin_func main");
 
         verificarInstrucciones(instrucciones, esperado);
