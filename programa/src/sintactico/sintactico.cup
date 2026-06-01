@@ -1038,24 +1038,37 @@ breakSt
 
 /* Expresion general, iniciando en el nivel de menor precedencia. */
 expresion
-    ::= orExpr:e
+    ::= expresionLog:e
         {:
             parser.evaluarTipo(e);
             RESULT = e;
         :}
     ;
-
 /* Expresion disyuntiva formada por conjunciones. */
-orExpr
-    ::= orExpr:l OR_LOG:o andExpr:r
+expresionLog
+    ::= expresionLog:l AND_LOG:o expresionRelTernaria:r
+        {: RESULT = new ExpresionBinariaNodo(oleft, oright, "@", l, r); :}
+
+    | expresionLog:l OR_LOG:o expresionRelTernaria:r
         {: RESULT = new ExpresionBinariaNodo(oleft, oright, "#", l, r); :}
-    | OR_LOG:o error
+
+    | NOT_LOG:o expresionRelTernaria:e
+        {: RESULT = new ExpresionUnariaNodo(oleft, oright, "$", e); :}
+
+    | expresionRelTernaria:e
+        {: RESULT = e; :}
+
+    | expresionLog:l AND_LOG:o error
+        {:
+            parser.report_error("Expresion invalida despues de '@'", null);
+            RESULT = l;
+        :}
+
+    | expresionLog:l OR_LOG:o error
         {:
             parser.report_error("Expresion invalida despues de '#'", null);
-            RESULT = new LiteralNodo(oleft, oright, null, TipoDato.DESCONOCIDO);
+            RESULT = l;
         :}
-    | andExpr:e
-        {: RESULT = e; :}
     ;
 
 /* Expresion conjuntiva formada por negaciones o comparaciones. */
