@@ -14,14 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-/**
- * Aplica las reglas semanticas sobre los nodos que construye el parser.
- *
- * <p>El parser conserva las acciones de construccion del AST, pero delega aqui
- * las decisiones de tipos, alcances, firmas de funciones, condiciones y
- * retornos. Cuando una expresion falla, se propaga {@link TipoDato#ERROR} para
- * reducir errores en cascada.</p>
- */
 public class AnalizadorSemantico {
     private final TablaDeSimbolos tablaSimbolos;
     private final Consumer<String> reportadorSintactico;
@@ -86,18 +78,14 @@ public class AnalizadorSemantico {
         insertarSimbolo(new Simbolo(nombre, tipo, CategoriaSimb.VAR, linea));
     }
 
-    public void registrarDeclaracionVariable(String nombre, TipoDato tipo, ExpresionNodo inicializador,
-                                             int linea) {
+    public void registrarDeclaracionVariable(String nombre, TipoDato tipo,
+            ExpresionNodo inicializador, int linea) {
         if (!tipo.esDeclarableVariable()) {
             tablaSimbolos.reportarTipoDeclaracionInvalido(tipo, linea);
             return;
         }
 
-        if (tablaSimbolos.existeEnAlcanceActual(nombre)) {
-            insertarSimbolo(new Simbolo(nombre, tipo, CategoriaSimb.VAR, linea));
-            return;
-        }
-
+        // Validar tipo del inicializador siempre, exista o no previamente
         if (inicializador != null) {
             TipoDato tipoInicializador = tipoExpresion(inicializador);
             if (!tipo.esCompatibleCon(tipoInicializador)) {
@@ -133,12 +121,6 @@ public class AnalizadorSemantico {
             return TipoDato.ERROR;
         }
 
-        /*
-         * Los nodos cachean su tipo despues de la primera evaluacion. Esto
-         * evita repetir busquedas y tambien conserva el tipo para la etapa de
-         * codigo intermedio, por ejemplo en llamadas void vs llamadas con
-         * retorno.
-         */
         TipoDato tipoActual = expresion.getTipo();
         if (tipoActual != TipoDato.DESCONOCIDO) {
             return tipoActual;
