@@ -3,6 +3,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import pipeline.Compilador;
 import pipeline.ResultadoCompilacion;
+import reporte.EscritorCodigo;
 import reporte.EscritorReportes;
 
 public class Main {
@@ -35,8 +36,7 @@ public class Main {
                 resultado.getParser().tablaSimbolos.getErroresSemanticos());
         EscritorReportes.escribirResultado(salida.resolve("resultado_sintactico.txt"),
                 fuente, resultado.isAceptado());
-        EscritorReportes.escribirCodigoIntermedio(salida.resolve("codigo_intermedio.txt"),
-                resultado.getCodigoIntermedio());
+        Path codigoIntermedio = EscritorCodigo.escribir(salida, resultado);
 
         System.out.println("Archivo analizado: " + fuente);
         System.out.println(resultado.isAceptado()
@@ -46,6 +46,8 @@ public class Main {
         System.out.println("Tabla de simbolos: " + salida.resolve("tabla_simbolos.txt"));
         System.out.println("Reporte de errores: " + salida.resolve("errores_report.txt"));
         System.out.println("Resultado sintactico: " + salida.resolve("resultado_sintactico.txt"));
-        System.out.println("Codigo intermedio: " + salida.resolve("codigo_intermedio.txt"));
+        System.out.println(resultado.isAceptado()
+                ? "Codigo intermedio: " + codigoIntermedio
+                : "Codigo intermedio no generado por errores de analisis.");
     }
 }
