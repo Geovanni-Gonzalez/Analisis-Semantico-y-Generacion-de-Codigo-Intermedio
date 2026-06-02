@@ -136,6 +136,9 @@ classDiagram
 ```
 
 ## Capturas o demo
+Ver la estructura del manual de usuario:
+[`documentación/manual_usuario.md`](documentación/manual_usuario.md).
+
 Ver la guia de documentacion interna del compilador:
 [`documentación/documentacion_interna.md`](documentación/documentacion_interna.md).
 
