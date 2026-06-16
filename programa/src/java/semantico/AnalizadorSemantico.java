@@ -19,6 +19,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
+/**
+ * Ejecuta las validaciones semanticas mientras el parser construye el AST.
+ *
+ * <p>Esta clase coordina la tabla de simbolos, calcula tipos de expresiones,
+ * valida asignaciones, llamadas, retornos, arreglos y estructuras de control.
+ * El parser la invoca desde las acciones CUP para detectar errores tan pronto
+ * como se reconoce cada construccion.</p>
+ */
 public class AnalizadorSemantico {
     private final TablaDeSimbolos tablaSimbolos;
     private final Consumer<String> reportadorSintactico;
@@ -27,30 +35,65 @@ public class AnalizadorSemantico {
     private String funcionActual;
     private int lineaFuncionActual;
     private boolean retornoEncontradoActual;
-
+    /**
+     * Nombre : AnalizadorSemantico.
+     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * Entrada: TablaDeSimbolos tablaSimbolos, Consumer<String> reportadorSintactico
+     * Salida: Instancia inicializada de AnalizadorSemantico.
+     */
     public AnalizadorSemantico(TablaDeSimbolos tablaSimbolos, Consumer<String> reportadorSintactico) {
         this.tablaSimbolos = tablaSimbolos;
         this.reportadorSintactico = reportadorSintactico;
     }
 
+    /**
+     * Nombre : registrarMain.
+     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * Entrada: Sin parametros.
+     * Salida: No retorna valor.
+     */
     public void registrarMain() {
         cantidadMain++;
     }
 
+    /**
+     * Nombre : verificarMain.
+     * Descripcion: Valida una regla o escenario especifico del compilador.
+     * Entrada: Sin parametros.
+     * Salida: No retorna valor.
+     */
     public void verificarMain() {
         if (cantidadMain == 0) {
             tablaSimbolos.reportarMainObligatorio();
         }
     }
 
+    /**
+     * Nombre : abrirPrograma.
+     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * Entrada: Sin parametros.
+     * Salida: No retorna valor.
+     */
     public void abrirPrograma() {
         tablaSimbolos.abrirAlcance();
     }
 
+    /**
+     * Nombre : cerrarPrograma.
+     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * Entrada: Sin parametros.
+     * Salida: No retorna valor.
+     */
     public void cerrarPrograma() {
         tablaSimbolos.cerrarAlcance();
     }
 
+    /**
+     * Nombre : abrirFuncion.
+     * Descripcion: Registra una funcion antes de analizar su cuerpo. Registrar la funcion temprano permite llamadas recursivas. Tambien guarda el tipo de retorno esperado para validar sentencias return.
+     * Entrada: String nombre, TipoDato tipoRetorno, int linea
+     * Salida: No retorna valor.
+     */
     public void abrirFuncion(String nombre, TipoDato tipoRetorno, int linea) {
         registrarFuncion(nombre, tipoRetorno, linea);
         tipoRetornoActual = tipoRetorno;
@@ -60,6 +103,12 @@ public class AnalizadorSemantico {
         tablaSimbolos.abrirAlcance();
     }
 
+    /**
+     * Nombre : cerrarFuncion.
+     * Descripcion: Cierra la funcion actual y valida que las funciones con retorno tengan al menos una sentencia return.
+     * Entrada: Sin parametros.
+     * Salida: No retorna valor.
+     */
     public void cerrarFuncion() {
         boolean requiereReturn = tipoRetornoActual != TipoDato.EMPTY
                 && tipoRetornoActual != TipoDato.VOID
@@ -75,14 +124,32 @@ public class AnalizadorSemantico {
         retornoEncontradoActual = false;
     }
 
+    /**
+     * Nombre : abrirBloque.
+     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * Entrada: Sin parametros.
+     * Salida: No retorna valor.
+     */
     public void abrirBloque() {
         tablaSimbolos.abrirAlcance();
     }
 
+    /**
+     * Nombre : cerrarBloque.
+     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * Entrada: Sin parametros.
+     * Salida: No retorna valor.
+     */
     public void cerrarBloque() {
         tablaSimbolos.cerrarAlcance();
     }
 
+    /**
+     * Nombre : actualizarFirmaFuncion.
+     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * Entrada: String nombre, TipoDato tipoRetorno, List parametros, int linea
+     * Salida: No retorna valor.
+     */
     public void actualizarFirmaFuncion(String nombre, TipoDato tipoRetorno, List parametros, int linea) {
         List<TipoDato> tiposParametros = new ArrayList<>();
         for (Object parametro : parametros) {
@@ -91,6 +158,12 @@ public class AnalizadorSemantico {
         tablaSimbolos.actualizarFirmaFuncion(nombre, tiposParametros, tipoRetorno, linea);
     }
 
+    /**
+     * Nombre : registrarParametro.
+     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * Entrada: String nombre, TipoDato tipo, int linea
+     * Salida: No retorna valor.
+     */
     public void registrarParametro(String nombre, TipoDato tipo, int linea) {
         insertarSimbolo(new Simbolo(nombre, tipo, CategoriaSimb.PARAMETRO, linea, true));
         if (funcionActual != null) {
@@ -98,10 +171,22 @@ public class AnalizadorSemantico {
         }
     }
 
+    /**
+     * Nombre : registrarVariable.
+     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * Entrada: String nombre, TipoDato tipo, int linea
+     * Salida: No retorna valor.
+     */
     public void registrarVariable(String nombre, TipoDato tipo, int linea) {
         insertarSimbolo(new Simbolo(nombre, tipo, CategoriaSimb.VAR, linea, false));
     }
 
+    /**
+     * Nombre : registrarDeclaracionVariable.
+     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * Entrada: String nombre, TipoDato tipo, ExpresionNodo inicializador, int linea
+     * Salida: No retorna valor.
+     */
     public void registrarDeclaracionVariable(String nombre, TipoDato tipo,
             ExpresionNodo inicializador, int linea) {
         if (!tipo.esDeclarableVariable()) {
@@ -121,6 +206,12 @@ public class AnalizadorSemantico {
         insertarSimbolo(new Simbolo(nombre, tipo, CategoriaSimb.VAR, linea, inicializador != null));
     }
 
+    /**
+     * Nombre : registrarDeclaracionArreglo.
+     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * Entrada: String nombre, TipoDato tipo, ExpresionNodo filas, ExpresionNodo columnas, InicializacionArregloNodo inicializacion, int linea
+     * Salida: No retorna valor.
+     */
     public void registrarDeclaracionArreglo(String nombre, TipoDato tipo, ExpresionNodo filas,
                                             ExpresionNodo columnas,
                                             InicializacionArregloNodo inicializacion, int linea) {
@@ -136,6 +227,12 @@ public class AnalizadorSemantico {
         insertarSimbolo(new Simbolo(nombre, tipo, CategoriaSimb.ARREGLO, linea, inicializacion != null));
     }
 
+    /**
+     * Nombre : usarIdentificador.
+     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * Entrada: String nombre, int linea
+     * Salida: No retorna valor.
+     */
     public void usarIdentificador(String nombre, int linea) {
         Simbolo simbolo = tablaSimbolos.buscar(nombre, linea);
         if (simbolo.getTipo() == TipoDato.ERROR) {
@@ -150,6 +247,12 @@ public class AnalizadorSemantico {
         }
     }
 
+    /**
+     * Nombre : verificarAsignacion.
+     * Descripcion: Valida una regla o escenario especifico del compilador.
+     * Entrada: AsignacionNodo asignacion
+     * Salida: No retorna valor.
+     */
     public void verificarAsignacion(AsignacionNodo asignacion) {
         TipoDato tipoDestino = evaluarTipoDestino(asignacion.getDestino());
         TipoDato tipoValor = evaluarTipo(asignacion.getValor());
@@ -168,6 +271,12 @@ public class AnalizadorSemantico {
         marcarDestinoInicializado(asignacion.getDestino());
     }
 
+    /**
+     * Nombre : verificarSwitch.
+     * Descripcion: Valida una regla o escenario especifico del compilador.
+     * Entrada: SwitchNodo switchNodo
+     * Salida: No retorna valor.
+     */
     public void verificarSwitch(SwitchNodo switchNodo) {
         TipoDato tipoSwitch = evaluarTipo(switchNodo.getExpresion());
         if (tipoSwitch == TipoDato.ERROR || tipoSwitch == TipoDato.DESCONOCIDO) {
@@ -191,6 +300,12 @@ public class AnalizadorSemantico {
         }
     }
 
+    /**
+     * Nombre : verificarEntrada.
+     * Descripcion: Valida una regla o escenario especifico del compilador.
+     * Entrada: EntradaNodo entrada
+     * Salida: No retorna valor.
+     */
     public void verificarEntrada(EntradaNodo entrada) {
         Simbolo simbolo = tablaSimbolos.buscar(entrada.getDestino(), entrada.getLinea());
         if (simbolo.getTipo() == TipoDato.ERROR) {
@@ -205,6 +320,12 @@ public class AnalizadorSemantico {
         tablaSimbolos.marcarInicializado(entrada.getDestino());
     }
 
+    /**
+     * Nombre : verificarSalida.
+     * Descripcion: Valida una regla o escenario especifico del compilador.
+     * Entrada: SalidaNodo salida
+     * Salida: No retorna valor.
+     */
     public void verificarSalida(SalidaNodo salida) {
         TipoDato tipo = evaluarTipo(salida.getValor());
         if (tipo == TipoDato.ERROR || tipo == TipoDato.DESCONOCIDO) {
@@ -215,6 +336,12 @@ public class AnalizadorSemantico {
         }
     }
 
+    /**
+     * Nombre : evaluarTipo.
+     * Descripcion: Calcula el tipo semantico de cualquier expresion. El resultado se guarda en el nodo para reutilizarlo. Si se detecta un error, se retorna {@link TipoDato#ERROR} para evitar cascadas innecesarias.
+     * Entrada: ExpresionNodo expresion
+     * Salida: Retorna TipoDato.
+     */
     public TipoDato evaluarTipo(ExpresionNodo expresion) {
         if (expresion == null) {
             return TipoDato.ERROR;
@@ -254,10 +381,22 @@ public class AnalizadorSemantico {
         return tipo;
     }
 
+    /**
+     * Nombre : tipoExpresion.
+     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * Entrada: ExpresionNodo expresion
+     * Salida: Retorna TipoDato.
+     */
     public TipoDato tipoExpresion(ExpresionNodo expresion) {
         return evaluarTipo(expresion);
     }
 
+    /**
+     * Nombre : verificarCondicionBooleana.
+     * Descripcion: Valida una regla o escenario especifico del compilador.
+     * Entrada: ExpresionNodo condicion
+     * Salida: No retorna valor.
+     */
     public void verificarCondicionBooleana(ExpresionNodo condicion) {
         TipoDato tipo = evaluarTipo(condicion);
         if (tipo == TipoDato.ERROR || tipo == TipoDato.DESCONOCIDO) {
@@ -268,6 +407,12 @@ public class AnalizadorSemantico {
         }
     }
 
+    /**
+     * Nombre : verificarReturn.
+     * Descripcion: Valida una regla o escenario especifico del compilador.
+     * Entrada: ReturnNodo retorno
+     * Salida: No retorna valor.
+     */
     public void verificarReturn(ReturnNodo retorno) {
         retornoEncontradoActual = true;
         TipoDato tipoEsperado = tipoRetornoActual;
@@ -297,10 +442,22 @@ public class AnalizadorSemantico {
         }
     }
 
+    /**
+     * Nombre : registrarFuncion.
+     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * Entrada: String nombre, TipoDato tipoRetorno, int linea
+     * Salida: No retorna valor.
+     */
     private void registrarFuncion(String nombre, TipoDato tipoRetorno, int linea) {
         insertarSimbolo(new Simbolo(nombre, new ArrayList<TipoDato>(), tipoRetorno, linea));
     }
 
+    /**
+     * Nombre : insertarSimbolo.
+     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * Entrada: Simbolo simbolo
+     * Salida: No retorna valor.
+     */
     private void insertarSimbolo(Simbolo simbolo) {
         try {
             tablaSimbolos.insertar(simbolo);
@@ -309,6 +466,12 @@ public class AnalizadorSemantico {
         }
     }
 
+    /**
+     * Nombre : evaluarTipoLlamada.
+     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * Entrada: LlamadaFuncionNodo llamada
+     * Salida: Retorna TipoDato.
+     */
     private TipoDato evaluarTipoLlamada(LlamadaFuncionNodo llamada) {
         Simbolo funcion = tablaSimbolos.buscarFuncion(llamada.getNombre(), llamada.getLinea());
         if (funcion.getTipo() == TipoDato.ERROR) {
@@ -339,6 +502,12 @@ public class AnalizadorSemantico {
         return funcion.getTipoRetorno() != null ? funcion.getTipoRetorno() : funcion.getTipo();
     }
 
+    /**
+     * Nombre : evaluarTipoBinaria.
+     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * Entrada: ExpresionBinariaNodo expresion
+     * Salida: Retorna TipoDato.
+     */
     private TipoDato evaluarTipoBinaria(ExpresionBinariaNodo expresion) {
         TipoDato izquierda = evaluarTipo(expresion.getIzquierda());
         TipoDato derecha = evaluarTipo(expresion.getDerecha());
@@ -398,6 +567,12 @@ public class AnalizadorSemantico {
         return TipoDato.ERROR;
     }
 
+    /**
+     * Nombre : evaluarTipoUnaria.
+     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * Entrada: ExpresionUnariaNodo expresion
+     * Salida: Retorna TipoDato.
+     */
     private TipoDato evaluarTipoUnaria(ExpresionUnariaNodo expresion) {
         TipoDato tipo = evaluarTipo(expresion.getExpresion());
         if (tipo == TipoDato.ERROR || tipo == TipoDato.DESCONOCIDO) {
@@ -427,6 +602,12 @@ public class AnalizadorSemantico {
         return TipoDato.ERROR;
     }
 
+    /**
+     * Nombre : nombreDestino.
+     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * Entrada: ExpresionNodo destino
+     * Salida: Retorna String.
+     */
     private String nombreDestino(ExpresionNodo destino) {
         if (destino instanceof IdentificadorNodo) {
             return ((IdentificadorNodo) destino).getNombre();
@@ -437,6 +618,12 @@ public class AnalizadorSemantico {
         return "<desconocido>";
     }
 
+    /**
+     * Nombre : evaluarTipoDestino.
+     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * Entrada: ExpresionNodo destino
+     * Salida: Retorna TipoDato.
+     */
     private TipoDato evaluarTipoDestino(ExpresionNodo destino) {
         if (destino instanceof IdentificadorNodo) {
             IdentificadorNodo id = (IdentificadorNodo) destino;
@@ -456,6 +643,12 @@ public class AnalizadorSemantico {
         return TipoDato.ERROR;
     }
 
+    /**
+     * Nombre : evaluarTipoAccesoArreglo.
+     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * Entrada: AccesoArregloNodo acceso, boolean requiereInicializado
+     * Salida: Retorna TipoDato.
+     */
     private TipoDato evaluarTipoAccesoArreglo(AccesoArregloNodo acceso, boolean requiereInicializado) {
         Simbolo simbolo = tablaSimbolos.buscar(acceso.getNombre(), acceso.getLinea());
         if (simbolo.getTipo() == TipoDato.ERROR) {
@@ -473,6 +666,12 @@ public class AnalizadorSemantico {
         return simbolo.getTipo();
     }
 
+    /**
+     * Nombre : validarIndiceArreglo.
+     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * Entrada: ExpresionNodo indice
+     * Salida: No retorna valor.
+     */
     private void validarIndiceArreglo(ExpresionNodo indice) {
         TipoDato tipo = evaluarTipo(indice);
         if (tipo != TipoDato.ERROR && tipo != TipoDato.DESCONOCIDO && tipo != TipoDato.INT) {
@@ -480,6 +679,12 @@ public class AnalizadorSemantico {
         }
     }
 
+    /**
+     * Nombre : validarDimensionArreglo.
+     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * Entrada: String nombre, String dimension, ExpresionNodo expresion
+     * Salida: No retorna valor.
+     */
     private void validarDimensionArreglo(String nombre, String dimension, ExpresionNodo expresion) {
         TipoDato tipo = evaluarTipo(expresion);
         if (tipo != TipoDato.ERROR && tipo != TipoDato.DESCONOCIDO && tipo != TipoDato.INT) {
@@ -487,6 +692,12 @@ public class AnalizadorSemantico {
         }
     }
 
+    /**
+     * Nombre : validarInicializacionArreglo.
+     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * Entrada: String nombre, TipoDato tipoEsperado, InicializacionArregloNodo inicializacion
+     * Salida: No retorna valor.
+     */
     private void validarInicializacionArreglo(String nombre, TipoDato tipoEsperado,
                                               InicializacionArregloNodo inicializacion) {
         for (List<ExpresionNodo> fila : inicializacion.getFilas()) {
@@ -501,6 +712,12 @@ public class AnalizadorSemantico {
         }
     }
 
+    /**
+     * Nombre : marcarDestinoInicializado.
+     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * Entrada: ExpresionNodo destino
+     * Salida: No retorna valor.
+     */
     private void marcarDestinoInicializado(ExpresionNodo destino) {
         if (destino instanceof IdentificadorNodo) {
             tablaSimbolos.marcarInicializado(((IdentificadorNodo) destino).getNombre());
@@ -509,6 +726,12 @@ public class AnalizadorSemantico {
         }
     }
 
+    /**
+     * Nombre : esModificable.
+     * Descripcion: Consulta una condicion booleana del objeto.
+     * Entrada: ExpresionNodo expresion
+     * Salida: Retorna boolean.
+     */
     private boolean esModificable(ExpresionNodo expresion) {
         return expresion instanceof IdentificadorNodo || expresion instanceof AccesoArregloNodo;
     }

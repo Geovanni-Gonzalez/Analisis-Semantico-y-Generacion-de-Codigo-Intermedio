@@ -30,10 +30,22 @@ import java.util.List;
  * saltos, llamadas y salida observable.</p>
  */
 public class GeneradorCodigoIntermedio {
+    /**
+     * Nombre  : ArrayList<>.
+     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * Entrada: Sin parametros.
+     * Salida: Retorna new.
+     */
     private final List<Instruccion> instrucciones = new ArrayList<>();
     private int contadorTemporales;
     private int contadorEtiquetas;
 
+    /**
+     * Nombre  : generar.
+     * Descripcion: Genera la representacion correspondiente dentro del compilador.
+     * Entrada: ProgramaNodo programa
+     * Salida: Retorna List<Instruccion>.
+     */
     public List<Instruccion> generar(ProgramaNodo programa) {
         instrucciones.clear();
         contadorTemporales = 0;
@@ -44,18 +56,36 @@ public class GeneradorCodigoIntermedio {
         return new ArrayList<>(instrucciones);
     }
 
+    /**
+     * Nombre  : generarFuncion.
+     * Descripcion: Genera la representacion correspondiente dentro del compilador.
+     * Entrada: FuncionNodo funcion
+     * Salida: No retorna valor.
+     */
     private void generarFuncion(FuncionNodo funcion) {
         instrucciones.add(new Instruccion(Operacion.INICIO_FUNC, funcion.getNombre()));
         generarBloque(funcion.getCuerpo());
         instrucciones.add(new Instruccion(Operacion.FIN_FUNC, funcion.getNombre()));
     }
 
+    /**
+     * Nombre  : generarBloque.
+     * Descripcion: Genera la representacion correspondiente dentro del compilador.
+     * Entrada: BloqueNodo bloque
+     * Salida: No retorna valor.
+     */
     private void generarBloque(BloqueNodo bloque) {
         for (Nodo nodo : bloque.getInstrucciones()) {
             generarNodo(nodo);
         }
     }
 
+    /**
+     * Nombre  : generarNodo.
+     * Descripcion: Genera la representacion correspondiente dentro del compilador.
+     * Entrada: Nodo nodo
+     * Salida: No retorna valor.
+     */
     private void generarNodo(Nodo nodo) {
         if (nodo instanceof AsignacionNodo) {
             generarAsignacion((AsignacionNodo) nodo);
@@ -76,6 +106,12 @@ public class GeneradorCodigoIntermedio {
         }
     }
 
+    /**
+     * Nombre  : generarDeclaracionVariable.
+     * Descripcion: Genera la representacion correspondiente dentro del compilador.
+     * Entrada: DeclaracionVariableNodo declaracion
+     * Salida: No retorna valor.
+     */
     private void generarDeclaracionVariable(DeclaracionVariableNodo declaracion) {
         if (declaracion.getInicializador() == null) {
             return;
@@ -84,25 +120,55 @@ public class GeneradorCodigoIntermedio {
         instrucciones.add(new Instruccion(Operacion.ASIG, declaracion.getNombre(), valor));
     }
 
+    /**
+     * Nombre  : generarAsignacion.
+     * Descripcion: Genera la representacion correspondiente dentro del compilador.
+     * Entrada: AsignacionNodo asignacion
+     * Salida: No retorna valor.
+     */
     private void generarAsignacion(AsignacionNodo asignacion) {
         String valor = generarExpresion(asignacion.getValor());
         String destino = generarExpresion(asignacion.getDestino());
         instrucciones.add(new Instruccion(Operacion.ASIG, destino, valor));
     }
 
+    /**
+     * Nombre  : generarReturn.
+     * Descripcion: Genera la representacion correspondiente dentro del compilador.
+     * Entrada: ReturnNodo retorno
+     * Salida: No retorna valor.
+     */
     private void generarReturn(ReturnNodo retorno) {
         String valor = retorno.getValor() == null ? null : generarExpresion(retorno.getValor());
         instrucciones.add(new Instruccion(Operacion.RETURN, null, valor));
     }
 
+    /**
+     * Nombre  : generarExpresionSentencia.
+     * Descripcion: Genera la representacion correspondiente dentro del compilador.
+     * Entrada: ExpresionSentenciaNodo sentencia
+     * Salida: No retorna valor.
+     */
     private void generarExpresionSentencia(ExpresionSentenciaNodo sentencia) {
         generarExpresion(sentencia.getExpresion());
     }
 
+    /**
+     * Nombre  : generarSalida.
+     * Descripcion: Genera la representacion correspondiente dentro del compilador.
+     * Entrada: SalidaNodo salida
+     * Salida: No retorna valor.
+     */
     private void generarSalida(SalidaNodo salida) {
         instrucciones.add(new Instruccion(Operacion.PRINT, generarExpresion(salida.getValor())));
     }
 
+    /**
+     * Nombre  : generarIf.
+     * Descripcion: Genera la representacion correspondiente dentro del compilador.
+     * Entrada: IfNodo sentencia
+     * Salida: No retorna valor.
+     */
     private void generarIf(IfNodo sentencia) {
         String condicion = generarExpresion(sentencia.getCondicion());
         String etiquetaElseOFin = nuevaEtiqueta();
@@ -122,6 +188,12 @@ public class GeneradorCodigoIntermedio {
         instrucciones.add(new Instruccion(Operacion.LABEL, etiquetaFin));
     }
 
+    /**
+     * Nombre  : generarWhile.
+     * Descripcion: Genera la representacion correspondiente dentro del compilador.
+     * Entrada: WhileNodo sentencia
+     * Salida: No retorna valor.
+     */
     private void generarWhile(WhileNodo sentencia) {
         String etiquetaInicio = nuevaEtiqueta();
         String etiquetaSalida = nuevaEtiqueta();
@@ -144,6 +216,12 @@ public class GeneradorCodigoIntermedio {
         instrucciones.add(new Instruccion(Operacion.LABEL, etiquetaSalida));
     }
 
+    /**
+     * Nombre  : generarExpresion.
+     * Descripcion: Genera la representacion correspondiente dentro del compilador.
+     * Entrada: ExpresionNodo expresion
+     * Salida: Retorna String.
+     */
     private String generarExpresion(ExpresionNodo expresion) {
         if (expresion instanceof IdentificadorNodo) {
             return ((IdentificadorNodo) expresion).getNombre();
@@ -174,6 +252,12 @@ public class GeneradorCodigoIntermedio {
         return "<expr>";
     }
 
+    /**
+     * Nombre : generarBinaria.
+     * Descripcion: Genera la representacion correspondiente dentro del compilador.
+     * Entrada: ExpresionBinariaNodo expresion
+     * Salida: Retorna String.
+     */
     private String generarBinaria(ExpresionBinariaNodo expresion) {
         String izquierda = generarExpresion(expresion.getIzquierda());
         String derecha = generarExpresion(expresion.getDerecha());
@@ -182,6 +266,12 @@ public class GeneradorCodigoIntermedio {
         return temporal;
     }
 
+    /**
+     * Nombre  : generarUnaria.
+     * Descripcion: Genera la representacion correspondiente dentro del compilador.
+     * Entrada: ExpresionUnariaNodo expresion
+     * Salida: Retorna String.
+     */
     private String generarUnaria(ExpresionUnariaNodo expresion) {
         if ("++".equals(expresion.getOperador()) || "--".equals(expresion.getOperador())) {
             String destino = generarExpresion(expresion.getExpresion());
@@ -197,6 +287,12 @@ public class GeneradorCodigoIntermedio {
         return temporal;
     }
 
+    /**
+     * Nombre  : generarLlamada.
+     * Descripcion: Genera la representacion correspondiente dentro del compilador.
+     * Entrada: LlamadaFuncionNodo llamada
+     * Salida: Retorna String.
+     */
     private String generarLlamada(LlamadaFuncionNodo llamada) {
         for (ExpresionNodo argumento : llamada.getArgumentos()) {
             instrucciones.add(new Instruccion(Operacion.PARAM, generarExpresion(argumento)));
@@ -212,18 +308,42 @@ public class GeneradorCodigoIntermedio {
         return temporal;
     }
 
+    /**
+     * Nombre  : esLlamadaVoid.
+     * Descripcion: Consulta una condicion booleana del objeto.
+     * Entrada: LlamadaFuncionNodo llamada
+     * Salida: Retorna boolean.
+     */
     private boolean esLlamadaVoid(LlamadaFuncionNodo llamada) {
         return llamada.getTipo() == TipoDato.VOID || llamada.getTipo() == TipoDato.EMPTY;
     }
 
+    /**
+     * Nombre  : nuevoTemporal.
+     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * Entrada: Sin parametros.
+     * Salida: Retorna String.
+     */
     private String nuevoTemporal() {
         return "_t" + contadorTemporales++;
     }
 
+    /**
+     * Nombre  : nuevaEtiqueta.
+     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * Entrada: Sin parametros.
+     * Salida: Retorna String.
+     */
     private String nuevaEtiqueta() {
         return "_L" + contadorEtiquetas++;
     }
 
+    /**
+     * Nombre  : operacionBinaria.
+     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * Entrada: String operador
+     * Salida: Retorna Operacion.
+     */
     private Operacion operacionBinaria(String operador) {
         switch (operador) {
             case "+":
@@ -259,6 +379,12 @@ public class GeneradorCodigoIntermedio {
         }
     }
 
+    /**
+     * Nombre  : operacionUnaria.
+     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * Entrada: String operador
+     * Salida: Retorna Operacion.
+     */
     private Operacion operacionUnaria(String operador) {
         switch (operador) {
             case "-":

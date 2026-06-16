@@ -6,7 +6,19 @@ import pipeline.ResultadoCompilacion;
 import reporte.EscritorCodigo;
 import reporte.EscritorReportes;
 
+/**
+ * Punto de entrada de la aplicacion de consola.
+ *
+ * <p>Valida argumentos, ejecuta el pipeline completo y escribe los reportes
+ * esperados en el directorio de salida.</p>
+ */
 public class Main {
+    /**
+     * Nombre : main.
+     * Descripcion: Ejecuta el compilador sobre un archivo fuente recibido por linea de comandos.
+     * Entrada: String[] args
+     * Salida: No retorna valor.
+     */
     public static void main(String[] args) throws Exception {
         if (args.length == 0) {
             System.out.println("Uso: java -jar target/proyecto-compiladores-1.0-SNAPSHOT.jar <archivo_fuente> [directorio_salida]");

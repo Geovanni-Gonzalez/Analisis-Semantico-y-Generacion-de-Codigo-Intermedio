@@ -24,9 +24,10 @@ import sintactico.sym;
  */
 public class Compilador {
     /**
-     * Compila un archivo fuente y devuelve todos los artefactos en memoria.
-     * El codigo intermedio se genera solamente si no existen errores lexicos,
-     * sintacticos ni semanticos.
+     * Nombre : compilar.
+     * Descripcion: Compila un archivo fuente y devuelve todos los artefactos en memoria. El codigo intermedio se genera solamente si no existen errores lexicos, sintacticos ni semanticos.
+     * Entrada: Path fuente
+     * Salida: Retorna ResultadoCompilacion.
      */
     public ResultadoCompilacion compilar(Path fuente) throws Exception {
         MiLexer lexerTokens = crearLexer(fuente);
@@ -57,11 +58,23 @@ public class Compilador {
                 aceptado, codigoIntermedio);
     }
 
+    /**
+     * Nombre : crearLexer.
+     * Descripcion: Abre el archivo fuente como UTF-8 y crea un lexer nuevo para una pasada.
+     * Entrada: Path fuente
+     * Salida: Retorna MiLexer.
+     */
     private MiLexer crearLexer(Path fuente) throws Exception {
         Reader reader = Files.newBufferedReader(fuente, StandardCharsets.UTF_8);
         return new MiLexer(reader);
     }
 
+    /**
+     * Nombre : consumirTokens.
+     * Descripcion: Recorre una pasada lexica completa para registrar tokens y errores. El parser usa otro lexer limpio, por eso esta pasada se consume hasta EOF sin construir AST.
+     * Entrada: MiLexer lexer
+     * Salida: No retorna valor.
+     */
     private void consumirTokens(MiLexer lexer) throws Exception {
         Symbol token;
         do {
