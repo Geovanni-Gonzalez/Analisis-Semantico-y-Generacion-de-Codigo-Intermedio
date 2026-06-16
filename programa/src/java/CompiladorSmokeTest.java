@@ -54,6 +54,9 @@ public class CompiladorSmokeTest {
         verificarCodigoIntermedioSalida();
         verificarEtiquetasUnicasEntreIfYWhile();
         verificarCodigoIntermedioFuncionesYLlamadas();
+        verificarCorreccionesSemanticas(compilador);
+        verificarPruebaSemanticaExtensa(compilador);
+        verificarPruebaBalanceGeneral(compilador);
         verificarEscritorCodigo(compilador, valido, invalido);
     }
 
@@ -309,6 +312,128 @@ public class CompiladorSmokeTest {
                 "end_function main");
 
         verificarInstrucciones(instrucciones, esperado);
+    }
+
+    private static void verificarCorreccionesSemanticas(Compilador compilador) throws Exception {
+        assertRechazado(compilador, "empty ~ __main__<| |>\n|:\n"
+                + "    int ~ x !\n"
+                + "    cout <|x|> !\n"
+                + ":|\n", "uso de variable sin inicializar");
+
+        assertRechazado(compilador, "int ~ dupParam<|int ~ a|>\n|:\n"
+                + "    int ~ a !\n"
+                + "    return a !\n"
+                + ":|\n"
+                + "empty ~ __main__<| |>\n|:\n:|\n", "variable con mismo nombre que parametro");
+
+        assertRechazado(compilador, "empty ~ __main__<| |>\n|:\n"
+                + "    int ~ matriz <<2,2>> !\n"
+                + "    int ~ x <- matriz !\n"
+                + ":|\n", "arreglo usado como operando escalar");
+
+        assertRechazado(compilador, "empty ~ __main__<| |>\n|:\n"
+                + "    int ~ matriz <<2,2>> !\n"
+                + "    float ~ i <- 1.0 !\n"
+                + "    matriz <<i,0>> <- 1 !\n"
+                + ":|\n", "indice de arreglo no entero");
+
+        assertAceptado(compilador, "empty ~ __main__<| |>\n|:\n"
+                + "    int ~ x <- 2e3 !\n"
+                + ":|\n", "literal con exponente entero");
+
+        assertRechazado(compilador, "empty ~ __main__<| |>\n|:\n"
+                + "    int ~ x <- 1/2 !\n"
+                + ":|\n", "literal fraccionario como float");
+
+        assertRechazado(compilador, "empty ~ __main__<| |>\n|:\n"
+                + "    int ~ x <- ++5 !\n"
+                + ":|\n", "incremento sobre literal");
+
+        assertRechazado(compilador, "empty ~ __main__<| |>\n|:\n"
+                + "    switch <|true|>\n"
+                + "    case ~ false:\n"
+                + "    |:\n"
+                + "        break !\n"
+                + "    :|\n"
+                + ":|\n", "switch booleano invalido");
+
+        assertRechazado(compilador, "empty ~ __main__<| |>\n|:\n"
+                + "    int ~ matriz <<2,2>> !\n"
+                + "    cin <|matriz|> !\n"
+                + ":|\n", "cin sobre arreglo");
+
+        assertRechazado(compilador, "int ~ sinReturn<| |>\n|:\n"
+                + "    int ~ x <- 1 !\n"
+                + ":|\n"
+                + "empty ~ __main__<| |>\n|:\n:|\n", "funcion no void sin return");
+
+        assertAceptado(compilador, "int ~ rec<|int ~ n|>\n|:\n"
+                + "    return rec<|n|> !\n"
+                + ":|\n"
+                + "empty ~ __main__<| |>\n|:\n"
+                + "    int ~ x <- rec<|1|> !\n"
+                + ":|\n", "llamada recursiva con parametros");
+    }
+
+    private static void verificarPruebaSemanticaExtensa(Compilador compilador) throws Exception {
+        ResultadoCompilacion resultado = compilador.compilar(
+                Paths.get("test/prueba_semantica_extensa.chip"));
+        if (resultado.isAceptado()) {
+            throw new AssertionError("La prueba semantica extensa debe rechazarse.");
+        }
+        if (!resultado.getLexerTokens().getErroresLexicos().isEmpty()) {
+            throw new AssertionError("La prueba semantica extensa no debe producir errores lexicos.");
+        }
+        if (resultado.getParser().getNumErrores() != 0) {
+            throw new AssertionError("La prueba semantica extensa no debe producir errores sintacticos.");
+        }
+        List<String> errores = resultado.getParser().tablaSimbolos.getErroresSemanticos();
+        if (errores.isEmpty()) {
+            throw new AssertionError("La prueba semantica extensa debe producir errores semanticos.");
+        }
+        assertAlgunoContiene(errores, "la expresion de switch no puede ser de tipo float");
+        assertAlgunoContiene(errores, "la funcion de tipo bool debe contener al menos un return");
+        assertAlgunoContiene(errores, "no se puede asignar directamente al arreglo completo 'arr'");
+    }
+
+    private static void verificarPruebaBalanceGeneral(Compilador compilador) throws Exception {
+        ResultadoCompilacion resultado = compilador.compilar(
+                Paths.get("test/prueba_balance_general.chip"));
+        if (!resultado.isAceptado()) {
+            throw new AssertionError("La prueba de balance general debe aceptarse.");
+        }
+        if (resultado.getCodigoIntermedio().isEmpty()) {
+            throw new AssertionError("La prueba de balance general debe generar codigo intermedio.");
+        }
+    }
+
+    private static void assertAlgunoContiene(List<String> lineas, String esperado) {
+        for (String linea : lineas) {
+            if (linea.contains(esperado)) {
+                return;
+            }
+        }
+        throw new AssertionError("No se encontro el error esperado: " + esperado);
+    }
+
+    private static void assertAceptado(Compilador compilador, String fuente, String caso) throws Exception {
+        ResultadoCompilacion resultado = compilarTexto(compilador, fuente);
+        if (!resultado.isAceptado()) {
+            throw new AssertionError("El caso debe aceptarse: " + caso);
+        }
+    }
+
+    private static void assertRechazado(Compilador compilador, String fuente, String caso) throws Exception {
+        ResultadoCompilacion resultado = compilarTexto(compilador, fuente);
+        if (resultado.isAceptado()) {
+            throw new AssertionError("El caso debe rechazarse: " + caso);
+        }
+    }
+
+    private static ResultadoCompilacion compilarTexto(Compilador compilador, String fuente) throws Exception {
+        Path archivo = Files.createTempFile("semantica-", ".chip");
+        Files.write(archivo, fuente.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        return compilador.compilar(archivo);
     }
 
     private static void verificarInstrucciones(List<Instruccion> instrucciones, List<String> esperado) {

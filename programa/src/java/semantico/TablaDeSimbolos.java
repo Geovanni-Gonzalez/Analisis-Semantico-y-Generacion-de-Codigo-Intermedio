@@ -44,6 +44,12 @@ public class TablaDeSimbolos {
             reportarRedeclaracion(nombre, simbolo.getLinea());
             return;
         }
+        if ((simbolo.getCategoria() == CategoriaSimb.VAR
+                || simbolo.getCategoria() == CategoriaSimb.ARREGLO)
+                && existeParametroVisible(nombre)) {
+            reportarRedeclaracion(nombre, simbolo.getLinea());
+            return;
+        }
 
         alcances.peek().put(nombre, simbolo);
     }
@@ -110,6 +116,20 @@ public class TablaDeSimbolos {
         return alcances.peek().containsKey(nombre);
     }
 
+    public void agregarParametroAFuncion(String nombreFuncion, TipoDato tipoParametro, int lineaFuncion) {
+        Simbolo funcion = buscarFuncionPorFirma(nombreFuncion, lineaFuncion);
+        if (funcion != null) {
+            funcion.agregarTipoParametro(tipoParametro);
+        }
+    }
+
+    public void marcarInicializado(String nombre) {
+        Simbolo simbolo = buscarSinReportar(nombre);
+        if (simbolo != null) {
+            simbolo.setInicializado(true);
+        }
+    }
+
     public List<String> getErroresSemanticos() {
         return Collections.unmodifiableList(erroresSemanticos);
     }
@@ -132,6 +152,59 @@ public class TablaDeSimbolos {
     public void reportarOperacionIncompatible(String operador, TipoDato operando, int linea) {
         reportar("tipo incompatible para operador '" + operador
                 + "': se obtuvo tipo " + operando, linea);
+    }
+
+    public void reportarVariableNoInicializada(String nombre, int linea) {
+        reportar("variable '" + nombre + "' usada antes de inicializarse", linea);
+    }
+
+    public void reportarUsoArregloComoEscalar(String nombre, int linea) {
+        reportar("'" + nombre + "' es un arreglo y debe accederse con indices", linea);
+    }
+
+    public void reportarUsoEscalarComoArreglo(String nombre, int linea) {
+        reportar("'" + nombre + "' no es un arreglo", linea);
+    }
+
+    public void reportarAsignacionArregloCompleto(String nombre, int linea) {
+        reportar("no se puede asignar directamente al arreglo completo '" + nombre + "'", linea);
+    }
+
+    public void reportarInicializacionArregloIncompatible(String nombre, TipoDato esperado,
+                                                          TipoDato encontrado, int linea) {
+        reportar("inicializacion incompatible en arreglo '" + nombre + "': se esperaba tipo "
+                + esperado + " y se obtuvo tipo " + encontrado, linea);
+    }
+
+    public void reportarDimensionArregloInvalida(String nombre, String dimension, int linea) {
+        reportar("la dimension " + dimension + " del arreglo '" + nombre
+                + "' debe ser de tipo int", linea);
+    }
+
+    public void reportarSwitchTipoInvalido(TipoDato tipo, int linea) {
+        reportar("la expresion de switch no puede ser de tipo " + tipo, linea);
+    }
+
+    public void reportarCaseTipoIncompatible(TipoDato esperado, TipoDato encontrado, int linea) {
+        reportar("tipo incompatible en case: se esperaba tipo " + esperado
+                + " y se obtuvo tipo " + encontrado, linea);
+    }
+
+    public void reportarEntradaTipoInvalido(String nombre, TipoDato tipo, int linea) {
+        reportar("cin solo puede leer variables escalares declarables; '" + nombre
+                + "' tiene tipo " + tipo, linea);
+    }
+
+    public void reportarSalidaTipoInvalido(TipoDato tipo, int linea) {
+        reportar("cout no puede imprimir una expresion de tipo " + tipo, linea);
+    }
+
+    public void reportarReturnFaltante(TipoDato esperado, int linea) {
+        reportar("la funcion de tipo " + esperado + " debe contener al menos un return", linea);
+    }
+
+    public void reportarIndiceNoEntero(TipoDato tipoIndice, int linea) {
+        reportar("el indice del arreglo debe ser de tipo int, se encontro " + tipoIndice, linea);
     }
 
     public void reportarCondicionNoBooleana(TipoDato recibido, int linea) {
@@ -171,6 +244,37 @@ public class TablaDeSimbolos {
 
     private void reportarRedeclaracion(String nombre, int linea) {
         reportar("'" + nombre + "' ya esta declarado en este alcance", linea);
+    }
+
+    private boolean existeParametroVisible(String nombre) {
+        for (int i = alcances.size() - 1; i >= 0; i--) {
+            Simbolo simbolo = alcances.get(i).get(nombre);
+            if (simbolo != null) {
+                return simbolo.getCategoria() == CategoriaSimb.PARAMETRO;
+            }
+        }
+        return false;
+    }
+
+    private Simbolo buscarSinReportar(String nombre) {
+        for (int i = alcances.size() - 1; i >= 0; i--) {
+            Simbolo simbolo = alcances.get(i).get(nombre);
+            if (simbolo != null) {
+                return simbolo;
+            }
+        }
+        return null;
+    }
+
+    private Simbolo buscarFuncionPorFirma(String nombre, int linea) {
+        for (int i = alcances.size() - 1; i >= 0; i--) {
+            Simbolo simbolo = alcances.get(i).get(nombre);
+            if (simbolo != null && simbolo.getCategoria() == CategoriaSimb.FUNCION
+                    && simbolo.getLinea() == linea) {
+                return simbolo;
+            }
+        }
+        return null;
     }
 
     private void reportar(String descripcion, int linea) {

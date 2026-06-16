@@ -68,12 +68,30 @@ parser code {:
         analizadorSemantico.registrarDeclaracionVariable(nombre, tipo, inicializador, linea);
     }
 
+    public void registrarDeclaracionArreglo(String nombre, TipoDato tipo, ExpresionNodo filas,
+                                            ExpresionNodo columnas,
+                                            InicializacionArregloNodo inicializacion, int linea) {
+        analizadorSemantico.registrarDeclaracionArreglo(nombre, tipo, filas, columnas, inicializacion, linea);
+    }
+
     public void usarIdentificador(String nombre, int linea) {
         analizadorSemantico.usarIdentificador(nombre, linea);
     }
 
     public void verificarAsignacion(AsignacionNodo asignacion) {
         analizadorSemantico.verificarAsignacion(asignacion);
+    }
+
+    public void verificarSwitch(SwitchNodo switchNodo) {
+        analizadorSemantico.verificarSwitch(switchNodo);
+    }
+
+    public void verificarEntrada(EntradaNodo entrada) {
+        analizadorSemantico.verificarEntrada(entrada);
+    }
+
+    public void verificarSalida(SalidaNodo salida) {
+        analizadorSemantico.verificarSalida(salida);
     }
 
     public TipoDato evaluarTipo(ExpresionNodo expresion) {
@@ -231,12 +249,12 @@ terminal Character LIT_CHAR;
 terminal String ID;
 
 non terminal ProgramaNodo programa;
-non terminal java.util.List miembros, parametrosOpt, parametros, contenido;
+non terminal java.util.List miembros, parametrosOpt, parametros, contenido, itemsCaso;
 non terminal FuncionNodo miembro, funcion, main;
 non terminal Object inicioPrograma, firmaFuncion, firmaMain, aperturaBloque;
 non terminal TipoDato tipo;
 non terminal ParametroNodo parametro;
-non terminal BloqueNodo bloque;
+non terminal BloqueNodo bloque, cuerpoCaso;
 non terminal Nodo item, sentencia, control;
 non terminal DeclaracionVariableNodo creacion;
 non terminal Object restoNumerico;
@@ -598,7 +616,12 @@ creacion
     | INT:t SEPARATOR ID:id restoNumerico:r
         {:
             DeclaracionSufijo s = (DeclaracionSufijo) r;
-            parser.registrarDeclaracionVariable(id, TipoDato.INT, s.inicializador, idleft);
+            if (s.esArreglo()) {
+                parser.registrarDeclaracionArreglo(id, TipoDato.INT, s.filas, s.columnas,
+                        s.inicializacionArreglo, idleft);
+            } else {
+                parser.registrarDeclaracionVariable(id, TipoDato.INT, s.inicializador, idleft);
+            }
             RESULT = s.esArreglo()
                     ? new DeclaracionVariableNodo(tleft, tright, id, TipoDato.INT,
                             s.filas, s.columnas, s.inicializacionArreglo)
@@ -607,7 +630,12 @@ creacion
     | FLOAT:t SEPARATOR ID:id restoNumerico:r
         {:
             DeclaracionSufijo s = (DeclaracionSufijo) r;
-            parser.registrarDeclaracionVariable(id, TipoDato.FLOAT, s.inicializador, idleft);
+            if (s.esArreglo()) {
+                parser.registrarDeclaracionArreglo(id, TipoDato.FLOAT, s.filas, s.columnas,
+                        s.inicializacionArreglo, idleft);
+            } else {
+                parser.registrarDeclaracionVariable(id, TipoDato.FLOAT, s.inicializador, idleft);
+            }
             RESULT = s.esArreglo()
                     ? new DeclaracionVariableNodo(tleft, tright, id, TipoDato.FLOAT,
                             s.filas, s.columnas, s.inicializacionArreglo)
@@ -635,7 +663,12 @@ creacion
         {:
             parser.report_error("Se esperaba '~' entre 'int' y el identificador", null);
             DeclaracionSufijo s = (DeclaracionSufijo) r;
-            parser.registrarDeclaracionVariable(id, TipoDato.INT, s.inicializador, idleft);
+            if (s.esArreglo()) {
+                parser.registrarDeclaracionArreglo(id, TipoDato.INT, s.filas, s.columnas,
+                        s.inicializacionArreglo, idleft);
+            } else {
+                parser.registrarDeclaracionVariable(id, TipoDato.INT, s.inicializador, idleft);
+            }
             RESULT = s.esArreglo()
                     ? new DeclaracionVariableNodo(tleft, tright, id, TipoDato.INT,
                             s.filas, s.columnas, s.inicializacionArreglo)
@@ -645,7 +678,12 @@ creacion
         {:
             parser.report_error("Se esperaba '~' entre 'float' y el identificador", null);
             DeclaracionSufijo s = (DeclaracionSufijo) r;
-            parser.registrarDeclaracionVariable(id, TipoDato.FLOAT, s.inicializador, idleft);
+            if (s.esArreglo()) {
+                parser.registrarDeclaracionArreglo(id, TipoDato.FLOAT, s.filas, s.columnas,
+                        s.inicializacionArreglo, idleft);
+            } else {
+                parser.registrarDeclaracionVariable(id, TipoDato.FLOAT, s.inicializador, idleft);
+            }
             RESULT = s.esArreglo()
                     ? new DeclaracionVariableNodo(tleft, tright, id, TipoDato.FLOAT,
                             s.filas, s.columnas, s.inicializacionArreglo)
@@ -804,7 +842,6 @@ valoresArreglo
 asignacion
     ::= ID:id ASSIGN expresion:e
         {:
-            parser.usarIdentificador(id, idleft);
             AsignacionNodo asignacion = new AsignacionNodo(idleft, idright,
                     new IdentificadorNodo(idleft, idright, id), e);
             parser.verificarAsignacion(asignacion);
@@ -834,7 +871,6 @@ asignacion
 accesoArreglo
     ::= ID:id L_ARRAY expresion:f R_ARRAY L_ARRAY expresion:c R_ARRAY
         {:
-            parser.usarIdentificador(id, idleft);
             RESULT = new AccesoArregloNodo(idleft, idright, id, f, c);
         :}
     | ID:id L_ARRAY expresion:f error L_ARRAY expresion:c R_ARRAY
@@ -913,9 +949,17 @@ finDoWhile
 /* Seleccion multiple switch con casos directos o encerrados en bloque. */
 switchSt
     ::= SWITCH:s L_PAREN expresion:e R_PAREN casos:c
-        {: RESULT = new SwitchNodo(sleft, sright, e, c); :}
+        {:
+            SwitchNodo switchNodo = new SwitchNodo(sleft, sright, e, c);
+            parser.verificarSwitch(switchNodo);
+            RESULT = switchNodo;
+        :}
     | SWITCH:s L_PAREN expresion:e R_PAREN L_BLOCK casos:c R_BLOCK
-        {: RESULT = new SwitchNodo(sleft, sright, e, c); :}
+        {:
+            SwitchNodo switchNodo = new SwitchNodo(sleft, sright, e, c);
+            parser.verificarSwitch(switchNodo);
+            RESULT = switchNodo;
+        :}
     | SWITCH:s L_PAREN error R_PAREN casos:c
         {:
             parser.report_error("Expresion invalida en 'switch'", null);
@@ -947,24 +991,47 @@ casos
 
 /* Caso de switch o caso default con su bloque asociado. */
 caso
-    ::= CASE:c SEPARATOR expresion:e COLON bloque:b
+    ::= CASE:c SEPARATOR expresion:e COLON cuerpoCaso:b
         {: RESULT = new CasoSwitchNodo(cleft, cright, e, b, false); :}
-    | DEFAULT:d SEPARATOR COLON bloque:b
+    | DEFAULT:d SEPARATOR COLON cuerpoCaso:b
         {: RESULT = new CasoSwitchNodo(dleft, dright, null, b, true); :}
-    | CASE:c error expresion:e COLON bloque:b
+    | DEFAULT:d COLON cuerpoCaso:b
+        {: RESULT = new CasoSwitchNodo(dleft, dright, null, b, true); :}
+    | CASE:c error expresion:e COLON cuerpoCaso:b
         {:
             parser.report_error("Se esperaba '~' despues de 'case'", null);
             RESULT = new CasoSwitchNodo(cleft, cright, e, b, false);
         :}
-    | CASE:c SEPARATOR expresion:e error bloque:b
+    | CASE:c SEPARATOR expresion:e error cuerpoCaso:b
         {:
             parser.report_error("Se esperaba ':' despues del valor del 'case'", null);
             RESULT = new CasoSwitchNodo(cleft, cright, e, b, false);
         :}
-    | DEFAULT:d error COLON bloque:b
+    | DEFAULT:d error COLON cuerpoCaso:b
         {:
             parser.report_error("Se esperaba '~' despues de 'default'", null);
             RESULT = new CasoSwitchNodo(dleft, dright, null, b, true);
+        :}
+    ;
+
+cuerpoCaso
+    ::= bloque:b
+        {: RESULT = b; :}
+    | itemsCaso:c
+        {: RESULT = new BloqueNodo(0, 0, c); :}
+    ;
+
+itemsCaso
+    ::= itemsCaso:cs item:i
+        {:
+            cs.add(i);
+            RESULT = cs;
+        :}
+    | item:i
+        {:
+            java.util.List lista = new java.util.ArrayList();
+            lista.add(i);
+            RESULT = lista;
         :}
     ;
 
@@ -972,11 +1039,16 @@ caso
 io
     ::= CIN:c L_PAREN ID:id R_PAREN
         {:
-            parser.usarIdentificador(id, idleft);
-            RESULT = new EntradaNodo(cleft, cright, id);
+            EntradaNodo entrada = new EntradaNodo(cleft, cright, id);
+            parser.verificarEntrada(entrada);
+            RESULT = entrada;
         :}
     | COUT:c L_PAREN expresion:e R_PAREN
-        {: RESULT = new SalidaNodo(cleft, cright, e); :}
+        {:
+            SalidaNodo salida = new SalidaNodo(cleft, cright, e);
+            parser.verificarSalida(salida);
+            RESULT = salida;
+        :}
     | CIN:c error ID:id R_PAREN
         {:
             parser.report_error("Se esperaba '<|' en 'cin'", null);
@@ -1388,7 +1460,6 @@ base
         {: RESULT = l; :}
     | ID:id
         {:
-            parser.usarIdentificador(id, idleft);
             RESULT = new IdentificadorNodo(idleft, idright, id);
         :}
     | accesoArreglo:a
@@ -1459,7 +1530,7 @@ literal
     | LIT_FRACCION:v
         {: RESULT = new LiteralNodo(vleft, vright, v, TipoDato.FLOAT); :}
     | LIT_EXPONENTE:v
-        {: RESULT = new LiteralNodo(vleft, vright, v, TipoDato.FLOAT); :}
+        {: RESULT = new LiteralNodo(vleft, vright, v, TipoDato.INT); :}
     | TRUE:v
         {: RESULT = new LiteralNodo(vleft, vright, v, TipoDato.BOOL); :}
     | FALSE:v

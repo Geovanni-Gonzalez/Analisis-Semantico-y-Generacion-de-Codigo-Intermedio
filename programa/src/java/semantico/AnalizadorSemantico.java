@@ -2,13 +2,18 @@ package semantico;
 
 import ast.AccesoArregloNodo;
 import ast.AsignacionNodo;
+import ast.CasoSwitchNodo;
+import ast.EntradaNodo;
 import ast.ExpresionBinariaNodo;
 import ast.ExpresionNodo;
 import ast.ExpresionUnariaNodo;
 import ast.IdentificadorNodo;
+import ast.InicializacionArregloNodo;
 import ast.LlamadaFuncionNodo;
 import ast.ParametroNodo;
 import ast.ReturnNodo;
+import ast.SalidaNodo;
+import ast.SwitchNodo;
 import ast.TipoDato;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +24,9 @@ public class AnalizadorSemantico {
     private final Consumer<String> reportadorSintactico;
     private int cantidadMain;
     private TipoDato tipoRetornoActual = TipoDato.DESCONOCIDO;
+    private String funcionActual;
+    private int lineaFuncionActual;
+    private boolean retornoEncontradoActual;
 
     public AnalizadorSemantico(TablaDeSimbolos tablaSimbolos, Consumer<String> reportadorSintactico) {
         this.tablaSimbolos = tablaSimbolos;
@@ -46,12 +54,25 @@ public class AnalizadorSemantico {
     public void abrirFuncion(String nombre, TipoDato tipoRetorno, int linea) {
         registrarFuncion(nombre, tipoRetorno, linea);
         tipoRetornoActual = tipoRetorno;
+        funcionActual = nombre;
+        lineaFuncionActual = linea;
+        retornoEncontradoActual = false;
         tablaSimbolos.abrirAlcance();
     }
 
     public void cerrarFuncion() {
+        boolean requiereReturn = tipoRetornoActual != TipoDato.EMPTY
+                && tipoRetornoActual != TipoDato.VOID
+                && tipoRetornoActual != TipoDato.ERROR
+                && tipoRetornoActual != TipoDato.DESCONOCIDO;
+        if (requiereReturn && !retornoEncontradoActual) {
+            tablaSimbolos.reportarReturnFaltante(tipoRetornoActual, lineaFuncionActual);
+        }
         tablaSimbolos.cerrarAlcance();
         tipoRetornoActual = TipoDato.DESCONOCIDO;
+        funcionActual = null;
+        lineaFuncionActual = 0;
+        retornoEncontradoActual = false;
     }
 
     public void abrirBloque() {
@@ -71,11 +92,14 @@ public class AnalizadorSemantico {
     }
 
     public void registrarParametro(String nombre, TipoDato tipo, int linea) {
-        insertarSimbolo(new Simbolo(nombre, tipo, CategoriaSimb.PARAMETRO, linea));
+        insertarSimbolo(new Simbolo(nombre, tipo, CategoriaSimb.PARAMETRO, linea, true));
+        if (funcionActual != null) {
+            tablaSimbolos.agregarParametroAFuncion(funcionActual, tipo, lineaFuncionActual);
+        }
     }
 
     public void registrarVariable(String nombre, TipoDato tipo, int linea) {
-        insertarSimbolo(new Simbolo(nombre, tipo, CategoriaSimb.VAR, linea));
+        insertarSimbolo(new Simbolo(nombre, tipo, CategoriaSimb.VAR, linea, false));
     }
 
     public void registrarDeclaracionVariable(String nombre, TipoDato tipo,
@@ -85,24 +109,49 @@ public class AnalizadorSemantico {
             return;
         }
 
-        // Validar tipo del inicializador siempre, exista o no previamente
         if (inicializador != null) {
             TipoDato tipoInicializador = tipoExpresion(inicializador);
-            if (!tipo.esCompatibleCon(tipoInicializador)) {
+            if (tipoInicializador != TipoDato.ERROR && tipoInicializador != TipoDato.DESCONOCIDO
+                    && tipo != tipoInicializador) {
                 tablaSimbolos.reportarAsignacionIncompatible(tipoInicializador, tipo, linea);
                 return;
             }
         }
 
-        insertarSimbolo(new Simbolo(nombre, tipo, CategoriaSimb.VAR, linea));
+        insertarSimbolo(new Simbolo(nombre, tipo, CategoriaSimb.VAR, linea, inicializador != null));
+    }
+
+    public void registrarDeclaracionArreglo(String nombre, TipoDato tipo, ExpresionNodo filas,
+                                            ExpresionNodo columnas,
+                                            InicializacionArregloNodo inicializacion, int linea) {
+        if (!tipo.esDeclarableVariable()) {
+            tablaSimbolos.reportarTipoDeclaracionInvalido(tipo, linea);
+            return;
+        }
+        validarDimensionArreglo(nombre, "fila", filas);
+        validarDimensionArreglo(nombre, "columna", columnas);
+        if (inicializacion != null) {
+            validarInicializacionArreglo(nombre, tipo, inicializacion);
+        }
+        insertarSimbolo(new Simbolo(nombre, tipo, CategoriaSimb.ARREGLO, linea, inicializacion != null));
     }
 
     public void usarIdentificador(String nombre, int linea) {
-        tablaSimbolos.buscar(nombre, linea);
+        Simbolo simbolo = tablaSimbolos.buscar(nombre, linea);
+        if (simbolo.getTipo() == TipoDato.ERROR) {
+            return;
+        }
+        if (simbolo.getCategoria() == CategoriaSimb.ARREGLO) {
+            tablaSimbolos.reportarUsoArregloComoEscalar(nombre, linea);
+            return;
+        }
+        if (!simbolo.isInicializado()) {
+            tablaSimbolos.reportarVariableNoInicializada(nombre, linea);
+        }
     }
 
     public void verificarAsignacion(AsignacionNodo asignacion) {
-        TipoDato tipoDestino = evaluarTipo(asignacion.getDestino());
+        TipoDato tipoDestino = evaluarTipoDestino(asignacion.getDestino());
         TipoDato tipoValor = evaluarTipo(asignacion.getValor());
 
         if (tipoDestino == TipoDato.ERROR || tipoValor == TipoDato.ERROR
@@ -113,6 +162,56 @@ public class AnalizadorSemantico {
         if (tipoDestino != tipoValor) {
             tablaSimbolos.reportarAsignacionIncompatible(nombreDestino(asignacion.getDestino()),
                     tipoDestino, tipoValor, asignacion.getLinea());
+            return;
+        }
+
+        marcarDestinoInicializado(asignacion.getDestino());
+    }
+
+    public void verificarSwitch(SwitchNodo switchNodo) {
+        TipoDato tipoSwitch = evaluarTipo(switchNodo.getExpresion());
+        if (tipoSwitch == TipoDato.ERROR || tipoSwitch == TipoDato.DESCONOCIDO) {
+            return;
+        }
+        if (tipoSwitch == TipoDato.BOOL || tipoSwitch == TipoDato.FLOAT
+                || tipoSwitch == TipoDato.VOID || tipoSwitch == TipoDato.EMPTY) {
+            tablaSimbolos.reportarSwitchTipoInvalido(tipoSwitch, switchNodo.getLinea());
+        }
+        for (CasoSwitchNodo caso : switchNodo.getCasos()) {
+            if (caso.isDefecto() || caso.getValor() == null) {
+                continue;
+            }
+            TipoDato tipoCase = evaluarTipo(caso.getValor());
+            if (tipoCase == TipoDato.ERROR || tipoCase == TipoDato.DESCONOCIDO) {
+                continue;
+            }
+            if (tipoCase != tipoSwitch) {
+                tablaSimbolos.reportarCaseTipoIncompatible(tipoSwitch, tipoCase, caso.getLinea());
+            }
+        }
+    }
+
+    public void verificarEntrada(EntradaNodo entrada) {
+        Simbolo simbolo = tablaSimbolos.buscar(entrada.getDestino(), entrada.getLinea());
+        if (simbolo.getTipo() == TipoDato.ERROR) {
+            return;
+        }
+        if (simbolo.getCategoria() == CategoriaSimb.ARREGLO
+                || !simbolo.getTipo().esDeclarableVariable()) {
+            tablaSimbolos.reportarEntradaTipoInvalido(entrada.getDestino(), simbolo.getTipo(),
+                    entrada.getLinea());
+            return;
+        }
+        tablaSimbolos.marcarInicializado(entrada.getDestino());
+    }
+
+    public void verificarSalida(SalidaNodo salida) {
+        TipoDato tipo = evaluarTipo(salida.getValor());
+        if (tipo == TipoDato.ERROR || tipo == TipoDato.DESCONOCIDO) {
+            return;
+        }
+        if (tipo == TipoDato.VOID || tipo == TipoDato.EMPTY) {
+            tablaSimbolos.reportarSalidaTipoInvalido(tipo, salida.getLinea());
         }
     }
 
@@ -129,12 +228,20 @@ public class AnalizadorSemantico {
         TipoDato tipo = TipoDato.ERROR;
         if (expresion instanceof IdentificadorNodo) {
             IdentificadorNodo id = (IdentificadorNodo) expresion;
-            tipo = tablaSimbolos.buscar(id.getNombre(), id.getLinea()).getTipo();
+            Simbolo simbolo = tablaSimbolos.buscar(id.getNombre(), id.getLinea());
+            if (simbolo.getTipo() == TipoDato.ERROR) {
+                return TipoDato.ERROR;
+            }
+            if (simbolo.getCategoria() == CategoriaSimb.ARREGLO) {
+                tablaSimbolos.reportarUsoArregloComoEscalar(id.getNombre(), id.getLinea());
+                return TipoDato.ERROR;
+            }
+            if (!simbolo.isInicializado()) {
+                tablaSimbolos.reportarVariableNoInicializada(id.getNombre(), id.getLinea());
+            }
+            tipo = simbolo.getTipo();
         } else if (expresion instanceof AccesoArregloNodo) {
-            AccesoArregloNodo acceso = (AccesoArregloNodo) expresion;
-            evaluarTipo(acceso.getFila());
-            evaluarTipo(acceso.getColumnaIndice());
-            tipo = tablaSimbolos.buscar(acceso.getNombre(), acceso.getLinea()).getTipo();
+            tipo = evaluarTipoAccesoArreglo((AccesoArregloNodo) expresion, true);
         } else if (expresion instanceof LlamadaFuncionNodo) {
             tipo = evaluarTipoLlamada((LlamadaFuncionNodo) expresion);
         } else if (expresion instanceof ExpresionBinariaNodo) {
@@ -162,6 +269,7 @@ public class AnalizadorSemantico {
     }
 
     public void verificarReturn(ReturnNodo retorno) {
+        retornoEncontradoActual = true;
         TipoDato tipoEsperado = tipoRetornoActual;
         ExpresionNodo valor = retorno.getValor();
         boolean funcionVoid = tipoEsperado == TipoDato.EMPTY || tipoEsperado == TipoDato.VOID;
@@ -256,15 +364,31 @@ public class AnalizadorSemantico {
         }
         if ("less_t".equals(operador) || "less_te".equals(operador)
                 || "greather_t".equals(operador) || "greather_te".equals(operador)) {
-            if (izquierda == derecha) {
+            if (izquierda.esNumerico() && derecha.esNumerico() && izquierda == derecha) {
                 return TipoDato.BOOL;
             }
             tablaSimbolos.reportarOperacionIncompatible(operador, izquierda, derecha, expresion.getLinea());
             return TipoDato.ERROR;
         }
         if ("+".equals(operador) || "-".equals(operador) || "*".equals(operador)
-                || "/".equals(operador) || "%".equals(operador) || "^".equals(operador)) {
+                || "/".equals(operador)) {
+            if (izquierda.esNumerico() && derecha.esNumerico()) {
+                return izquierda == TipoDato.FLOAT || derecha == TipoDato.FLOAT
+                        ? TipoDato.FLOAT
+                        : TipoDato.INT;
+            }
+            tablaSimbolos.reportarOperacionIncompatible(operador, izquierda, derecha, expresion.getLinea());
+            return TipoDato.ERROR;
+        }
+        if ("%".equals(operador)) {
             if (izquierda.esNumerico() && derecha.esNumerico() && izquierda == derecha) {
+                return izquierda;
+            }
+            tablaSimbolos.reportarOperacionIncompatible(operador, izquierda, derecha, expresion.getLinea());
+            return TipoDato.ERROR;
+        }
+        if ("^".equals(operador)) {
+            if (izquierda.esNumerico() && derecha == TipoDato.INT) {
                 return izquierda;
             }
             tablaSimbolos.reportarOperacionIncompatible(operador, izquierda, derecha, expresion.getLinea());
@@ -289,6 +413,10 @@ public class AnalizadorSemantico {
             return TipoDato.ERROR;
         }
         if ("-".equals(operador) || "++".equals(operador) || "--".equals(operador)) {
+            if (("++".equals(operador) || "--".equals(operador)) && !esModificable(expresion.getExpresion())) {
+                tablaSimbolos.reportarOperacionIncompatible(operador, tipo, expresion.getLinea());
+                return TipoDato.ERROR;
+            }
             if (tipo.esNumerico()) {
                 return tipo;
             }
@@ -307,5 +435,81 @@ public class AnalizadorSemantico {
             return ((AccesoArregloNodo) destino).getNombre();
         }
         return "<desconocido>";
+    }
+
+    private TipoDato evaluarTipoDestino(ExpresionNodo destino) {
+        if (destino instanceof IdentificadorNodo) {
+            IdentificadorNodo id = (IdentificadorNodo) destino;
+            Simbolo simbolo = tablaSimbolos.buscar(id.getNombre(), id.getLinea());
+            if (simbolo.getTipo() == TipoDato.ERROR) {
+                return TipoDato.ERROR;
+            }
+            if (simbolo.getCategoria() == CategoriaSimb.ARREGLO) {
+                tablaSimbolos.reportarAsignacionArregloCompleto(id.getNombre(), id.getLinea());
+                return TipoDato.ERROR;
+            }
+            return simbolo.getTipo();
+        }
+        if (destino instanceof AccesoArregloNodo) {
+            return evaluarTipoAccesoArreglo((AccesoArregloNodo) destino, false);
+        }
+        return TipoDato.ERROR;
+    }
+
+    private TipoDato evaluarTipoAccesoArreglo(AccesoArregloNodo acceso, boolean requiereInicializado) {
+        Simbolo simbolo = tablaSimbolos.buscar(acceso.getNombre(), acceso.getLinea());
+        if (simbolo.getTipo() == TipoDato.ERROR) {
+            return TipoDato.ERROR;
+        }
+        if (simbolo.getCategoria() != CategoriaSimb.ARREGLO) {
+            tablaSimbolos.reportarUsoEscalarComoArreglo(acceso.getNombre(), acceso.getLinea());
+            return TipoDato.ERROR;
+        }
+        validarIndiceArreglo(acceso.getFila());
+        validarIndiceArreglo(acceso.getColumnaIndice());
+        if (requiereInicializado && !simbolo.isInicializado()) {
+            tablaSimbolos.reportarVariableNoInicializada(acceso.getNombre(), acceso.getLinea());
+        }
+        return simbolo.getTipo();
+    }
+
+    private void validarIndiceArreglo(ExpresionNodo indice) {
+        TipoDato tipo = evaluarTipo(indice);
+        if (tipo != TipoDato.ERROR && tipo != TipoDato.DESCONOCIDO && tipo != TipoDato.INT) {
+            tablaSimbolos.reportarIndiceNoEntero(tipo, indice.getLinea());
+        }
+    }
+
+    private void validarDimensionArreglo(String nombre, String dimension, ExpresionNodo expresion) {
+        TipoDato tipo = evaluarTipo(expresion);
+        if (tipo != TipoDato.ERROR && tipo != TipoDato.DESCONOCIDO && tipo != TipoDato.INT) {
+            tablaSimbolos.reportarDimensionArregloInvalida(nombre, dimension, expresion.getLinea());
+        }
+    }
+
+    private void validarInicializacionArreglo(String nombre, TipoDato tipoEsperado,
+                                              InicializacionArregloNodo inicializacion) {
+        for (List<ExpresionNodo> fila : inicializacion.getFilas()) {
+            for (ExpresionNodo valor : fila) {
+                TipoDato tipoValor = evaluarTipo(valor);
+                if (tipoValor != TipoDato.ERROR && tipoValor != TipoDato.DESCONOCIDO
+                        && tipoValor != tipoEsperado) {
+                    tablaSimbolos.reportarInicializacionArregloIncompatible(nombre, tipoEsperado,
+                            tipoValor, valor.getLinea());
+                }
+            }
+        }
+    }
+
+    private void marcarDestinoInicializado(ExpresionNodo destino) {
+        if (destino instanceof IdentificadorNodo) {
+            tablaSimbolos.marcarInicializado(((IdentificadorNodo) destino).getNombre());
+        } else if (destino instanceof AccesoArregloNodo) {
+            tablaSimbolos.marcarInicializado(((AccesoArregloNodo) destino).getNombre());
+        }
+    }
+
+    private boolean esModificable(ExpresionNodo expresion) {
+        return expresion instanceof IdentificadorNodo || expresion instanceof AccesoArregloNodo;
     }
 }

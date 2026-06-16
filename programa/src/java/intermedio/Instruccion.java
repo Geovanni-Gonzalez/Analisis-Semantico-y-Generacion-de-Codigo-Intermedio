@@ -53,6 +53,8 @@ public class Instruccion {
             case RESTA:
             case MULT:
             case DIV:
+            case MOD:
+            case POW:
             case AND:
             case OR:
             case IGUAL:
@@ -107,6 +109,10 @@ public class Instruccion {
                 return "*";
             case DIV:
                 return "/";
+            case MOD:
+                return "%";
+            case POW:
+                return "^";
             case AND:
                 return "&&";
             case OR:

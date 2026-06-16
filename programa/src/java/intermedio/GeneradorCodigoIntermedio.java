@@ -1,6 +1,7 @@
 package intermedio;
 
 import ast.AsignacionNodo;
+import ast.AccesoArregloNodo;
 import ast.BloqueNodo;
 import ast.DeclaracionVariableNodo;
 import ast.ExpresionBinariaNodo;
@@ -147,6 +148,11 @@ public class GeneradorCodigoIntermedio {
         if (expresion instanceof IdentificadorNodo) {
             return ((IdentificadorNodo) expresion).getNombre();
         }
+        if (expresion instanceof AccesoArregloNodo) {
+            AccesoArregloNodo acceso = (AccesoArregloNodo) expresion;
+            return acceso.getNombre() + "[" + generarExpresion(acceso.getFila()) + "]"
+                    + "[" + generarExpresion(acceso.getColumnaIndice()) + "]";
+        }
         if (expresion instanceof LiteralNodo) {
             Object valor = ((LiteralNodo) expresion).getValor();
             return valor == null ? "null" : valor.toString();
@@ -177,6 +183,14 @@ public class GeneradorCodigoIntermedio {
     }
 
     private String generarUnaria(ExpresionUnariaNodo expresion) {
+        if ("++".equals(expresion.getOperador()) || "--".equals(expresion.getOperador())) {
+            String destino = generarExpresion(expresion.getExpresion());
+            String temporal = nuevoTemporal();
+            Operacion operacion = "++".equals(expresion.getOperador()) ? Operacion.SUMA : Operacion.RESTA;
+            instrucciones.add(new Instruccion(operacion, temporal, destino, "1"));
+            instrucciones.add(new Instruccion(Operacion.ASIG, destino, temporal));
+            return temporal;
+        }
         String valor = generarExpresion(expresion.getExpresion());
         String temporal = nuevoTemporal();
         instrucciones.add(new Instruccion(operacionUnaria(expresion.getOperador()), temporal, valor));
@@ -220,6 +234,10 @@ public class GeneradorCodigoIntermedio {
                 return Operacion.MULT;
             case "/":
                 return Operacion.DIV;
+            case "%":
+                return Operacion.MOD;
+            case "^":
+                return Operacion.POW;
             case "#":
                 return Operacion.OR;
             case "@":

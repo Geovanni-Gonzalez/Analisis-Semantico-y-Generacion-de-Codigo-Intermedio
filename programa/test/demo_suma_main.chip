@@ -1,0 +1,8 @@
+int ~ suma <| int ~ a, int ~ b |> |:
+    return ~ a + b!
+:|
+
+empty ~ __main__ <| |> |:
+    int ~ r <- suma <| 2, 3 |>!
+    cout <| r |>!
+:|

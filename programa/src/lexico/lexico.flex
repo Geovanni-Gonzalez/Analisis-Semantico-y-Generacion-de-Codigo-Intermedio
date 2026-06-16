@@ -182,8 +182,8 @@ STRING = [^\r\n\"]*
 "+"             { return symbol(sym.PLUS); }
 "-"             { return symbol(sym.MINUS); }
 "*"             { return symbol(sym.TIMES); }
-"/"             { return symbol(sym.DIV); }
 "//"            { return symbol(sym.DIV); }
+"/"             { return symbol(sym.DIV); }
 "%"             { return symbol(sym.MOD); }
 "^"             { return symbol(sym.POW); }
 
@@ -221,7 +221,9 @@ STRING = [^\r\n\"]*
 {ID}            { return symbol(sym.ID, yytext()); }
 [ \t\r\n]+      { /* ignorar */ }
 /* Comentarios de línea */
-"¡¡".* { /* ignorar */ }
+\u00A1\u00A1.* { /* ignorar */ }
+\u00C2\u00A1\u00C2\u00A1.* { /* ignorar */ }
+\u0104\u0104.* { /* ignorar */ }
 
 /* Comentarios multilínea */
 "{-" {

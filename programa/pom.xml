@@ -50,7 +50,7 @@
                         <configuration>
                             <target>
 
-                                <mkdir dir="${project.build.directory}/generated-sources/cup"/>
+                                <mkdir dir="${project.build.directory}/generated-sources/cup/sintactico"/>
 
                                 <java
                                     jar="${project.basedir}/src/lib/java-cup-11a.jar"
@@ -58,13 +58,16 @@
                                     failonerror="true">
 
                                     <arg value="-destdir"/>
-                                    <arg value="${project.build.directory}/generated-sources/cup"/>
+                                    <arg value="${project.build.directory}/generated-sources/cup/sintactico"/>
 
                                     <arg value="-parser"/>
                                     <arg value="Parser"/>
 
                                     <arg value="-symbols"/>
                                     <arg value="sym"/>
+
+                                    <arg value="-expect"/>
+                                    <arg value="36"/>
 
                                     <arg value="${project.basedir}/src/sintactico/sintactico.cup"/>
 
@@ -175,6 +178,19 @@
                     <source>11</source>
                     <target>11</target>
                     <encoding>UTF-8</encoding>
+                    <useIncrementalCompilation>false</useIncrementalCompilation>
+                </configuration>
+            </plugin>
+
+            <!-- Evita que Surefire trate el smoke test manual como prueba JUnit. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.5.4</version>
+                <configuration>
+                    <excludes>
+                        <exclude>**/CompiladorSmokeTest.java</exclude>
+                    </excludes>
                 </configuration>
             </plugin>
 

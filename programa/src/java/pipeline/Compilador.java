@@ -43,7 +43,7 @@ public class Compilador {
             parser.erroresSintacticos.add(ReportadorErrores.reportarSintactico(0, 0,
                     "error fatal del parser: " + ex.getMessage()));
         }
-
+ 
         boolean aceptado = sintaxisCompleta
                 && lexerTokens.getErroresLexicos().isEmpty()
                 && parser.getNumErrores() == 0

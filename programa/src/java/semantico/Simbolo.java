@@ -12,23 +12,29 @@ public class Simbolo {
     private final int linea;
     private final List<TipoDato> tiposParametros;
     private final TipoDato tipoRetorno;
+    private boolean inicializado;
 
     public Simbolo(String nombre, TipoDato tipo, CategoriaSimb categoria, int linea) {
-        this(nombre, tipo, categoria, linea, Collections.emptyList(), null);
+        this(nombre, tipo, categoria, linea, Collections.emptyList(), null, false);
+    }
+
+    public Simbolo(String nombre, TipoDato tipo, CategoriaSimb categoria, int linea, boolean inicializado) {
+        this(nombre, tipo, categoria, linea, Collections.emptyList(), null, inicializado);
     }
 
     public Simbolo(String nombre, List<TipoDato> tiposParametros, TipoDato tipoRetorno, int linea) {
-        this(nombre, tipoRetorno, CategoriaSimb.FUNCION, linea, tiposParametros, tipoRetorno);
+        this(nombre, tipoRetorno, CategoriaSimb.FUNCION, linea, tiposParametros, tipoRetorno, true);
     }
 
     public Simbolo(String nombre, TipoDato tipo, CategoriaSimb categoria, int linea,
-                   List<TipoDato> tiposParametros, TipoDato tipoRetorno) {
+                   List<TipoDato> tiposParametros, TipoDato tipoRetorno, boolean inicializado) {
         this.nombre = nombre;
         this.tipo = tipo;
         this.categoria = categoria;
         this.linea = linea;
         this.tiposParametros = new ArrayList<>(tiposParametros);
         this.tipoRetorno = tipoRetorno;
+        this.inicializado = inicializado;
     }
 
     public String getNombre() {
@@ -53,5 +59,17 @@ public class Simbolo {
 
     public TipoDato getTipoRetorno() {
         return tipoRetorno;
+    }
+
+    public boolean isInicializado() {
+        return inicializado;
+    }
+
+    public void setInicializado(boolean inicializado) {
+        this.inicializado = inicializado;
+    }
+
+    public void agregarTipoParametro(TipoDato tipoParametro) {
+        tiposParametros.add(tipoParametro);
     }
 }

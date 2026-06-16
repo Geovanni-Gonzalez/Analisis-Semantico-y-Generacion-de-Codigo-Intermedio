@@ -31,7 +31,12 @@ target/
 programa/target/
 programa/build/
 programa/salida*/
+programa/test/salida_*/
 salida/
+
+# VS Code
+.vscode/
+programa/.vscode/
 
 # IntelliJ IDEA
 .idea/

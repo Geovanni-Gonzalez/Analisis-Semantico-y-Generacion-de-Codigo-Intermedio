@@ -9,6 +9,8 @@ public enum Operacion {
     RESTA,
     MULT,
     DIV,
+    MOD,
+    POW,
     NEG,
     AND,
     OR,
