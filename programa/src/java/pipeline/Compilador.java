@@ -15,19 +15,23 @@ import sintactico.Parser;
 import sintactico.sym;
 
 /**
- * Fachada reutilizable del compilador.
+ * <strong>Objetivo:</strong> Fachada reutilizable del compilador.
  *
- * <p>Centraliza el flujo completo para que la CLI y las pruebas no dupliquen
- * la secuencia lexer -> parser -> semantica -> codigo intermedio. La clase
- * ejecuta una pasada lexica independiente para conservar el reporte completo
- * de tokens y una segunda pasada para alimentar al parser.</p>
+ * <p><strong>Entradas:</strong> Archivo fuente, lexer, parser y artefactos generados durante la compilacion.</p>
+ *
+ * <p><strong>Salidas:</strong> Resultado de compilacion y estado de aceptacion del programa fuente.</p>
+ *
+ * <p><strong>Restricciones:</strong> Debe coordinar fases sin duplicar la escritura de reportes de salida.</p>
  */
 public class Compilador {
     /**
-     * Nombre : compilar.
-     * Descripcion: Compila un archivo fuente y devuelve todos los artefactos en memoria. El codigo intermedio se genera solamente si no existen errores lexicos, sintacticos ni semanticos.
-     * Entrada: Path fuente
-     * Salida: Retorna ResultadoCompilacion.
+     * <strong>Objetivo:</strong> Compila un archivo fuente y devuelve todos los artefactos en memoria. El codigo intermedio se genera solamente si no existen errores lexicos, sintacticos ni semanticos.
+     *
+     * <p><strong>Entradas:</strong> Path fuente</p>
+     *
+     * <p><strong>Salidas:</strong> Retorna ResultadoCompilacion.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public ResultadoCompilacion compilar(Path fuente) throws Exception {
         MiLexer lexerTokens = crearLexer(fuente);
@@ -59,10 +63,13 @@ public class Compilador {
     }
 
     /**
-     * Nombre : crearLexer.
-     * Descripcion: Abre el archivo fuente como UTF-8 y crea un lexer nuevo para una pasada.
-     * Entrada: Path fuente
-     * Salida: Retorna MiLexer.
+     * <strong>Objetivo:</strong> Abre el archivo fuente como UTF-8 y crea un lexer nuevo para una pasada.
+     *
+     * <p><strong>Entradas:</strong> Path fuente</p>
+     *
+     * <p><strong>Salidas:</strong> Retorna MiLexer.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     private MiLexer crearLexer(Path fuente) throws Exception {
         Reader reader = Files.newBufferedReader(fuente, StandardCharsets.UTF_8);
@@ -70,10 +77,13 @@ public class Compilador {
     }
 
     /**
-     * Nombre : consumirTokens.
-     * Descripcion: Recorre una pasada lexica completa para registrar tokens y errores. El parser usa otro lexer limpio, por eso esta pasada se consume hasta EOF sin construir AST.
-     * Entrada: MiLexer lexer
-     * Salida: No retorna valor.
+     * <strong>Objetivo:</strong> Recorre una pasada lexica completa para registrar tokens y errores. El parser usa otro lexer limpio, por eso esta pasada se consume hasta EOF sin construir AST.
+     *
+     * <p><strong>Entradas:</strong> MiLexer lexer</p>
+     *
+     * <p><strong>Salidas:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     private void consumirTokens(MiLexer lexer) throws Exception {
         Symbol token;

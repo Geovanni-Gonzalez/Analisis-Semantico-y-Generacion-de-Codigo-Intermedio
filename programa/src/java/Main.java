@@ -7,17 +7,23 @@ import reporte.EscritorCodigo;
 import reporte.EscritorReportes;
 
 /**
- * Punto de entrada de la aplicacion de consola.
+ * <strong>Objetivo:</strong> Punto de entrada de la aplicacion de consola.
  *
- * <p>Valida argumentos, ejecuta el pipeline completo y escribe los reportes
- * esperados en el directorio de salida.</p>
+ * <p><strong>Entradas:</strong> Argumentos o datos necesarios para cumplir la responsabilidad de la clase.</p>
+ *
+ * <p><strong>Salidas:</strong> Resultado correspondiente a la responsabilidad de la clase.</p>
+ *
+ * <p><strong>Restricciones:</strong> Debe mantenerse dentro de su responsabilidad y no mezclar fases independientes.</p>
  */
 public class Main {
     /**
-     * Nombre : main.
-     * Descripcion: Ejecuta el compilador sobre un archivo fuente recibido por linea de comandos.
-     * Entrada: String[] args
-     * Salida: No retorna valor.
+     * <strong>Objetivo:</strong> Ejecuta el compilador sobre un archivo fuente recibido por linea de comandos.
+     *
+     * <p><strong>Entradas:</strong> String[] args</p>
+     *
+     * <p><strong>Salidas:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public static void main(String[] args) throws Exception {
         if (args.length == 0) {

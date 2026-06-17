@@ -6,10 +6,13 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Entrada individual de la tabla de simbolos.
+ * <strong>Objetivo:</strong> Entrada individual de la tabla de simbolos.
  *
- * <p>Un simbolo conserva el nombre, tipo, categoria, linea de declaracion y,
- * cuando aplica, firma  y estado de inicializacion.</p>
+ * <p><strong>Entradas:</strong> Simbolos, tipos, nodos y ubicaciones producidos por las fases previas.</p>
+ *
+ * <p><strong>Salidas:</strong> Estado semantico actualizado, simbolos resueltos o diagnosticos acumulados.</p>
+ *
+ * <p><strong>Restricciones:</strong> No debe generar codigo intermedio ni escribir reportes directamente.</p>
  */
 public class Simbolo {
     private final String nombre;
@@ -20,40 +23,52 @@ public class Simbolo {
     private final TipoDato tipoRetorno;
     private boolean inicializado;
     /**
-     * Nombre : Simbolo.
-     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
-     * Entrada: String nombre, TipoDato tipo, CategoriaSimb categoria, int linea
-     * Salida: Instancia inicializada de Simbolo.
+     * <strong>Objetivo:</strong> Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     *
+     * <p><strong>Entradas:</strong> String nombre, TipoDato tipo, CategoriaSimb categoria, int linea</p>
+     *
+     * <p><strong>Salidas:</strong> Instancia inicializada de Simbolo.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public Simbolo(String nombre, TipoDato tipo, CategoriaSimb categoria, int linea) {
         this(nombre, tipo, categoria, linea, Collections.emptyList(), null, false);
     }
 
     /**
-     * Nombre : Simbolo.
-     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
-     * Entrada: String nombre, TipoDato tipo, CategoriaSimb categoria, int linea, boolean inicializado
-     * Salida: Instancia inicializada de Simbolo.
+     * <strong>Objetivo:</strong> Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     *
+     * <p><strong>Entradas:</strong> String nombre, TipoDato tipo, CategoriaSimb categoria, int linea, boolean inicializado</p>
+     *
+     * <p><strong>Salidas:</strong> Instancia inicializada de Simbolo.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public Simbolo(String nombre, TipoDato tipo, CategoriaSimb categoria, int linea, boolean inicializado) {
         this(nombre, tipo, categoria, linea, Collections.emptyList(), null, inicializado);
     }
 
     /**
-     * Nombre : Simbolo.
-     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
-     * Entrada: String nombre, List<TipoDato> tiposParametros, TipoDato tipoRetorno, int linea
-     * Salida: Instancia inicializada de Simbolo.
+     * <strong>Objetivo:</strong> Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     *
+     * <p><strong>Entradas:</strong> String nombre, List<TipoDato> tiposParametros, TipoDato tipoRetorno, int linea</p>
+     *
+     * <p><strong>Salidas:</strong> Instancia inicializada de Simbolo.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public Simbolo(String nombre, List<TipoDato> tiposParametros, TipoDato tipoRetorno, int linea) {
         this(nombre, tipoRetorno, CategoriaSimb.FUNCION, linea, tiposParametros, tipoRetorno, true);
     }
 
     /**
-     * Nombre : Simbolo.
-     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
-     * Entrada: String nombre, TipoDato tipo, CategoriaSimb categoria, int linea, List<TipoDato> tiposParametros, TipoDato tipoRetorno, boolean inicializado
-     * Salida: Instancia inicializada de Simbolo.
+     * <strong>Objetivo:</strong> Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     *
+     * <p><strong>Entradas:</strong> String nombre, TipoDato tipo, CategoriaSimb categoria, int linea, List<TipoDato> tiposParametros, TipoDato tipoRetorno, boolean inicializado</p>
+     *
+     * <p><strong>Salidas:</strong> Instancia inicializada de Simbolo.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public Simbolo(String nombre, TipoDato tipo, CategoriaSimb categoria, int linea,
                    List<TipoDato> tiposParametros, TipoDato tipoRetorno, boolean inicializado) {
@@ -67,90 +82,117 @@ public class Simbolo {
     }
 
     /**
-     * Nombre : getNombre.
-     * Descripcion: Consulta el valor asociado a esta propiedad.
-     * Entrada: Sin parametros.
-     * Salida: Retorna String.
+     * <strong>Objetivo:</strong> Consulta el valor asociado a esta propiedad.
+     *
+     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     *
+     * <p><strong>Salidas:</strong> Retorna String.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public String getNombre() {
         return nombre;
     }
 
     /**
-     * Nombre : getTipo.
-     * Descripcion: Consulta el valor asociado a esta propiedad.
-     * Entrada: Sin parametros.
-     * Salida: Retorna TipoDato.
+     * <strong>Objetivo:</strong> Consulta el valor asociado a esta propiedad.
+     *
+     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     *
+     * <p><strong>Salidas:</strong> Retorna TipoDato.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public TipoDato getTipo() {
         return tipo;
     }
 
     /**
-     * Nombre : getCategoria.
-     * Descripcion: Consulta el valor asociado a esta propiedad.
-     * Entrada: Sin parametros.
-     * Salida: Retorna CategoriaSimb.
+     * <strong>Objetivo:</strong> Consulta el valor asociado a esta propiedad.
+     *
+     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     *
+     * <p><strong>Salidas:</strong> Retorna CategoriaSimb.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public CategoriaSimb getCategoria() {
         return categoria;
     }
 
     /**
-     * Nombre : getLinea.
-     * Descripcion: Consulta el valor asociado a esta propiedad.
-     * Entrada: Sin parametros.
-     * Salida: Retorna int.
+     * <strong>Objetivo:</strong> Consulta el valor asociado a esta propiedad.
+     *
+     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     *
+     * <p><strong>Salidas:</strong> Retorna int.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public int getLinea() {
         return linea;
     }
 
     /**
-     * Nombre : getTiposParametros.
-     * Descripcion: Consulta el valor asociado a esta propiedad.
-     * Entrada: Sin parametros.
-     * Salida: Retorna List<TipoDato>.
+     * <strong>Objetivo:</strong> Consulta el valor asociado a esta propiedad.
+     *
+     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     *
+     * <p><strong>Salidas:</strong> Retorna List<TipoDato>.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public List<TipoDato> getTiposParametros() {
         return Collections.unmodifiableList(tiposParametros);
     }
 
     /**
-     * Nombre : getTipoRetorno.
-     * Descripcion: Consulta el valor asociado a esta propiedad.
-     * Entrada: Sin parametros.
-     * Salida: Retorna TipoDato.
+     * <strong>Objetivo:</strong> Consulta el valor asociado a esta propiedad.
+     *
+     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     *
+     * <p><strong>Salidas:</strong> Retorna TipoDato.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public TipoDato getTipoRetorno() {
         return tipoRetorno;
     }
 
     /**
-     * Nombre : isInicializado.
-     * Descripcion: Consulta una condicion booleana del objeto.
-     * Entrada: Sin parametros.
-     * Salida: Retorna boolean.
+     * <strong>Objetivo:</strong> Consulta una condicion booleana del objeto.
+     *
+     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     *
+     * <p><strong>Salidas:</strong> Retorna boolean.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public boolean isInicializado() {
         return inicializado;
     }
 
     /**
-     * Nombre : setInicializado.
-     * Descripcion: Actualiza el valor asociado a esta propiedad.
-     * Entrada: boolean inicializado
-     * Salida: No retorna valor.
+     * <strong>Objetivo:</strong> Actualiza el valor asociado a esta propiedad.
+     *
+     * <p><strong>Entradas:</strong> boolean inicializado</p>
+     *
+     * <p><strong>Salidas:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public void setInicializado(boolean inicializado) {
         this.inicializado = inicializado;
     }
 
     /**
-     * Nombre : agregarTipoParametro.
-     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
-     * Entrada: TipoDato tipoParametro
-     * Salida: No retorna valor.
+     * <strong>Objetivo:</strong> Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     *
+     * <p><strong>Entradas:</strong> TipoDato tipoParametro</p>
+     *
+     * <p><strong>Salidas:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public void agregarTipoParametro(TipoDato tipoParametro) {
         tiposParametros.add(tipoParametro);

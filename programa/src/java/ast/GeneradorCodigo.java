@@ -6,18 +6,26 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Generador historico/simple de temporales, etiquetas e instrucciones AST.
+ * <strong>Objetivo:</strong> Generador historico/simple de temporales, etiquetas e instrucciones AST.
  *
- * <p>Permanece como utilidad singleton para codigo que aun use la capa
- * {@code ast.Instruccion}. El generador principal actual esta en
- * {@code intermedio.GeneradorCodigoIntermedio}.</p>
+ * <p><strong>Entradas:</strong> Datos sintacticos reconocidos por el parser, posiciones de fuente y subnodos relacionados.</p>
+ *
+ * <p><strong>Salidas:</strong> Nodos, valores o metadatos consultables por las fases semantica e intermedia.</p>
+ *
+ * <p><strong>Restricciones:</strong> No debe ejecutar validaciones globales ni escribir archivos; solo conserva estructura y metadatos.</p>
  */
 public final class GeneradorCodigo {
     /**
-     * Nombre : GeneradorCodigo.
-     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
-     * Entrada: Sin parametros.
-     * Salida: Instancia inicializada de GeneradorCodigo.
+     * <strong>Objetivo:</strong> Mantener la unica instancia compartida del
+     * generador historico de codigo.
+     *
+     * <p><strong>Entradas:</strong> Inicializacion estatica de la clase.</p>
+     *
+     * <p><strong>Salidas:</strong> Instancia reutilizable devuelta por
+     * {@code getInstancia}.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe usarse como singleton y reiniciarse
+     * explicitamente antes de reutilizar sus acumuladores.</p>
      */
     private static final GeneradorCodigo INSTANCIA = new GeneradorCodigo();
 
@@ -25,69 +33,90 @@ public final class GeneradorCodigo {
     private int contadorEtiquetas;
     private final List<Instruccion> instrucciones;
     /**
-     * Nombre : GeneradorCodigo.
-     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
-     * Entrada: Sin parametros.
-     * Salida: Instancia inicializada de GeneradorCodigo.
+     * <strong>Objetivo:</strong> Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     *
+     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     *
+     * <p><strong>Salidas:</strong> Instancia inicializada de GeneradorCodigo.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     private GeneradorCodigo() {
         instrucciones = new ArrayList<>();
     }
     /**
-     * Nombre : getInstancia.
-     * Descripcion: Consulta el valor asociado a esta propiedad.
-     * Entrada: Sin parametros.
-     * Salida: Retorna GeneradorCodigo.
+     * <strong>Objetivo:</strong> Consulta el valor asociado a esta propiedad.
+     *
+     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     *
+     * <p><strong>Salidas:</strong> Retorna GeneradorCodigo.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public static GeneradorCodigo getInstancia() {
         return INSTANCIA;
     }
 
     /**
-     * Nombre : nuevoTemp.
-     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
-     * Entrada: Sin parametros.
-     * Salida: Retorna String.
+     * <strong>Objetivo:</strong> Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     *
+     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     *
+     * <p><strong>Salidas:</strong> Retorna String.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public String nuevoTemp() {
         return "_t" + contadorTemporales++;
     }
 
     /**
-     * Nombre : nuevaEtiqueta.
-     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
-     * Entrada: Sin parametros.
-     * Salida: Retorna String.
+     * <strong>Objetivo:</strong> Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     *
+     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     *
+     * <p><strong>Salidas:</strong> Retorna String.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public String nuevaEtiqueta() {
         return "_L" + contadorEtiquetas++;
     }
 
     /**
-     * Nombre : emitir.
-     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
-     * Entrada: Instruccion instruccion
-     * Salida: No retorna valor.
+     * <strong>Objetivo:</strong> Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     *
+     * <p><strong>Entradas:</strong> Instruccion instruccion</p>
+     *
+     * <p><strong>Salidas:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public void emitir(Instruccion instruccion) {
         instrucciones.add(Objects.requireNonNull(instruccion, "instruccion"));
     }
 
     /**
-     * Nombre : getInstrucciones.
-     * Descripcion: Consulta el valor asociado a esta propiedad.
-     * Entrada: Sin parametros.
-     * Salida: Retorna List<Instruccion>.
+     * <strong>Objetivo:</strong> Consulta el valor asociado a esta propiedad.
+     *
+     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     *
+     * <p><strong>Salidas:</strong> Retorna List<Instruccion>.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public List<Instruccion> getInstrucciones() {
         return Collections.unmodifiableList(instrucciones);
     }
 
     /**
-     * Nombre : reiniciar.
-     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
-     * Entrada: Sin parametros.
-     * Salida: No retorna valor.
+     * <strong>Objetivo:</strong> Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     *
+     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     *
+     * <p><strong>Salidas:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public void reiniciar() {
         contadorTemporales = 0;

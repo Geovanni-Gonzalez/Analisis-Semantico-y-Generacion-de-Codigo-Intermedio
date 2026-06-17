@@ -1,21 +1,26 @@
 package ast;
 
 /**
- * Expresion que representa el acceso a una celda de un arreglo bidimensional.
+ * <strong>Objetivo:</strong> Expresion que representa el acceso a una celda de un arreglo bidimensional.
  *
- * <p>Guarda el nombre del arreglo y las dos expresiones usadas como indices.
- * El analizador semantico valida que el identificador sea un arreglo y que
- * ambos indices sean de tipo {@link TipoDato#INT}.</p>
+ * <p><strong>Entradas:</strong> Datos sintacticos reconocidos por el parser, posiciones de fuente y subnodos relacionados.</p>
+ *
+ * <p><strong>Salidas:</strong> Nodos, valores o metadatos consultables por las fases semantica e intermedia.</p>
+ *
+ * <p><strong>Restricciones:</strong> No debe ejecutar validaciones globales ni escribir archivos; solo conserva estructura y metadatos.</p>
  */
 public class AccesoArregloNodo extends ExpresionNodo {
     private final String nombre;
     private final ExpresionNodo fila;
     private final ExpresionNodo columnaIndice;
     /**
-     * Nombre : AccesoArregloNodo.
-     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
-     * Entrada: int linea, int columna, String nombre, ExpresionNodo fila, ExpresionNodo columnaIndice
-     * Salida: Instancia inicializada de AccesoArregloNodo.
+     * <strong>Objetivo:</strong> Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     *
+     * <p><strong>Entradas:</strong> int linea, int columna, String nombre, ExpresionNodo fila, ExpresionNodo columnaIndice</p>
+     *
+     * <p><strong>Salidas:</strong> Instancia inicializada de AccesoArregloNodo.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public AccesoArregloNodo(int linea, int columna, String nombre,
                              ExpresionNodo fila, ExpresionNodo columnaIndice) {
@@ -26,30 +31,39 @@ public class AccesoArregloNodo extends ExpresionNodo {
     }
 
     /**
-     * Nombre : getNombre.
-     * Descripcion: Consulta el valor asociado a esta propiedad.
-     * Entrada: Sin parametros.
-     * Salida: Retorna String.
+     * <strong>Objetivo:</strong> Consulta el valor asociado a esta propiedad.
+     *
+     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     *
+     * <p><strong>Salidas:</strong> Retorna String.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public String getNombre() {
         return nombre;
     }
 
     /**
-     * Nombre : getFila.
-     * Descripcion: Consulta el valor asociado a esta propiedad.
-     * Entrada: Sin parametros.
-     * Salida: Retorna ExpresionNodo.
+     * <strong>Objetivo:</strong> Consulta el valor asociado a esta propiedad.
+     *
+     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     *
+     * <p><strong>Salidas:</strong> Retorna ExpresionNodo.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public ExpresionNodo getFila() {
         return fila;
     }
 
     /**
-     * Nombre : getColumnaIndice.
-     * Descripcion: Consulta el valor asociado a esta propiedad.
-     * Entrada: Sin parametros.
-     * Salida: Retorna ExpresionNodo.
+     * <strong>Objetivo:</strong> Consulta el valor asociado a esta propiedad.
+     *
+     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     *
+     * <p><strong>Salidas:</strong> Retorna ExpresionNodo.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public ExpresionNodo getColumnaIndice() {
         return columnaIndice;

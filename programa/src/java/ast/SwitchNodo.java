@@ -5,16 +5,25 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Sentencia switch con expresion de seleccion y lista de casos.
+ * <strong>Objetivo:</strong> Sentencia switch con expresion de seleccion y lista de casos.
+ *
+ * <p><strong>Entradas:</strong> Datos sintacticos reconocidos por el parser, posiciones de fuente y subnodos relacionados.</p>
+ *
+ * <p><strong>Salidas:</strong> Nodos, valores o metadatos consultables por las fases semantica e intermedia.</p>
+ *
+ * <p><strong>Restricciones:</strong> No debe ejecutar validaciones globales ni escribir archivos; solo conserva estructura y metadatos.</p>
  */
 public class SwitchNodo extends SentenciaNodo {
     private final ExpresionNodo expresion;
     private final List<CasoSwitchNodo> casos;
     /**
-     * Nombre : SwitchNodo.
-     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
-     * Entrada: int linea, int columna, ExpresionNodo expresion, List<CasoSwitchNodo> casos
-     * Salida: Instancia inicializada de SwitchNodo.
+     * <strong>Objetivo:</strong> Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     *
+     * <p><strong>Entradas:</strong> int linea, int columna, ExpresionNodo expresion, List<CasoSwitchNodo> casos</p>
+     *
+     * <p><strong>Salidas:</strong> Instancia inicializada de SwitchNodo.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public SwitchNodo(int linea, int columna, ExpresionNodo expresion, List<CasoSwitchNodo> casos) {
         super(linea, columna);
@@ -22,20 +31,26 @@ public class SwitchNodo extends SentenciaNodo {
         this.casos = new ArrayList<>(casos);
     }
     /**
-     * Nombre : getExpresion.
-     * Descripcion: Consulta el valor asociado a esta propiedad.
-     * Entrada: Sin parametros.
-     * Salida: Retorna ExpresionNodo.
+     * <strong>Objetivo:</strong> Consulta el valor asociado a esta propiedad.
+     *
+     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     *
+     * <p><strong>Salidas:</strong> Retorna ExpresionNodo.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public ExpresionNodo getExpresion() {
         return expresion;
     }
 
     /**
-     * Nombre : getCasos.
-     * Descripcion: Consulta el valor asociado a esta propiedad.
-     * Entrada: Sin parametros.
-     * Salida: Retorna List<CasoSwitchNodo>.
+     * <strong>Objetivo:</strong> Consulta el valor asociado a esta propiedad.
+     *
+     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     *
+     * <p><strong>Salidas:</strong> Retorna List<CasoSwitchNodo>.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public List<CasoSwitchNodo> getCasos() {
         return Collections.unmodifiableList(casos);

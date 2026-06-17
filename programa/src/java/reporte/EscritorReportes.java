@@ -8,26 +8,35 @@ import java.nio.file.Path;
 import java.util.List;
 
 /**
- * Genera los archivos de reporte producidos por la linea de comandos.
+ * <strong>Objetivo:</strong> Genera los archivos de reporte producidos por la linea de comandos.
  *
- * <p>Todos los metodos son estaticos porque la clase solo transforma datos de
- * analisis en archivos tabulares o textos de diagnostico.</p>
+ * <p><strong>Entradas:</strong> Resultados del analisis, errores, tokens, rutas de salida y metadatos de reporte.</p>
+ *
+ * <p><strong>Salidas:</strong> Mensajes formateados o archivos de reporte escritos en UTF-8.</p>
+ *
+ * <p><strong>Restricciones:</strong> No debe recalcular analisis; solo formatea o persiste informacion recibida.</p>
  */
 public final class EscritorReportes {
     /**
-     * Nombre : EscritorReportes.
-     * Descripcion: Evita instancias de una clase utilitaria.
-     * Entrada: Sin parametros.
-     * Salida: Instancia inicializada de EscritorReportes.
+     * <strong>Objetivo:</strong> Evita instancias de una clase utilitaria.
+     *
+     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     *
+     * <p><strong>Salidas:</strong> Instancia inicializada de EscritorReportes.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     private EscritorReportes() {
     }
 
     /**
-     * Nombre : escribirTokens.
-     * Descripcion: Escribe el listado completo de tokens reconocidos por el lexer.
-     * Entrada: Path archivo, List<TokenInfo> tokens
-     * Salida: No retorna valor.
+     * <strong>Objetivo:</strong> Escribe el listado completo de tokens reconocidos por el lexer.
+     *
+     * <p><strong>Entradas:</strong> Path archivo, List<TokenInfo> tokens</p>
+     *
+     * <p><strong>Salidas:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public static void escribirTokens(Path archivo, List<TokenInfo> tokens) throws Exception {
         try (BufferedWriter writer = Files.newBufferedWriter(archivo, StandardCharsets.UTF_8)) {
@@ -43,10 +52,13 @@ public final class EscritorReportes {
     }
 
     /**
-     * Nombre : escribirTablaSimbolos.
-     * Descripcion: Escribe una vista tabular de los simbolos lexicos recolectados.
-     * Entrada: Path archivo, List<TokenInfo> tokens
-     * Salida: No retorna valor.
+     * <strong>Objetivo:</strong> Escribe una vista tabular de los simbolos lexicos recolectados.
+     *
+     * <p><strong>Entradas:</strong> Path archivo, List<TokenInfo> tokens</p>
+     *
+     * <p><strong>Salidas:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public static void escribirTablaSimbolos(Path archivo, List<TokenInfo> tokens) throws Exception {
         try (BufferedWriter writer = Files.newBufferedWriter(archivo, StandardCharsets.UTF_8)) {
@@ -61,10 +73,13 @@ public final class EscritorReportes {
     }
 
     /**
-     * Nombre : escribirErrores.
-     * Descripcion: Agrupa errores lexicos, sintacticos y semanticos en un solo archivo.
-     * Entrada: Path archivo, List<String> erroresLexicos, List<String> erroresSintacticos, List<String> erroresSemanticos
-     * Salida: No retorna valor.
+     * <strong>Objetivo:</strong> Agrupa errores lexicos, sintacticos y semanticos en un solo archivo.
+     *
+     * <p><strong>Entradas:</strong> Path archivo, List<String> erroresLexicos, List<String> erroresSintacticos, List<String> erroresSemanticos</p>
+     *
+     * <p><strong>Salidas:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public static void escribirErrores(Path archivo, List<String> erroresLexicos,
                                        List<String> erroresSintacticos,
@@ -81,10 +96,13 @@ public final class EscritorReportes {
     }
 
     /**
-     * Nombre : escribirResultado.
-     * Descripcion: Escribe el veredicto global de aceptacion del programa fuente.
-     * Entrada: Path archivo, Path fuente, boolean aceptado
-     * Salida: No retorna valor.
+     * <strong>Objetivo:</strong> Escribe el veredicto global de aceptacion del programa fuente.
+     *
+     * <p><strong>Entradas:</strong> Path archivo, Path fuente, boolean aceptado</p>
+     *
+     * <p><strong>Salidas:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public static void escribirResultado(Path archivo, Path fuente, boolean aceptado) throws Exception {
         try (BufferedWriter writer = Files.newBufferedWriter(archivo, StandardCharsets.UTF_8)) {
@@ -98,10 +116,13 @@ public final class EscritorReportes {
     }
 
     /**
-     * Nombre : escribirCodigoIntermedio.
-     * Descripcion: Escribe instrucciones intermedias sin encabezado, util para reportes simples.
-     * Entrada: Path archivo, List<Instruccion> instrucciones
-     * Salida: No retorna valor.
+     * <strong>Objetivo:</strong> Escribe instrucciones intermedias sin encabezado, util para reportes simples.
+     *
+     * <p><strong>Entradas:</strong> Path archivo, List<Instruccion> instrucciones</p>
+     *
+     * <p><strong>Salidas:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public static void escribirCodigoIntermedio(Path archivo, List<Instruccion> instrucciones) throws Exception {
         try (BufferedWriter writer = Files.newBufferedWriter(archivo, StandardCharsets.UTF_8)) {
@@ -113,10 +134,13 @@ public final class EscritorReportes {
     }
 
     /**
-     * Nombre : escribirSeccionErrores.
-     * Descripcion: Imprime una seccion de errores y un mensaje alterno cuando esta vacia.
-     * Entrada: BufferedWriter writer, String titulo, String mensajeVacio, List<String> errores
-     * Salida: No retorna valor.
+     * <strong>Objetivo:</strong> Imprime una seccion de errores y un mensaje alterno cuando esta vacia.
+     *
+     * <p><strong>Entradas:</strong> BufferedWriter writer, String titulo, String mensajeVacio, List<String> errores</p>
+     *
+     * <p><strong>Salidas:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     private static void escribirSeccionErrores(BufferedWriter writer, String titulo,
                                                String mensajeVacio, List<String> errores) throws Exception {

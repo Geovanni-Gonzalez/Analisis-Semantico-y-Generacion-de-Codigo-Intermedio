@@ -1,11 +1,13 @@
 package intermedio;
 
 /**
- * Instruccion atomica del codigo intermedio.
+ * <strong>Objetivo:</strong> Instruccion atomica del codigo intermedio.
  *
- * <p>La clase mantiene una estructura simple de hasta tres operandos y concentra
- * el formateo textual del `.ic`, lo que evita duplicar cadenas en el generador
- * y en las pruebas.</p>
+ * <p><strong>Entradas:</strong> AST validado, operaciones u operandos necesarios para representar codigo intermedio.</p>
+ *
+ * <p><strong>Salidas:</strong> Instrucciones, operaciones o texto de codigo intermedio.</p>
+ *
+ * <p><strong>Restricciones:</strong> Debe asumir programas ya aceptados y no reemplazar las validaciones semanticas.</p>
  */
 public class Instruccion {
     public final Operacion op;
@@ -14,10 +16,13 @@ public class Instruccion {
     public final String op2;
 
     /**
-     * Nombre : Instruccion.
-     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
-     * Entrada: Operacion op, String resultado, String op1, String op2
-     * Salida: Instancia inicializada de Instruccion.
+     * <strong>Objetivo:</strong> Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     *
+     * <p><strong>Entradas:</strong> Operacion op, String resultado, String op1, String op2</p>
+     *
+     * <p><strong>Salidas:</strong> Instancia inicializada de Instruccion.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public Instruccion(Operacion op, String resultado, String op1, String op2) {
         this.op = op;
@@ -27,60 +32,78 @@ public class Instruccion {
     }
 
     /**
-     * Nombre : Instruccion.
-     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
-     * Entrada: Operacion op, String resultado, String op1
-     * Salida: Instancia inicializada de Instruccion.
+     * <strong>Objetivo:</strong> Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     *
+     * <p><strong>Entradas:</strong> Operacion op, String resultado, String op1</p>
+     *
+     * <p><strong>Salidas:</strong> Instancia inicializada de Instruccion.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public Instruccion(Operacion op, String resultado, String op1) {
         this(op, resultado, op1, null);
     }
 
     /**
-     * Nombre : Instruccion.
-     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
-     * Entrada: Operacion op, String resultado
-     * Salida: Instancia inicializada de Instruccion.
+     * <strong>Objetivo:</strong> Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     *
+     * <p><strong>Entradas:</strong> Operacion op, String resultado</p>
+     *
+     * <p><strong>Salidas:</strong> Instancia inicializada de Instruccion.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public Instruccion(Operacion op, String resultado) {
         this(op, resultado, null, null);
     }
 
     /**
-     * Nombre : getOp.
-     * Descripcion: Consulta el valor asociado a esta propiedad.
-     * Entrada: Sin parametros.
-     * Salida: Retorna Operacion.
+     * <strong>Objetivo:</strong> Consulta el valor asociado a esta propiedad.
+     *
+     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     *
+     * <p><strong>Salidas:</strong> Retorna Operacion.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public Operacion getOp() {
         return op;
     }
 
     /**
-     * Nombre : getResultado.
-     * Descripcion: Consulta el valor asociado a esta propiedad.
-     * Entrada: Sin parametros.
-     * Salida: Retorna String.
+     * <strong>Objetivo:</strong> Consulta el valor asociado a esta propiedad.
+     *
+     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     *
+     * <p><strong>Salidas:</strong> Retorna String.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public String getResultado() {
         return resultado;
     }
 
     /**
-     * Nombre : getOp1.
-     * Descripcion: Consulta el valor asociado a esta propiedad.
-     * Entrada: Sin parametros.
-     * Salida: Retorna String.
+     * <strong>Objetivo:</strong> Consulta el valor asociado a esta propiedad.
+     *
+     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     *
+     * <p><strong>Salidas:</strong> Retorna String.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public String getOp1() {
         return op1;
     }
 
     /**
-     * Nombre : getOp2.
-     * Descripcion: Consulta el valor asociado a esta propiedad.
-     * Entrada: Sin parametros.
-     * Salida: Retorna String.
+     * <strong>Objetivo:</strong> Consulta el valor asociado a esta propiedad.
+     *
+     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     *
+     * <p><strong>Salidas:</strong> Retorna String.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public String getOp2() {
         return op2;
@@ -89,10 +112,13 @@ public class Instruccion {
     /** Formatea la instruccion como una linea de codigo intermedio. */
     @Override
     /**
-     * Nombre : toString.
-     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
-     * Entrada: Sin parametros.
-     * Salida: Retorna String.
+     * <strong>Objetivo:</strong> Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     *
+     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     *
+     * <p><strong>Salidas:</strong> Retorna String.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public String toString() {
         switch (op) {
@@ -140,20 +166,26 @@ public class Instruccion {
     }
 
     /**
-     * Nombre : operandoUnico.
-     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
-     * Entrada: Sin parametros.
-     * Salida: Retorna String.
+     * <strong>Objetivo:</strong> Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     *
+     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     *
+     * <p><strong>Salidas:</strong> Retorna String.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     private String operandoUnico() {
         return op1 != null ? op1 : resultado;
     }
 
     /**
-     * Nombre : formatearCall.
-     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
-     * Entrada: Sin parametros.
-     * Salida: Retorna String.
+     * <strong>Objetivo:</strong> Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     *
+     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     *
+     * <p><strong>Salidas:</strong> Retorna String.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     private String formatearCall() {
         String llamada = op2 == null ? "call " + op1 : "call " + op1 + ", " + op2;
@@ -161,10 +193,13 @@ public class Instruccion {
     }
 
     /**
-     * Nombre : simboloBinario.
-     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
-     * Entrada: Operacion op
-     * Salida: Retorna String.
+     * <strong>Objetivo:</strong> Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     *
+     * <p><strong>Entradas:</strong> Operacion op</p>
+     *
+     * <p><strong>Salidas:</strong> Retorna String.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     private static String simboloBinario(Operacion op) {
         switch (op) {
@@ -202,10 +237,13 @@ public class Instruccion {
     }
 
     /**
-     * Nombre : simboloUnario.
-     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
-     * Entrada: Operacion op
-     * Salida: Retorna String.
+     * <strong>Objetivo:</strong> Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     *
+     * <p><strong>Entradas:</strong> Operacion op</p>
+     *
+     * <p><strong>Salidas:</strong> Retorna String.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     private static String simboloUnario(Operacion op) {
         switch (op) {

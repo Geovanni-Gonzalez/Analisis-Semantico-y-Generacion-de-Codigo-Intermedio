@@ -5,7 +5,13 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Declaracion completa de una funcion o del procedimiento principal.
+ * <strong>Objetivo:</strong> Declaracion completa de una funcion o del procedimiento principal.
+ *
+ * <p><strong>Entradas:</strong> Datos sintacticos reconocidos por el parser, posiciones de fuente y subnodos relacionados.</p>
+ *
+ * <p><strong>Salidas:</strong> Nodos, valores o metadatos consultables por las fases semantica e intermedia.</p>
+ *
+ * <p><strong>Restricciones:</strong> No debe ejecutar validaciones globales ni escribir archivos; solo conserva estructura y metadatos.</p>
  */
 public class FuncionNodo extends Nodo {
     private final String nombre;
@@ -14,10 +20,13 @@ public class FuncionNodo extends Nodo {
     private final BloqueNodo cuerpo;
     private final boolean principal;
     /**
-     * Nombre : FuncionNodo.
-     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
-     * Entrada: int linea, int columna, String nombre, TipoDato tipoRetorno, List<ParametroNodo> parametros, BloqueNodo cuerpo, boolean principal
-     * Salida: Instancia inicializada Nodo.
+     * <strong>Objetivo:</strong> Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     *
+     * <p><strong>Entradas:</strong> int linea, int columna, String nombre, TipoDato tipoRetorno, List<ParametroNodo> parametros, BloqueNodo cuerpo, boolean principal</p>
+     *
+     * <p><strong>Salidas:</strong> Instancia inicializada Nodo.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public FuncionNodo(int linea, int columna, String nombre, TipoDato tipoRetorno,
                        List<ParametroNodo> parametros, BloqueNodo cuerpo, boolean principal) {
@@ -29,50 +38,65 @@ public class FuncionNodo extends Nodo {
         this.principal = principal;
     }
     /**
-     * Nombre : getNombre.
-     * Descripcion: Consulta el valor asociado a esta propiedad.
-     * Entrada: Sin parametros.
-     * Salida: Retorna String.
+     * <strong>Objetivo:</strong> Consulta el valor asociado a esta propiedad.
+     *
+     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     *
+     * <p><strong>Salidas:</strong> Retorna String.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public String getNombre() {
         return nombre;
     }
 
     /**
-     * Nombre : getTipoRetorno.
-     * Descripcion: Consulta el valor asociado a esta propiedad.
-     * Entrada: Sin parametros.
-     * Salida: Retorna TipoDato.
+     * <strong>Objetivo:</strong> Consulta el valor asociado a esta propiedad.
+     *
+     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     *
+     * <p><strong>Salidas:</strong> Retorna TipoDato.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public TipoDato getTipoRetorno() {
         return tipoRetorno;
     }
 
     /**
-     * Nombre : getParametros.
-     * Descripcion: Consulta el valor asociado a esta propiedad.
-     * Entrada: Sin parametros.
-     * Salida: Retorna List<ParametroNodo>.
+     * <strong>Objetivo:</strong> Consulta el valor asociado a esta propiedad.
+     *
+     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     *
+     * <p><strong>Salidas:</strong> Retorna List<ParametroNodo>.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public List<ParametroNodo> getParametros() {
         return Collections.unmodifiableList(parametros);
     }
 
     /**
-     * Nombre : getCuerpo.
-     * Descripcion: Consulta el valor asociado a esta propiedad.
-     * Entrada: Sin parametros.
-     * Salida: Retorna BloqueNodo.
+     * <strong>Objetivo:</strong> Consulta el valor asociado a esta propiedad.
+     *
+     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     *
+     * <p><strong>Salidas:</strong> Retorna BloqueNodo.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public BloqueNodo getCuerpo() {
         return cuerpo;
     }
 
     /**
-     * Nombre : isPrincipal.
-     * Descripcion: Consulta una condicion booleana del objeto.
-     * Entrada: Sin parametros.
-     * Salida: Retorna boolean.
+     * <strong>Objetivo:</strong> Consulta una condicion booleana del objeto.
+     *
+     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     *
+     * <p><strong>Salidas:</strong> Retorna boolean.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public boolean isPrincipal() {
         return principal;

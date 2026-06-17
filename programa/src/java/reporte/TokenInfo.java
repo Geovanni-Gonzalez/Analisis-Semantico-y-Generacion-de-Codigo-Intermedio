@@ -1,10 +1,13 @@
 package reporte;
 
 /**
- * Registro simple con la informacion que el lexer envia a los reportes.
+ * <strong>Objetivo:</strong> Registro simple con la informacion que el lexer envia a los reportes.
  *
- * <p>Los campos son publicos y finales para facilitar la escritura tabular sin
- * mutaciones despues de crear el token.</p>
+ * <p><strong>Entradas:</strong> Resultados del analisis, errores, tokens, rutas de salida y metadatos de reporte.</p>
+ *
+ * <p><strong>Salidas:</strong> Mensajes formateados o archivos de reporte escritos en UTF-8.</p>
+ *
+ * <p><strong>Restricciones:</strong> No debe recalcular analisis; solo formatea o persiste informacion recibida.</p>
  */
 public class TokenInfo {
     /** Identificador numerico del token segun la tabla generada por CUP. */
@@ -23,10 +26,13 @@ public class TokenInfo {
     public final String informacion;
 
     /**
-     * Nombre : TokenInfo.
-     * Descripcion: Crea una fila inmutable para los reportes de tokens.
-     * Entrada: int id, String nombre, String lexema, int linea, int columna, String tabla, String informacion
-     * Salida: Instancia inicializada de TokenInfo.
+     * <strong>Objetivo:</strong> Crea una fila inmutable para los reportes de tokens.
+     *
+     * <p><strong>Entradas:</strong> int id, String nombre, String lexema, int linea, int columna, String tabla, String informacion</p>
+     *
+     * <p><strong>Salidas:</strong> Instancia inicializada de TokenInfo.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public TokenInfo(int id, String nombre, String lexema, int linea, int columna,
                      String tabla, String informacion) {

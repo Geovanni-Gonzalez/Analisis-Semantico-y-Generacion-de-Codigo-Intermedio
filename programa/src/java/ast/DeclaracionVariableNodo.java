@@ -1,11 +1,13 @@
 package ast;
 
 /**
- * Sentencia que declara una variable escalar o un arreglo.
+ * <strong>Objetivo:</strong> Sentencia que declara una variable escalar o un arreglo.
  *
- * <p>Para escalares se usa {@code inicializador}; para arreglos se usan
- * {@code filas}, {@code columnas} e {@code inicializacionArreglo}. Esta clase
- * solo modela la estructura; la validez de tipos se revisa en semantica.</p>
+ * <p><strong>Entradas:</strong> Datos sintacticos reconocidos por el parser, posiciones de fuente y subnodos relacionados.</p>
+ *
+ * <p><strong>Salidas:</strong> Nodos, valores o metadatos consultables por las fases semantica e intermedia.</p>
+ *
+ * <p><strong>Restricciones:</strong> No debe ejecutar validaciones globales ni escribir archivos; solo conserva estructura y metadatos.</p>
  */
 public class DeclaracionVariableNodo extends SentenciaNodo {
     private final String nombre;
@@ -14,20 +16,26 @@ public class DeclaracionVariableNodo extends SentenciaNodo {
     private final ExpresionNodo columnas;
     private final InicializacionArregloNodo inicializacionArreglo;
     /**
-     * Nombre : DeclaracionVariableNodo.
-     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
-     * Entrada: int linea, int columna, String nombre, TipoDato tipoDeclarado, ExpresionNodo inicializador
-     * Salida: Instancia inicializada de DeclaracionVariableNodo.
+     * <strong>Objetivo:</strong> Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     *
+     * <p><strong>Entradas:</strong> int linea, int columna, String nombre, TipoDato tipoDeclarado, ExpresionNodo inicializador</p>
+     *
+     * <p><strong>Salidas:</strong> Instancia inicializada de DeclaracionVariableNodo.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public DeclaracionVariableNodo(int linea, int columna, String nombre, TipoDato tipoDeclarado,
                                    ExpresionNodo inicializador) {
         this(linea, columna, nombre, tipoDeclarado, inicializador, null, null, null);
     }
     /**
-     * Nombre : DeclaracionVariableNodo.
-     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
-     * Entrada: int linea, int columna, String nombre, TipoDato tipoDeclarado, ExpresionNodo filas, ExpresionNodo columnas, InicializacionArregloNodo inicializacionArreglo
-     * Salida: Instancia inicializada de DeclaracionVariableNodo.
+     * <strong>Objetivo:</strong> Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     *
+     * <p><strong>Entradas:</strong> int linea, int columna, String nombre, TipoDato tipoDeclarado, ExpresionNodo filas, ExpresionNodo columnas, InicializacionArregloNodo inicializacionArreglo</p>
+     *
+     * <p><strong>Salidas:</strong> Instancia inicializada de DeclaracionVariableNodo.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public DeclaracionVariableNodo(int linea, int columna, String nombre, TipoDato tipoDeclarado,
                                    ExpresionNodo filas, ExpresionNodo columnas,
@@ -35,10 +43,13 @@ public class DeclaracionVariableNodo extends SentenciaNodo {
         this(linea, columna, nombre, tipoDeclarado, null, filas, columnas, inicializacionArreglo);
     }
     /**
-     * Nombre : DeclaracionVariableNodo.
-     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
-     * Entrada: int linea, int columna, String nombre, TipoDato tipoDeclarado, ExpresionNodo inicializador, ExpresionNodo filas, ExpresionNodo columnas, InicializacionArregloNodo inicializacionArreglo
-     * Salida: Instancia inicializada de DeclaracionVariableNodo.
+     * <strong>Objetivo:</strong> Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     *
+     * <p><strong>Entradas:</strong> int linea, int columna, String nombre, TipoDato tipoDeclarado, ExpresionNodo inicializador, ExpresionNodo filas, ExpresionNodo columnas, InicializacionArregloNodo inicializacionArreglo</p>
+     *
+     * <p><strong>Salidas:</strong> Instancia inicializada de DeclaracionVariableNodo.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     private DeclaracionVariableNodo(int linea, int columna, String nombre, TipoDato tipoDeclarado,
                                     ExpresionNodo inicializador, ExpresionNodo filas,
@@ -52,60 +63,78 @@ public class DeclaracionVariableNodo extends SentenciaNodo {
         this.inicializacionArreglo = inicializacionArreglo;
     }
     /**
-     * Nombre : getNombre.
-     * Descripcion: Consulta el valor asociado a esta propiedad.
-     * Entrada: Sin parametros.
-     * Salida: Retorna String.
+     * <strong>Objetivo:</strong> Consulta el valor asociado a esta propiedad.
+     *
+     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     *
+     * <p><strong>Salidas:</strong> Retorna String.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public String getNombre() {
         return nombre;
     }
 
     /**
-     * Nombre : getInicializador.
-     * Descripcion: Consulta el valor asociado a esta propiedad.
-     * Entrada: Sin parametros.
-     * Salida: Retorna ExpresionNodo.
+     * <strong>Objetivo:</strong> Consulta el valor asociado a esta propiedad.
+     *
+     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     *
+     * <p><strong>Salidas:</strong> Retorna ExpresionNodo.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public ExpresionNodo getInicializador() {
         return inicializador;
     }
 
     /**
-     * Nombre : getFilas.
-     * Descripcion: Consulta el valor asociado a esta propiedad.
-     * Entrada: Sin parametros.
-     * Salida: Retorna ExpresionNodo.
+     * <strong>Objetivo:</strong> Consulta el valor asociado a esta propiedad.
+     *
+     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     *
+     * <p><strong>Salidas:</strong> Retorna ExpresionNodo.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public ExpresionNodo getFilas() {
         return filas;
     }
 
     /**
-     * Nombre : getColumnas.
-     * Descripcion: Consulta el valor asociado a esta propiedad.
-     * Entrada: Sin parametros.
-     * Salida: Retorna ExpresionNodo.
+     * <strong>Objetivo:</strong> Consulta el valor asociado a esta propiedad.
+     *
+     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     *
+     * <p><strong>Salidas:</strong> Retorna ExpresionNodo.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public ExpresionNodo getColumnas() {
         return columnas;
     }
 
     /**
-     * Nombre : getInicializacionArreglo.
-     * Descripcion: Consulta el valor asociado a esta propiedad.
-     * Entrada: Sin parametros.
-     * Salida: Retorna InicializacionArregloNodo.
+     * <strong>Objetivo:</strong> Consulta el valor asociado a esta propiedad.
+     *
+     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     *
+     * <p><strong>Salidas:</strong> Retorna InicializacionArregloNodo.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public InicializacionArregloNodo getInicializacionArreglo() {
         return inicializacionArreglo;
     }
 
     /**
-     * Nombre : esArreglo.
-     * Descripcion: Consulta una condicion booleana del objeto.
-     * Entrada: Sin parametros.
-     * Salida: Retorna boolean.
+     * <strong>Objetivo:</strong> Consulta una condicion booleana del objeto.
+     *
+     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     *
+     * <p><strong>Salidas:</strong> Retorna boolean.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public boolean esArreglo() {
         return filas != null || columnas != null;

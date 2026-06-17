@@ -1,20 +1,26 @@
 package ast;
 
 /**
- * Representa un caso individual dentro de un switch.
+ * <strong>Objetivo:</strong> Representa un caso individual dentro de un switch.
  *
- * <p>Un caso puede tener valor explicito o ser el caso por defecto. El bloque
- * asociado contiene las sentencias que deben ejecutarse cuando el caso coincide.</p>
+ * <p><strong>Entradas:</strong> Datos sintacticos reconocidos por el parser, posiciones de fuente y subnodos relacionados.</p>
+ *
+ * <p><strong>Salidas:</strong> Nodos, valores o metadatos consultables por las fases semantica e intermedia.</p>
+ *
+ * <p><strong>Restricciones:</strong> No debe ejecutar validaciones globales ni escribir archivos; solo conserva estructura y metadatos.</p>
  */
 public class CasoSwitchNodo extends Nodo {
     private final ExpresionNodo valor;
     private final BloqueNodo bloque;
     private final boolean defecto;
     /**
-     * Nombre : CasoSwitchNodo.
-     * Descripcion: Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
-     * Entrada: int linea, int columna, ExpresionNodo valor, BloqueNodo bloque, boolean defecto
-     * Salida: Instancia inicializada de CasoSwitchNodo.
+     * <strong>Objetivo:</strong> Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     *
+     * <p><strong>Entradas:</strong> int linea, int columna, ExpresionNodo valor, BloqueNodo bloque, boolean defecto</p>
+     *
+     * <p><strong>Salidas:</strong> Instancia inicializada de CasoSwitchNodo.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public CasoSwitchNodo(int linea, int columna, ExpresionNodo valor, BloqueNodo bloque, boolean defecto) {
         super(linea, columna);
@@ -24,30 +30,39 @@ public class CasoSwitchNodo extends Nodo {
     }
 
     /**
-     * Nombre : getValor.
-     * Descripcion: Consulta el valor asociado a esta propiedad.
-     * Entrada: Sin parametros.
-     * Salida: Retorna ExpresionNodo.
+     * <strong>Objetivo:</strong> Consulta el valor asociado a esta propiedad.
+     *
+     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     *
+     * <p><strong>Salidas:</strong> Retorna ExpresionNodo.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public ExpresionNodo getValor() {
         return valor;
     }
 
     /**
-     * Nombre : getBloque.
-     * Descripcion: Consulta el valor asociado a esta propiedad.
-     * Entrada: Sin parametros.
-     * Salida: Retorna BloqueNodo.
+     * <strong>Objetivo:</strong> Consulta el valor asociado a esta propiedad.
+     *
+     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     *
+     * <p><strong>Salidas:</strong> Retorna BloqueNodo.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public BloqueNodo getBloque() {
         return bloque;
     }
 
     /**
-     * Nombre : isDefecto.
-     * Descripcion: Consulta una condicion booleana del objeto.
-     * Entrada: Sin parametros.
-     * Salida: Retorna boolean.
+     * <strong>Objetivo:</strong> Consulta una condicion booleana del objeto.
+     *
+     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     *
+     * <p><strong>Salidas:</strong> Retorna boolean.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public boolean isDefecto() {
         return defecto;

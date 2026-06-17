@@ -1,7 +1,13 @@
 package intermedio;
 
 /**
- * Operaciones soportadas por el codigo de tres direcciones del proyecto.
+ * <strong>Objetivo:</strong> Operaciones soportadas por el codigo de tres direcciones del proyecto.
+ *
+ * <p><strong>Entradas:</strong> AST validado, operaciones u operandos necesarios para representar codigo intermedio.</p>
+ *
+ * <p><strong>Salidas:</strong> Instrucciones, operaciones o texto de codigo intermedio.</p>
+ *
+ * <p><strong>Restricciones:</strong> Debe asumir programas ya aceptados y no reemplazar las validaciones semanticas.</p>
  */
 public enum Operacion {
     /** Asignacion simple: destino = valor. */
