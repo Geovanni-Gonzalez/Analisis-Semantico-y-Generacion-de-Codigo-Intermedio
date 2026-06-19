@@ -470,6 +470,36 @@ public class CompiladorSmokeTest {
                 + "    cin <|matriz|> !\n"
                 + ":|\n", "cin sobre arreglo");
 
+        assertRechazado(compilador, "empty ~ __main__<| |>\n|:\n"
+                + "    bool ~ bandera <- true !\n"
+                + "    cin <|bandera|> !\n"
+                + ":|\n", "cin solo admite int y float");
+
+        assertAceptado(compilador, "empty ~ __main__<| |>\n|:\n"
+                + "    cout <|\"texto\"|> !\n"
+                + "    cout <|'x'|> !\n"
+                + "    cout <|1|> !\n"
+                + "    cout <|true|> !\n"
+                + "    cout <|1.5|> !\n"
+                + ":|\n", "cout admite los cinco tipos permitidos como literales");
+
+        assertRechazado(compilador, "empty ~ __main__<| |>\n|:\n"
+                + "    int ~ matriz <<0,2>> !\n"
+                + ":|\n", "dimensiones de arreglo positivas");
+
+        assertRechazado(compilador, "empty ~ __main__<| |>\n|:\n"
+                + "    int ~ matriz <<-1,2>> !\n"
+                + ":|\n", "dimensiones negativas de arreglo");
+
+        assertRechazado(compilador, "empty ~ __main__<| |>\n|:\n"
+                + "    int ~ matriz <<2,2>> <- |: |:1,2:| :| !\n"
+                + ":|\n", "inicializacion respeta dimensiones declaradas");
+
+        assertRechazado(compilador, "empty ~ __main__<| |>\n|:\n"
+                + "    int ~ matriz <<2,2>> <- |: |:1,2:|, |:3,4:| :| !\n"
+                + "    cout <|matriz <<2>> <<0>>|> !\n"
+                + ":|\n", "acceso fuera de dimensiones del arreglo");
+
         assertRechazado(compilador, "int ~ sinReturn<| |>\n|:\n"
                 + "    int ~ x <- 1 !\n"
                 + ":|\n"

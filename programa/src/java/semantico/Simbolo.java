@@ -21,6 +21,8 @@ public class Simbolo {
     private final int linea;
     private final List<TipoDato> tiposParametros;
     private final TipoDato tipoRetorno;
+    private final Integer filasArreglo;
+    private final Integer columnasArreglo;
     private boolean inicializado;
     /**
      * <strong>Objetivo:</strong> Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
@@ -72,12 +74,27 @@ public class Simbolo {
      */
     public Simbolo(String nombre, TipoDato tipo, CategoriaSimb categoria, int linea,
                    List<TipoDato> tiposParametros, TipoDato tipoRetorno, boolean inicializado) {
+        this(nombre, tipo, categoria, linea, tiposParametros, tipoRetorno, inicializado, null, null);
+    }
+
+    /** Construye un simbolo de arreglo conservando sus dimensiones estaticas conocidas. */
+    public Simbolo(String nombre, TipoDato tipo, CategoriaSimb categoria, int linea,
+                   boolean inicializado, Integer filasArreglo, Integer columnasArreglo) {
+        this(nombre, tipo, categoria, linea, Collections.emptyList(), null, inicializado,
+                filasArreglo, columnasArreglo);
+    }
+
+    private Simbolo(String nombre, TipoDato tipo, CategoriaSimb categoria, int linea,
+                    List<TipoDato> tiposParametros, TipoDato tipoRetorno, boolean inicializado,
+                    Integer filasArreglo, Integer columnasArreglo) {
         this.nombre = nombre;
         this.tipo = tipo;
         this.categoria = categoria;
         this.linea = linea;
         this.tiposParametros = new ArrayList<>(tiposParametros);
         this.tipoRetorno = tipoRetorno;
+        this.filasArreglo = filasArreglo;
+        this.columnasArreglo = columnasArreglo;
         this.inicializado = inicializado;
     }
 
@@ -157,6 +174,14 @@ public class Simbolo {
      */
     public TipoDato getTipoRetorno() {
         return tipoRetorno;
+    }
+
+    public Integer getFilasArreglo() {
+        return filasArreglo;
+    }
+
+    public Integer getColumnasArreglo() {
+        return columnasArreglo;
     }
 
     /**
