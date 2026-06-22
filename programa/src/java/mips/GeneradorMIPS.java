@@ -183,7 +183,14 @@ public final class GeneradorMIPS {
 
     private void traducir(List<Instruccion> codigo) {
         funcionActual = null;
-        for (Instruccion i : codigo) {
+        for (int indice = 0; indice < codigo.size(); indice++) {
+            Instruccion i = codigo.get(indice);
+            if (indice + 1 < codigo.size()
+                    && puedeFusionarSalto(i, codigo.get(indice + 1))) {
+                traducirSaltoComparacion(i, codigo.get(indice + 1).resultado);
+                indice++;
+                continue;
+            }
             switch (i.op) {
                 case INICIO_FUNC:
                     iniciarFuncion(i.resultado);
@@ -262,6 +269,34 @@ public final class GeneradorMIPS {
                     instruccion("# Operacion no implementada: " + i.op);
             }
         }
+    }
+
+    private boolean puedeFusionarSalto(Instruccion comparacion, Instruccion salto) {
+        return esComparacion(comparacion.op)
+                && salto.op == Operacion.IF_FALSE
+                && comparacion.resultado != null
+                && comparacion.resultado.equals(salto.op1)
+                && !esFloat(tipoOperando(comparacion.op1, funcionActual))
+                && !esFloat(tipoOperando(comparacion.op2, funcionActual));
+    }
+
+    /** Traduce directamente el caso falso de una comparacion hacia su etiqueta 3D. */
+    private void traducirSaltoComparacion(Instruccion comparacion, String destino) {
+        String izquierdo = cargarValor(comparacion.op1);
+        String derecho = cargarValor(comparacion.op2);
+        String operacion;
+        switch (comparacion.op) {
+            case IGUAL: operacion = "bne"; break;
+            case DISTINTO: operacion = "beq"; break;
+            case MENOR: operacion = "bge"; break;
+            case MENOR_IGUAL: operacion = "bgt"; break;
+            case MAYOR: operacion = "ble"; break;
+            case MAYOR_IGUAL: operacion = "blt"; break;
+            default: throw new IllegalStateException("Comparacion no soportada en salto: " + comparacion.op);
+        }
+        instruccion(operacion + " " + izquierdo + ", " + derecho + ", " + etiquetaCodigo(destino));
+        registros.liberarRegistro(derecho);
+        registros.liberarRegistro(izquierdo);
     }
 
     private void traducirTransferencia(Instruccion i) {

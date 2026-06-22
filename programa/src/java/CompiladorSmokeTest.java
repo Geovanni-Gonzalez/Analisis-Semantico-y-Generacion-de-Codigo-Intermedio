@@ -18,6 +18,7 @@ import ast.TipoDato;
 import ast.WhileNodo;
 import intermedio.GeneradorCodigoIntermedio;
 import intermedio.Instruccion;
+import intermedio.Operacion;
 import mips.AdministradorRegistros;
 import mips.GeneradorMIPS;
 import java.nio.file.Files;
@@ -1051,6 +1052,7 @@ public class CompiladorSmokeTest {
                                                  ResultadoCompilacion valido,
                                                  ResultadoCompilacion invalido) throws Exception {
         verificarAdministradorRegistros();
+        verificarSaltosMIPS();
         ResultadoCompilacion aritmetica = compilador.compilar(
                 Paths.get("test_verificacion/04_aritmeticas.chip"));
         if (!aritmetica.isAceptado() || aritmetica.getCodigoMIPS().isEmpty()) {
@@ -1104,6 +1106,21 @@ public class CompiladorSmokeTest {
         assertAlgunoContiene(arreglos.getCodigoMIPS(), "lw $t0, 0($t7)");
         assertAlgunoContiene(arreglos.getCodigoMIPS(), "sw $t0, 0($t7)");
 
+        ResultadoCompilacion condicional = compilador.compilar(
+                Paths.get("test_verificacion/07_if_else.chip"));
+        ResultadoCompilacion ciclo = compilador.compilar(
+                Paths.get("test_verificacion/08_do_while.chip"));
+        ResultadoCompilacion seleccion = compilador.compilar(
+                Paths.get("test_verificacion/09_switch.chip"));
+        if (!condicional.isAceptado() || !ciclo.isAceptado() || !seleccion.isAceptado()) {
+            throw new AssertionError("Las estructuras de control validas deben generar MIPS.");
+        }
+        assertAlgunoContiene(condicional.getCodigoMIPS(), "ble ");
+        assertAlgunoContiene(ciclo.getCodigoMIPS(), "bge ");
+        assertAlgunoContiene(ciclo.getCodigoMIPS(), "j _ic_");
+        assertAlgunoContiene(seleccion.getCodigoMIPS(), "bne ");
+        verificarCorrespondenciaEtiquetas(ciclo);
+
         Path salida = Files.createTempDirectory("mips-test-");
         Path archivo = EscritorMIPS.escribir(salida, valido);
         if (!archivo.getFileName().toString().equals("01_minimo_valido.asm")
@@ -1144,6 +1161,43 @@ public class CompiladorSmokeTest {
             throw new AssertionError("El agotamiento de registros debe detectarse explicitamente.");
         } catch (IllegalStateException esperado) {
             // Comportamiento esperado: nunca se sobreescribe silenciosamente un registro ocupado.
+        }
+    }
+
+    private static void verificarSaltosMIPS() {
+        List<Instruccion> codigo = Arrays.asList(
+                new Instruccion(Operacion.INICIO_FUNC, "__main__"),
+                new Instruccion(Operacion.DECL, "a", "int"),
+                new Instruccion(Operacion.DECL, "b", "int"),
+                new Instruccion(Operacion.IGUAL, "_t0", "a", "b"),
+                new Instruccion(Operacion.IF_FALSE, "L0", "_t0"),
+                new Instruccion(Operacion.DISTINTO, "_t1", "a", "b"),
+                new Instruccion(Operacion.IF_FALSE, "L1", "_t1"),
+                new Instruccion(Operacion.MENOR, "_t2", "a", "b"),
+                new Instruccion(Operacion.IF_FALSE, "L2", "_t2"),
+                new Instruccion(Operacion.MENOR_IGUAL, "_t3", "a", "b"),
+                new Instruccion(Operacion.IF_FALSE, "L3", "_t3"),
+                new Instruccion(Operacion.MAYOR, "_t4", "a", "b"),
+                new Instruccion(Operacion.IF_FALSE, "L4", "_t4"),
+                new Instruccion(Operacion.MAYOR_IGUAL, "_t5", "a", "b"),
+                new Instruccion(Operacion.IF_FALSE, "L5", "_t5"),
+                new Instruccion(Operacion.FIN_FUNC, "__main__"));
+        List<String> mips = new GeneradorMIPS().generarCodigo(codigo);
+        assertAlgunoContiene(mips, "bne ");
+        assertAlgunoContiene(mips, "beq ");
+        assertAlgunoContiene(mips, "bge ");
+        assertAlgunoContiene(mips, "bgt ");
+        assertAlgunoContiene(mips, "ble ");
+        assertAlgunoContiene(mips, "blt ");
+    }
+
+    private static void verificarCorrespondenciaEtiquetas(ResultadoCompilacion resultado) {
+        for (Instruccion instruccion : resultado.getCodigoIntermedio()) {
+            if (instruccion.op == Operacion.LABEL
+                    && !resultado.getCodigoMIPS().contains("_ic_" + instruccion.resultado + ":")) {
+                throw new AssertionError("La etiqueta 3D no fue conservada en MIPS: "
+                        + instruccion.resultado);
+            }
         }
     }
 
