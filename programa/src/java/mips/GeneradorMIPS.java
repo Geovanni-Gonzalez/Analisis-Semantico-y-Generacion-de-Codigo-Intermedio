@@ -84,6 +84,9 @@ public final class GeneradorMIPS {
             }
             registrarConstante(instruccion.op1);
             registrarConstante(instruccion.op2);
+            // PRINT/READ guardan su operando en resultado; sin esto los literales
+            // de cadena o flotante impresos directamente nunca se reservan en .data.
+            registrarConstante(instruccion.resultado);
         }
 
         // Propaga tipos de temporales y resultados hasta alcanzar un punto fijo.
