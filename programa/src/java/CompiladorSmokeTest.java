@@ -18,6 +18,7 @@ import ast.TipoDato;
 import ast.WhileNodo;
 import intermedio.GeneradorCodigoIntermedio;
 import intermedio.Instruccion;
+import mips.AdministradorRegistros;
 import mips.GeneradorMIPS;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -1049,6 +1050,7 @@ public class CompiladorSmokeTest {
     private static void verificarGeneracionMIPS(Compilador compilador,
                                                  ResultadoCompilacion valido,
                                                  ResultadoCompilacion invalido) throws Exception {
+        verificarAdministradorRegistros();
         ResultadoCompilacion aritmetica = compilador.compilar(
                 Paths.get("test_verificacion/04_aritmeticas.chip"));
         if (!aritmetica.isAceptado() || aritmetica.getCodigoMIPS().isEmpty()) {
@@ -1120,6 +1122,28 @@ public class CompiladorSmokeTest {
         // La API tambien puede utilizarse directamente con una lista 3D.
         if (new GeneradorMIPS().generarCodigo(valido.getCodigoIntermedio()).isEmpty()) {
             throw new AssertionError("GeneradorMIPS debe aceptar directamente List<Instruccion>.");
+        }
+    }
+
+    private static void verificarAdministradorRegistros() {
+        AdministradorRegistros administrador = new AdministradorRegistros();
+        String primero = administrador.obtenerRegistro();
+        administrador.liberarRegistro(primero);
+        if (!primero.equals(administrador.obtenerRegistro())) {
+            throw new AssertionError("Un registro liberado debe quedar disponible para reutilizacion.");
+        }
+        administrador.reiniciar();
+        for (int i = 0; i < 6; i++) {
+            administrador.obtenerRegistro();
+        }
+        if (administrador.cantidadDisponibles() != 0) {
+            throw new AssertionError("El administrador debe marcar los registros obtenidos como ocupados.");
+        }
+        try {
+            administrador.obtenerRegistro();
+            throw new AssertionError("El agotamiento de registros debe detectarse explicitamente.");
+        } catch (IllegalStateException esperado) {
+            // Comportamiento esperado: nunca se sobreescribe silenciosamente un registro ocupado.
         }
     }
 

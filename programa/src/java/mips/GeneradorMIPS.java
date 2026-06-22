@@ -11,6 +11,7 @@ import java.util.Map;
 /** Traduce instrucciones de tres direcciones a ensamblador MIPS para SPIM. */
 public final class GeneradorMIPS {
     private final List<String> salida = new ArrayList<>();
+    private final AdministradorRegistros registros = new AdministradorRegistros();
     private final Map<String, String> tipos = new LinkedHashMap<>();
     /** Relacion estable entre cada variable/temporal 3D y su etiqueta en .data. */
     private final Map<String, String> direcciones = new LinkedHashMap<>();
@@ -38,6 +39,7 @@ public final class GeneradorMIPS {
 
     private void reiniciar() {
         salida.clear();
+        registros.reiniciar();
         tipos.clear();
         direcciones.clear();
         columnasArreglo.clear();
@@ -196,16 +198,9 @@ public final class GeneradorMIPS {
                     traducirParametroFormal(i);
                     break;
                 case LOAD:
-                    cargar(i.op1, "$t0", "$f0");
-                    guardar(i.resultado, "$t0", "$f0");
-                    break;
                 case ASIG:
-                    cargar(i.op1, "$t0", "$f0");
-                    guardar(i.resultado, "$t0", "$f0");
-                    break;
                 case STORE_ARRAY:
-                    cargar(i.op1, "$t0", "$f0");
-                    guardar(i.resultado, "$t0", "$f0");
+                    traducirTransferencia(i);
                     break;
                 case SUMA:
                 case RESTA:
@@ -234,19 +229,22 @@ public final class GeneradorMIPS {
                     instruccion("j " + etiquetaCodigo(i.resultado));
                     break;
                 case IF_FALSE:
-                    cargarEntero(i.op1, "$t0");
-                    instruccion("beq $t0, $zero, " + etiquetaCodigo(i.resultado));
+                    String condicion = cargarValor(i.op1);
+                    instruccion("beq " + condicion + ", $zero, " + etiquetaCodigo(i.resultado));
+                    registros.liberarRegistro(condicion);
                     break;
-            case PARAM:
+                case PARAM:
                     String argumento = i.op1 != null ? i.op1 : i.resultado;
+                    String registroParametro = registros.obtenerRegistro();
                     if (esFloat(tipoOperando(argumento, funcionActual))) {
                         cargarFloat(argumento, "$f0");
-                        instruccion("mfc1 $t0, $f0");
+                        instruccion("mfc1 " + registroParametro + ", $f0");
                     } else {
-                        cargarEntero(argumento, "$t0");
+                        cargarEntero(argumento, registroParametro);
                     }
                     instruccion("addiu $sp, $sp, -4");
-                    instruccion("sw $t0, 0($sp)");
+                    instruccion("sw " + registroParametro + ", 0($sp)");
+                    registros.liberarRegistro(registroParametro);
                     break;
                 case CALL:
                     traducirLlamada(i);
@@ -264,6 +262,17 @@ public final class GeneradorMIPS {
                     instruccion("# Operacion no implementada: " + i.op);
             }
         }
+    }
+
+    private void traducirTransferencia(Instruccion i) {
+        if (esFloat(tipoOperando(i.op1, funcionActual))) {
+            cargarFloat(i.op1, "$f0");
+            guardar(i.resultado, null, "$f0");
+            return;
+        }
+        String registro = cargarValor(i.op1);
+        guardar(i.resultado, registro, null);
+        registros.liberarRegistro(registro);
     }
 
     private void iniciarFuncion(String nombre) {
@@ -293,8 +302,10 @@ public final class GeneradorMIPS {
     private void traducirParametroFormal(Instruccion i) {
         int total = parametrosFuncion.getOrDefault(funcionActual, 0);
         int desplazamiento = 4 * (total - indiceParametroFormal);
-        instruccion("lw $t0, " + desplazamiento + "($sp)");
-        instruccion("sw $t0, " + etiqueta(i.resultado));
+        String registro = registros.obtenerRegistro();
+        instruccion("lw " + registro + ", " + desplazamiento + "($sp)");
+        instruccion("sw " + registro + ", " + etiqueta(i.resultado));
+        registros.liberarRegistro(registro);
         indiceParametroFormal++;
     }
 
@@ -358,34 +369,38 @@ public final class GeneradorMIPS {
             return;
         }
 
-        cargarEntero(i.op1, "$t0");
-        cargarEntero(i.op2, "$t1");
+        String izquierdo = cargarValor(i.op1);
+        String derecho = cargarValor(i.op2);
+        String resultado = registros.obtenerRegistro();
         switch (i.op) {
-            case SUMA: instruccion("add $t2, $t0, $t1"); break;
-            case RESTA: instruccion("sub $t2, $t0, $t1"); break;
-            case MULT: instruccion("mul $t2, $t0, $t1"); break;
+            case SUMA: instruccion("add " + resultado + ", " + izquierdo + ", " + derecho); break;
+            case RESTA: instruccion("sub " + resultado + ", " + izquierdo + ", " + derecho); break;
+            case MULT: instruccion("mul " + resultado + ", " + izquierdo + ", " + derecho); break;
             case DIV:
-                instruccion("div $t0, $t1");
-                instruccion("mflo $t2");
+                instruccion("div " + izquierdo + ", " + derecho);
+                instruccion("mflo " + resultado);
                 break;
             case MOD:
-                instruccion("div $t0, $t1");
-                instruccion("mfhi $t2");
+                instruccion("div " + izquierdo + ", " + derecho);
+                instruccion("mfhi " + resultado);
                 break;
             case POW:
-                traducirPotenciaEntera();
+                traducirPotenciaEntera(izquierdo, derecho, resultado);
                 break;
-            case AND: instruccion("and $t2, $t0, $t1"); break;
-            case OR: instruccion("or $t2, $t0, $t1"); break;
-            case IGUAL: instruccion("seq $t2, $t0, $t1"); break;
-            case DISTINTO: instruccion("sne $t2, $t0, $t1"); break;
-            case MENOR: instruccion("slt $t2, $t0, $t1"); break;
-            case MAYOR: instruccion("sgt $t2, $t0, $t1"); break;
-            case MENOR_IGUAL: instruccion("sle $t2, $t0, $t1"); break;
-            case MAYOR_IGUAL: instruccion("sge $t2, $t0, $t1"); break;
+            case AND: instruccion("and " + resultado + ", " + izquierdo + ", " + derecho); break;
+            case OR: instruccion("or " + resultado + ", " + izquierdo + ", " + derecho); break;
+            case IGUAL: instruccion("seq " + resultado + ", " + izquierdo + ", " + derecho); break;
+            case DISTINTO: instruccion("sne " + resultado + ", " + izquierdo + ", " + derecho); break;
+            case MENOR: instruccion("slt " + resultado + ", " + izquierdo + ", " + derecho); break;
+            case MAYOR: instruccion("sgt " + resultado + ", " + izquierdo + ", " + derecho); break;
+            case MENOR_IGUAL: instruccion("sle " + resultado + ", " + izquierdo + ", " + derecho); break;
+            case MAYOR_IGUAL: instruccion("sge " + resultado + ", " + izquierdo + ", " + derecho); break;
             default: throw new IllegalStateException("Operacion binaria no soportada: " + i.op);
         }
-        instruccion("sw $t2, " + etiqueta(i.resultado));
+        instruccion("sw " + resultado + ", " + etiqueta(i.resultado));
+        registros.liberarRegistro(resultado);
+        registros.liberarRegistro(derecho);
+        registros.liberarRegistro(izquierdo);
     }
 
     private void traducirComparacionFloat(Instruccion i) {
@@ -393,7 +408,8 @@ public final class GeneradorMIPS {
         cargarFloat(i.op2, "$f2");
         String verdadero = nuevaEtiquetaInterna("cmp_true");
         String fin = nuevaEtiquetaInterna("cmp_fin");
-        instruccion("li $t2, 0");
+        String resultado = registros.obtenerRegistro();
+        instruccion("li " + resultado + ", 0");
         switch (i.op) {
             case IGUAL:
                 instruccion("c.eq.s $f0, $f2");
@@ -423,36 +439,39 @@ public final class GeneradorMIPS {
         }
         instruccion("j " + fin);
         salida.add(verdadero + ":");
-        instruccion("li $t2, 1");
+        instruccion("li " + resultado + ", 1");
         salida.add(fin + ":");
-        instruccion("sw $t2, " + etiqueta(i.resultado));
+        instruccion("sw " + resultado + ", " + etiqueta(i.resultado));
+        registros.liberarRegistro(resultado);
     }
 
     private void traducirPotenciaFloat(String resultado) {
         String ciclo = nuevaEtiquetaInterna("powf");
         String fin = nuevaEtiquetaInterna("powf_fin");
-        instruccion("li $t1, 1");
-        instruccion("mtc1 $t1, $f4");
+        String contador = registros.obtenerRegistro();
+        instruccion("li " + contador + ", 1");
+        instruccion("mtc1 " + contador + ", $f4");
         instruccion("cvt.s.w $f4, $f4");
         instruccion("trunc.w.s $f6, $f2");
-        instruccion("mfc1 $t1, $f6");
+        instruccion("mfc1 " + contador + ", $f6");
         salida.add(ciclo + ":");
-        instruccion("blez $t1, " + fin);
+        instruccion("blez " + contador + ", " + fin);
         instruccion("mul.s $f4, $f4, $f0");
-        instruccion("addiu $t1, $t1, -1");
+        instruccion("addiu " + contador + ", " + contador + ", -1");
         instruccion("j " + ciclo);
         salida.add(fin + ":");
         instruccion("s.s $f4, " + etiqueta(resultado));
+        registros.liberarRegistro(contador);
     }
 
-    private void traducirPotenciaEntera() {
+    private void traducirPotenciaEntera(String base, String exponente, String resultado) {
         String ciclo = nuevaEtiquetaInterna("pow");
         String fin = nuevaEtiquetaInterna("pow_fin");
-        instruccion("li $t2, 1");
+        instruccion("li " + resultado + ", 1");
         salida.add(ciclo + ":");
-        instruccion("blez $t1, " + fin);
-        instruccion("mul $t2, $t2, $t0");
-        instruccion("addiu $t1, $t1, -1");
+        instruccion("blez " + exponente + ", " + fin);
+        instruccion("mul " + resultado + ", " + resultado + ", " + base);
+        instruccion("addiu " + exponente + ", " + exponente + ", -1");
         instruccion("j " + ciclo);
         salida.add(fin + ":");
     }
@@ -464,13 +483,16 @@ public final class GeneradorMIPS {
             instruccion("s.s $f2, " + etiqueta(i.resultado));
             return;
         }
-        cargarEntero(i.op1, "$t0");
+        String operando = cargarValor(i.op1);
+        String resultado = registros.obtenerRegistro();
         if (i.op == Operacion.NEG) {
-            instruccion("sub $t2, $zero, $t0");
+            instruccion("sub " + resultado + ", $zero, " + operando);
         } else {
-            instruccion("seq $t2, $t0, $zero");
+            instruccion("seq " + resultado + ", " + operando + ", $zero");
         }
-        instruccion("sw $t2, " + etiqueta(i.resultado));
+        instruccion("sw " + resultado + ", " + etiqueta(i.resultado));
+        registros.liberarRegistro(resultado);
+        registros.liberarRegistro(operando);
     }
 
     private void traducirPrint(String operando) {
@@ -503,12 +525,11 @@ public final class GeneradorMIPS {
         }
     }
 
-    private void cargar(String operando, String registroEntero, String registroFloat) {
-        if (esFloat(tipoOperando(operando, funcionActual))) {
-            cargarFloat(operando, registroFloat);
-        } else {
-            cargarEntero(operando, registroEntero);
-        }
+    /** Obtiene un temporal administrado y carga en el el valor entero solicitado. */
+    private String cargarValor(String operando) {
+        String registro = registros.obtenerRegistro();
+        cargarEntero(operando, registro);
+        return registro;
     }
 
     private void cargarEntero(String operando, String registro) {
