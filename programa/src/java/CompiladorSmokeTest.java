@@ -49,6 +49,9 @@ public class CompiladorSmokeTest {
     public static void main(String[] args) throws Exception {
         Compilador compilador = new Compilador();
 
+        verificarValidacionArchivoFuente(compilador);
+        verificarDiagnosticoFinArchivo(compilador);
+
         ResultadoCompilacion valido = compilador.compilar(
                 Paths.get("test_verificacion/01_minimo_valido.chip"));
         if (!valido.isAceptado()) {
@@ -79,6 +82,39 @@ public class CompiladorSmokeTest {
         verificarPruebaSemanticaExtensa(compilador);
         verificarPruebaBalanceGeneral(compilador);
         verificarEscritorCodigo(compilador, valido, invalido);
+    }
+
+    /** Comprueba que las rutas invalidas se rechacen antes de construir el lexer. */
+    private static void verificarValidacionArchivoFuente(Compilador compilador) throws Exception {
+        Path directorio = Files.createTempDirectory("fuente-invalida-");
+        Path inexistente = directorio.resolve("no-existe.chip");
+        assertFallaLecturaFuente(compilador, inexistente, "No existe el archivo fuente");
+        assertFallaLecturaFuente(compilador, directorio,
+                "La ruta no corresponde a un archivo regular");
+        assertFallaLecturaFuente(compilador, null, "No se proporciono una ruta");
+    }
+
+    private static void assertFallaLecturaFuente(Compilador compilador, Path fuente,
+                                                  String mensajeEsperado) throws Exception {
+        try {
+            compilador.compilar(fuente);
+            throw new AssertionError("La ruta de fuente invalida debe rechazarse: " + fuente);
+        } catch (java.io.IOException ex) {
+            if (!ex.getMessage().contains(mensajeEsperado)) {
+                throw new AssertionError("Mensaje inesperado al validar fuente: " + ex.getMessage());
+            }
+        }
+    }
+
+    /** Verifica que un EOF inesperado conserve simbolo y posicion en el diagnostico. */
+    private static void verificarDiagnosticoFinArchivo(Compilador compilador) throws Exception {
+        ResultadoCompilacion resultado = compilarTexto(compilador,
+                "empty ~ __main__<| |>\n|:\n    int ~ x <- 1 !\n");
+        if (resultado.getParser().getNumErrores() == 0) {
+            throw new AssertionError("El bloque sin cerrar debe producir un error sintactico.");
+        }
+        assertAlgunoContiene(resultado.getParser().erroresSintacticos, "token '<EOF>'");
+        assertAlgunoContiene(resultado.getParser().erroresSintacticos, "linea 4, col 1");
     }
 
     /**
