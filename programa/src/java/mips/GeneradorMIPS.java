@@ -12,6 +12,8 @@ import java.util.Map;
 public final class GeneradorMIPS {
     private final List<String> salida = new ArrayList<>();
     private final Map<String, String> tipos = new LinkedHashMap<>();
+    /** Relacion estable entre cada variable/temporal 3D y su etiqueta en .data. */
+    private final Map<String, String> direcciones = new LinkedHashMap<>();
     private final Map<String, Integer> columnasArreglo = new LinkedHashMap<>();
     private final Map<String, String> cadenas = new LinkedHashMap<>();
     private final Map<String, String> flotantes = new LinkedHashMap<>();
@@ -37,6 +39,7 @@ public final class GeneradorMIPS {
     private void reiniciar() {
         salida.clear();
         tipos.clear();
+        direcciones.clear();
         columnasArreglo.clear();
         dimensionesDeclaradas.clear();
         cadenas.clear();
@@ -105,6 +108,17 @@ public final class GeneradorMIPS {
                 }
             }
         }
+        construirTablaDirecciones();
+    }
+
+    private void construirTablaDirecciones() {
+        Map<String, Integer> repeticiones = new LinkedHashMap<>();
+        for (String clave : tipos.keySet()) {
+            String base = etiquetaDato(clave);
+            int repeticion = repeticiones.getOrDefault(base, 0);
+            repeticiones.put(base, repeticion + 1);
+            direcciones.put(clave, repeticion == 0 ? base : base + "_" + repeticion);
+        }
     }
 
     private String tipoResultado(Instruccion i, String funcion) {
@@ -140,7 +154,7 @@ public final class GeneradorMIPS {
     private void emitirDatos() {
         salida.add(".data");
         for (Map.Entry<String, String> entrada : tipos.entrySet()) {
-            String etiqueta = etiquetaDato(entrada.getKey());
+            String etiqueta = direccionDato(entrada.getKey());
             if (columnasArreglo.containsKey(entrada.getKey())) {
                 // El espacio exacto se reemplaza durante el segundo recorrido de declaraciones.
                 salida.add(etiqueta + ": .space " + espacioArreglo(entrada.getKey()));
@@ -583,7 +597,15 @@ public final class GeneradorMIPS {
 
     private String etiqueta(String operando) {
         String base = esAccesoArreglo(operando) ? operando.substring(0, operando.indexOf('[')) : operando;
-        return etiquetaDato(clave(funcionActual, base));
+        return direccionDato(clave(funcionActual, base));
+    }
+
+    private String direccionDato(String clave) {
+        String direccion = direcciones.get(clave);
+        if (direccion == null) {
+            throw new IllegalStateException("No se reservo memoria MIPS para " + clave);
+        }
+        return direccion;
     }
 
     private static String clave(String funcion, String nombre) {

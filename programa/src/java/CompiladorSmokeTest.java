@@ -1063,6 +1063,10 @@ public class CompiladorSmokeTest {
         assertAlgunoContiene(mips, "div.s");
         assertAlgunoContiene(mips, "mfhi");
         assertAlgunoContiene(mips, "syscall");
+        assertAlgunoContiene(mips, "_d___main____x: .word 0");
+        assertAlgunoContiene(mips, "_t0: .word 0");
+        assertAlgunoContiene(mips, "lw $t0,");
+        assertAlgunoContiene(mips, "sw $t2,");
 
         ResultadoCompilacion divisionEntera = compilarTexto(compilador,
                 "empty ~ __main__<| |>\n"
@@ -1085,6 +1089,18 @@ public class CompiladorSmokeTest {
         assertAlgunoContiene(funciones.getCodigoMIPS(), "jal _fn_sumar");
         assertAlgunoContiene(funciones.getCodigoMIPS(), "sw $ra, 0($sp)");
         assertAlgunoContiene(funciones.getCodigoMIPS(), "jr $ra");
+        assertAlgunoContiene(funciones.getCodigoMIPS(), "_d_sumar__a: .word 0");
+        assertAlgunoContiene(funciones.getCodigoMIPS(), "_d___main____resultado: .word 0");
+
+        ResultadoCompilacion arreglos = compilador.compilar(
+                Paths.get("test_verificacion/11_arreglos_enunciado.chip"));
+        if (!arreglos.isAceptado()) {
+            throw new AssertionError("El caso de arreglos debe reservar memoria MIPS.");
+        }
+        assertAlgunoContiene(arreglos.getCodigoMIPS(), "matriz: .space 16");
+        assertAlgunoContiene(arreglos.getCodigoMIPS(), "la $t7, _d___main____matriz");
+        assertAlgunoContiene(arreglos.getCodigoMIPS(), "lw $t0, 0($t7)");
+        assertAlgunoContiene(arreglos.getCodigoMIPS(), "sw $t0, 0($t7)");
 
         Path salida = Files.createTempDirectory("mips-test-");
         Path archivo = EscritorMIPS.escribir(salida, valido);
