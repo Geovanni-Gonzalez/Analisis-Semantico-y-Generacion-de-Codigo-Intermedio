@@ -5,6 +5,7 @@ import java.nio.file.Paths;
 import pipeline.Compilador;
 import pipeline.ResultadoCompilacion;
 import reporte.EscritorCodigo;
+import reporte.EscritorMIPS;
 import reporte.EscritorReportes;
 
 /**
@@ -72,6 +73,7 @@ public class Main {
             EscritorReportes.escribirResultado(salida.resolve("resultado_sintactico.txt"),
                     fuente, resultado.isAceptado());
             Path codigoIntermedio = EscritorCodigo.escribir(salida, resultado);
+            Path codigoMIPS = EscritorMIPS.escribir(salida, resultado);
 
             System.out.println("Archivo analizado: " + fuente);
             System.out.println(resultado.isAceptado()
@@ -84,6 +86,9 @@ public class Main {
             System.out.println(resultado.isAceptado()
                     ? "Codigo intermedio: " + codigoIntermedio
                     : "Codigo intermedio no generado por errores de analisis.");
+            System.out.println(resultado.isAceptado()
+                    ? "Codigo MIPS: " + codigoMIPS
+                    : "Codigo MIPS no generado por errores de analisis.");
         } catch (InvalidPathException ex) {
             System.err.println("La ruta del directorio de salida no es valida: " + ex.getInput());
         } catch (Exception ex) {

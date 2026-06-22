@@ -1,7 +1,8 @@
     package pipeline;
 
     import intermedio.GeneradorCodigoIntermedio;
-    import intermedio.Instruccion;
+import intermedio.Instruccion;
+import mips.GeneradorMIPS;
     import java.io.Reader;
     import java.io.IOException;
     import java.nio.charset.StandardCharsets;
@@ -59,9 +60,12 @@
             List<Instruccion> codigoIntermedio = aceptado && parser.ast != null
                     ? new GeneradorCodigoIntermedio().generar(parser.ast)
                     : Collections.emptyList();
+            List<String> codigoMIPS = aceptado
+                    ? new GeneradorMIPS().generarCodigo(codigoIntermedio)
+                    : Collections.emptyList();
 
             return new ResultadoCompilacion(fuente, lexerTokens, parser, sintaxisCompleta,
-                    aceptado, codigoIntermedio);
+                    aceptado, codigoIntermedio, codigoMIPS);
         }
 
         /** Valida el archivo antes de iniciar las fases lexica y sintactica. */

@@ -23,6 +23,7 @@ public class ResultadoCompilacion {
     private final boolean sintaxisCompleta;
     private final boolean aceptado;
     private final List<Instruccion> codigoIntermedio;
+    private final List<String> codigoMIPS;
 
     /**
      * <strong>Objetivo:</strong> Crea el paquete de salida de una compilacion.
@@ -35,13 +36,14 @@ public class ResultadoCompilacion {
      */
     public ResultadoCompilacion(Path fuente, MiLexer lexerTokens, Parser parser,
                                 boolean sintaxisCompleta, boolean aceptado,
-                                List<Instruccion> codigoIntermedio) {
+                                List<Instruccion> codigoIntermedio, List<String> codigoMIPS) {
         this.fuente = fuente;
         this.lexerTokens = lexerTokens;
         this.parser = parser;
         this.sintaxisCompleta = sintaxisCompleta;
         this.aceptado = aceptado;
         this.codigoIntermedio = codigoIntermedio;
+        this.codigoMIPS = codigoMIPS;
     }
 
     /**
@@ -120,5 +122,10 @@ public class ResultadoCompilacion {
      */
     public List<Instruccion> getCodigoIntermedio() {
         return Collections.unmodifiableList(codigoIntermedio);
+    }
+
+    /** Devuelve el programa MIPS generado a partir del codigo de tres direcciones. */
+    public List<String> getCodigoMIPS() {
+        return Collections.unmodifiableList(codigoMIPS);
     }
 }

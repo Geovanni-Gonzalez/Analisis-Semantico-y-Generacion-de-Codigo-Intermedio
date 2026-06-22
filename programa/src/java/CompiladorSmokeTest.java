@@ -18,6 +18,7 @@ import ast.TipoDato;
 import ast.WhileNodo;
 import intermedio.GeneradorCodigoIntermedio;
 import intermedio.Instruccion;
+import mips.GeneradorMIPS;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -26,6 +27,7 @@ import java.util.List;
 import pipeline.Compilador;
 import pipeline.ResultadoCompilacion;
 import reporte.EscritorCodigo;
+import reporte.EscritorMIPS;
 
 /**
  * <strong>Objetivo:</strong> Prueba ejecutable de humo para validar el flujo principal del compilador.
@@ -82,6 +84,7 @@ public class CompiladorSmokeTest {
         verificarPruebaSemanticaExtensa(compilador);
         verificarPruebaBalanceGeneral(compilador);
         verificarEscritorCodigo(compilador, valido, invalido);
+        verificarGeneracionMIPS(compilador, valido, invalido);
     }
 
     /** Comprueba que las rutas invalidas se rechacen antes de construir el lexer. */
@@ -1039,6 +1042,68 @@ public class CompiladorSmokeTest {
                 throw new AssertionError("Instruccion " + i + " esperada: "
                         + esperado.get(i) + ", actual: " + actual);
             }
+        }
+    }
+
+    /** Verifica traduccion estructurada a MIPS y persistencia del archivo .asm. */
+    private static void verificarGeneracionMIPS(Compilador compilador,
+                                                 ResultadoCompilacion valido,
+                                                 ResultadoCompilacion invalido) throws Exception {
+        ResultadoCompilacion aritmetica = compilador.compilar(
+                Paths.get("test_verificacion/04_aritmeticas.chip"));
+        if (!aritmetica.isAceptado() || aritmetica.getCodigoMIPS().isEmpty()) {
+            throw new AssertionError("El caso aritmetico debe generar MIPS.");
+        }
+        List<String> mips = aritmetica.getCodigoMIPS();
+        assertAlgunoContiene(mips, ".data");
+        assertAlgunoContiene(mips, ".text");
+        assertAlgunoContiene(mips, "add ");
+        assertAlgunoContiene(mips, "sub ");
+        assertAlgunoContiene(mips, "mul ");
+        assertAlgunoContiene(mips, "div.s");
+        assertAlgunoContiene(mips, "mfhi");
+        assertAlgunoContiene(mips, "syscall");
+
+        ResultadoCompilacion divisionEntera = compilarTexto(compilador,
+                "empty ~ __main__<| |>\n"
+                + "|:\n"
+                + "    int ~ cociente <- 8 / 2 !\n"
+                + "    int ~ residuo <- 8 % 3 !\n"
+                + ":|\n");
+        if (!divisionEntera.isAceptado()) {
+            throw new AssertionError("La division y el modulo enteros deben generar MIPS.");
+        }
+        assertAlgunoContiene(divisionEntera.getCodigoMIPS(), "div ");
+        assertAlgunoContiene(divisionEntera.getCodigoMIPS(), "mflo");
+        assertAlgunoContiene(divisionEntera.getCodigoMIPS(), "mfhi");
+
+        ResultadoCompilacion funciones = compilador.compilar(
+                Paths.get("test_verificacion/10_funciones.chip"));
+        if (!funciones.isAceptado()) {
+            throw new AssertionError("El caso de funciones debe generar MIPS.");
+        }
+        assertAlgunoContiene(funciones.getCodigoMIPS(), "jal _fn_sumar");
+        assertAlgunoContiene(funciones.getCodigoMIPS(), "sw $ra, 0($sp)");
+        assertAlgunoContiene(funciones.getCodigoMIPS(), "jr $ra");
+
+        Path salida = Files.createTempDirectory("mips-test-");
+        Path archivo = EscritorMIPS.escribir(salida, valido);
+        if (!archivo.getFileName().toString().equals("01_minimo_valido.asm")
+                || !Files.isRegularFile(archivo)) {
+            throw new AssertionError("Debe escribirse el archivo MIPS derivado del fuente.");
+        }
+        List<String> lineas = Files.readAllLines(archivo);
+        assertAlgunoContiene(lineas, ".globl main");
+        assertAlgunoContiene(lineas, "main:");
+
+        Path archivoInvalido = EscritorMIPS.escribir(salida, invalido);
+        if (Files.exists(archivoInvalido)) {
+            throw new AssertionError("No debe generarse MIPS para un programa rechazado.");
+        }
+
+        // La API tambien puede utilizarse directamente con una lista 3D.
+        if (new GeneradorMIPS().generarCodigo(valido.getCodigoIntermedio()).isEmpty()) {
+            throw new AssertionError("GeneradorMIPS debe aceptar directamente List<Instruccion>.");
         }
     }
 
