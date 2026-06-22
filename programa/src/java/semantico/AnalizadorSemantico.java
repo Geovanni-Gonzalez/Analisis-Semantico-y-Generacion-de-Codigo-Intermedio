@@ -614,7 +614,8 @@ public class AnalizadorSemantico {
             return TipoDato.ERROR;
         }
         if ("equal".equals(operador) || "n_equal".equals(operador)) {
-            if (izquierda == derecha) {
+            if (izquierda == derecha && (izquierda == TipoDato.INT
+                    || izquierda == TipoDato.FLOAT || izquierda == TipoDato.BOOL)) {
                 return TipoDato.BOOL;
             }
             tablaSimbolos.reportarOperacionIncompatible(operador, izquierda, derecha, expresion.getLinea());

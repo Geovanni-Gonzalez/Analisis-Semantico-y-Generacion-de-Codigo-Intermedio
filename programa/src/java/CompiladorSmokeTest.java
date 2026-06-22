@@ -73,6 +73,7 @@ public class CompiladorSmokeTest {
         verificarEtiquetasUnicasEntreIfYWhile();
         verificarCodigoIntermedioFuncionesYLlamadas();
         verificarGeneracionIntermediaSolicitada(compilador);
+        verificarPrecedenciaPotenciaYSigno(compilador);
         verificarCorreccionesSemanticas(compilador);
         verificarRestriccionesSemanticasSolicitadas(compilador);
         verificarPruebaSemanticaExtensa(compilador);
@@ -504,6 +505,40 @@ public class CompiladorSmokeTest {
         verificarNumeracionContinua(codigo, "_L", ":");
     }
 
+    /** Comprueba la precedencia matematica entre potencia, signo unario y parentesis. */
+    private static void verificarPrecedenciaPotenciaYSigno(Compilador compilador) throws Exception {
+        ResultadoCompilacion resultado = compilarTexto(compilador,
+                "empty ~ __main__<| |>\n|:\n"
+                + "    int ~ a <- -2 ^ 2 !\n"
+                + "    int ~ b <- <|-2|> ^ 2 !\n"
+                + "    int ~ c <- 3-1 !\n"
+                + ":|\n");
+        if (!resultado.getLexerTokens().getErroresLexicos().isEmpty()
+                || resultado.getParser().getNumErrores() != 0) {
+            throw new AssertionError("Las expresiones de precedencia deben ser sintacticamente validas.");
+        }
+
+        List<ast.Nodo> instrucciones = resultado.getParser().ast.getFunciones().get(0)
+                .getCuerpo().getInstrucciones();
+        ExpresionNodo expresionA = ((DeclaracionVariableNodo) instrucciones.get(0)).getInicializador();
+        if (!(expresionA instanceof ExpresionUnariaNodo)
+                || !"-".equals(((ExpresionUnariaNodo) expresionA).getOperador())
+                || !(((ExpresionUnariaNodo) expresionA).getExpresion()
+                        instanceof ExpresionBinariaNodo)
+                || !"^".equals(((ExpresionBinariaNodo) ((ExpresionUnariaNodo) expresionA)
+                        .getExpresion()).getOperador())) {
+            throw new AssertionError("'-2 ^ 2' debe analizarse como '-(2 ^ 2)'.");
+        }
+
+        ExpresionNodo expresionB = ((DeclaracionVariableNodo) instrucciones.get(1)).getInicializador();
+        if (!(expresionB instanceof ExpresionBinariaNodo)
+                || !"^".equals(((ExpresionBinariaNodo) expresionB).getOperador())
+                || !(((ExpresionBinariaNodo) expresionB).getIzquierda()
+                        instanceof ExpresionUnariaNodo)) {
+            throw new AssertionError("'<|-2|> ^ 2' debe analizarse como '(-2) ^ 2'.");
+        }
+    }
+
     private static void verificarNumeracionContinua(List<String> codigo, String prefijo,
                                                      String terminadorDefinicion) {
         java.util.Set<Integer> numeros = new java.util.HashSet<>();
@@ -698,6 +733,21 @@ public class CompiladorSmokeTest {
                 + "    int ~ x <- 1 !\n    int ~ y <- -x !\n:|\n",
                 "operador '-' solo puede aplicarse a literales numericos",
                 "negativo unario sobre identificador");
+
+        assertAceptado(compilador, "empty ~ __main__<| |>\n|:\n"
+                + "    bool ~ iguales <- equal<|true,false|> !\n"
+                + "    bool ~ distintos <- n_equal<|1.0,2.0|> !\n:|\n",
+                "igualdad admite booleanos y numeros");
+
+        assertErrorSemantico(compilador, "empty ~ __main__<| |>\n|:\n"
+                + "    bool ~ iguales <- equal<|'a','b'|> !\n:|\n",
+                "tipos incompatibles para operador 'equal'",
+                "igualdad rechaza caracteres");
+
+        assertErrorSemantico(compilador, "empty ~ __main__<| |>\n|:\n"
+                + "    bool ~ distintos <- n_equal<|\"a\",\"b\"|> !\n:|\n",
+                "tipos incompatibles para operador 'n_equal'",
+                "desigualdad rechaza cadenas");
 
         assertErrorSemantico(compilador, "empty ~ __main__<| |>\n|:\n"
                 + "    int ~ x <- ++7 !\n:|\n",
