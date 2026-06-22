@@ -352,6 +352,7 @@ public final class GeneradorMIPS {
         }
         if (i.resultado != null) {
             if (esFloat(tipoOperando(i.resultado, funcionActual))) {
+                instruccion("mtc1 $v0, $f0");
                 instruccion("s.s $f0, " + etiqueta(i.resultado));
             } else {
                 instruccion("sw $v0, " + etiqueta(i.resultado));
@@ -363,6 +364,7 @@ public final class GeneradorMIPS {
         if (i.op1 != null) {
             if (esFloat(tipoOperando(i.op1, funcionActual))) {
                 cargarFloat(i.op1, "$f0");
+                instruccion("mfc1 $v0, $f0");
             } else {
                 cargarEntero(i.op1, "$v0");
             }

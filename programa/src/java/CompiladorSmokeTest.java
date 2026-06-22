@@ -1096,6 +1096,36 @@ public class CompiladorSmokeTest {
         assertAlgunoContiene(funciones.getCodigoMIPS(), "_d_sumar__a: .word 0");
         assertAlgunoContiene(funciones.getCodigoMIPS(), "_d___main____resultado: .word 0");
 
+        ResultadoCompilacion procedimientos = compilarTexto(compilador,
+                "int ~ suma5<|int ~ a, int ~ b, int ~ c, int ~ d, int ~ e|>\n"
+                + "|:\n    return ~ a + b + c + d + e !\n:|\n"
+                + "void ~ avisar<| |>\n|:\n    return !\n:|\n"
+                + "empty ~ __main__<| |>\n|:\n"
+                + "    int ~ r <- suma5<|1,2,3,4,5|> !\n"
+                + "    avisar<| |> !\n:|\n");
+        if (!procedimientos.isAceptado()) {
+            throw new AssertionError("Los procedimientos con parametros deben generar MIPS.");
+        }
+        assertAlgunoContiene(procedimientos.getCodigoMIPS(), "_fn_suma5:");
+        assertAlgunoContiene(procedimientos.getCodigoMIPS(), "_fn_avisar:");
+        assertAlgunoContiene(procedimientos.getCodigoMIPS(), "lw $t0, 20($sp)");
+        assertAlgunoContiene(procedimientos.getCodigoMIPS(), "addiu $sp, $sp, 20");
+        assertAlgunoContiene(procedimientos.getCodigoMIPS(), "jal _fn_suma5");
+        assertAlgunoContiene(procedimientos.getCodigoMIPS(), "jal _fn_avisar");
+        assertAlgunoContiene(procedimientos.getCodigoMIPS(), "jr $ra");
+        assertAlgunoContiene(procedimientos.getCodigoMIPS(), "sw $v0,");
+
+        ResultadoCompilacion retornoFloat = compilarTexto(compilador,
+                "float ~ mitad<|float ~ x|>\n"
+                + "|:\n    return ~ x / 2.0 !\n:|\n"
+                + "empty ~ __main__<| |>\n|:\n"
+                + "    float ~ valor <- mitad<|8.0|> !\n:|\n");
+        if (!retornoFloat.isAceptado()) {
+            throw new AssertionError("El retorno float debe respetar la convencion de procedimientos.");
+        }
+        assertAlgunoContiene(retornoFloat.getCodigoMIPS(), "mfc1 $v0, $f0");
+        assertAlgunoContiene(retornoFloat.getCodigoMIPS(), "mtc1 $v0, $f0");
+
         ResultadoCompilacion arreglos = compilador.compilar(
                 Paths.get("test_verificacion/11_arreglos_enunciado.chip"));
         if (!arreglos.isAceptado()) {
