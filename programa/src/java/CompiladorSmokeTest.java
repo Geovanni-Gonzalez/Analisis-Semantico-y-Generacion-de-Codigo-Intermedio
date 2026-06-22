@@ -72,7 +72,9 @@ public class CompiladorSmokeTest {
         verificarCodigoIntermedioSalida();
         verificarEtiquetasUnicasEntreIfYWhile();
         verificarCodigoIntermedioFuncionesYLlamadas();
+        verificarGeneracionIntermediaSolicitada(compilador);
         verificarCorreccionesSemanticas(compilador);
+        verificarRestriccionesSemanticasSolicitadas(compilador);
         verificarPruebaSemanticaExtensa(compilador);
         verificarPruebaBalanceGeneral(compilador);
         verificarEscritorCodigo(compilador, valido, invalido);
@@ -109,15 +111,21 @@ public class CompiladorSmokeTest {
         List<Instruccion> instrucciones = new GeneradorCodigoIntermedio().generar(programa);
         List<String> esperado = Arrays.asList(
                 "begin_function main",
-                "_t0 = b * c",
-                "_t1 = a + _t0",
-                "r1 = _t1",
-                "_t2 = -x",
-                "r2 = _t2",
-                "_t3 = !b",
-                "r3 = _t3",
-                "_t4 = 3 + z",
-                "r4 = _t4",
+                "_t0 = load a",
+                "_t1 = load b",
+                "_t2 = load c",
+                "_t3 = _t1 * _t2",
+                "_t4 = _t0 + _t3",
+                "r1 = _t4",
+                "_t5 = load x",
+                "_t6 = -_t5",
+                "r2 = _t6",
+                "_t7 = load b",
+                "_t8 = !_t7",
+                "r3 = _t8",
+                "_t9 = load z",
+                "_t10 = 3 + _t9",
+                "r4 = _t10",
                 "end_function main");
 
         verificarInstrucciones(instrucciones, esperado);
@@ -163,9 +171,13 @@ public class CompiladorSmokeTest {
         List<Instruccion> instrucciones = new GeneradorCodigoIntermedio().generar(programa);
         List<String> esperado = Arrays.asList(
                 "begin_function main",
-                "_t0 = a + b",
-                "x = _t0",
+                "declare int x",
+                "_t0 = load a",
+                "_t1 = load b",
+                "_t2 = _t0 + _t1",
+                "x = _t2",
                 "x = 5",
+                "declare int y",
                 "end_function main");
 
         verificarInstrucciones(instrucciones, esperado);
@@ -196,8 +208,9 @@ public class CompiladorSmokeTest {
         List<Instruccion> instrucciones = new GeneradorCodigoIntermedio().generar(programa);
         List<String> esperado = Arrays.asList(
                 "begin_function main",
-                "_t0 = x < 10",
-                "if_false _t0 goto _L0",
+                "_t0 = load x",
+                "_t1 = _t0 < 10",
+                "if_false _t1 goto _L0",
                 "y = 1",
                 "_L0:",
                 "end_function main");
@@ -233,8 +246,9 @@ public class CompiladorSmokeTest {
         List<Instruccion> instrucciones = new GeneradorCodigoIntermedio().generar(programa);
         List<String> esperado = Arrays.asList(
                 "begin_function main",
-                "_t0 = x > 0",
-                "if_false _t0 goto _L0",
+                "_t0 = load x",
+                "_t1 = _t0 > 0",
+                "if_false _t1 goto _L0",
                 "y = 1",
                 "goto _L1",
                 "_L0:",
@@ -272,10 +286,12 @@ public class CompiladorSmokeTest {
         List<String> esperado = Arrays.asList(
                 "begin_function main",
                 "_L0:",
-                "_t0 = x < 3",
-                "if_false _t0 goto _L1",
-                "_t1 = x + 1",
-                "x = _t1",
+                "_t0 = load x",
+                "_t1 = _t0 < 3",
+                "if_false _t1 goto _L1",
+                "_t2 = load x",
+                "_t3 = _t2 + 1",
+                "x = _t3",
                 "goto _L0",
                 "_L1:",
                 "end_function main");
@@ -302,7 +318,8 @@ public class CompiladorSmokeTest {
         List<Instruccion> instrucciones = new GeneradorCodigoIntermedio().generar(programa);
         List<String> esperado = Arrays.asList(
                 "begin_function main",
-                "print resultado",
+                "_t0 = load resultado",
+                "print _t0",
                 "end_function main");
 
         verificarInstrucciones(instrucciones, esperado);
@@ -340,15 +357,18 @@ public class CompiladorSmokeTest {
         List<Instruccion> instrucciones = new GeneradorCodigoIntermedio().generar(programa);
         List<String> esperado = Arrays.asList(
                 "begin_function main",
-                "_t0 = x < 10",
-                "if_false _t0 goto _L0",
+                "_t0 = load x",
+                "_t1 = _t0 < 10",
+                "if_false _t1 goto _L0",
                 "y = 1",
                 "_L0:",
                 "_L1:",
-                "_t1 = x > 0",
-                "if_false _t1 goto _L2",
-                "_t2 = x - 1",
-                "x = _t2",
+                "_t2 = load x",
+                "_t3 = _t2 > 0",
+                "if_false _t3 goto _L2",
+                "_t4 = load x",
+                "_t5 = _t4 - 1",
+                "x = _t5",
                 "goto _L1",
                 "_L2:",
                 "end_function main");
@@ -395,22 +415,119 @@ public class CompiladorSmokeTest {
         List<Instruccion> instrucciones = new GeneradorCodigoIntermedio().generar(programa);
         List<String> esperado = Arrays.asList(
                 "begin_function foo",
-                "_t0 = a + b",
-                "return _t0",
+                "parameter int a",
+                "parameter int b",
+                "_t0 = load a",
+                "_t1 = load b",
+                "_t2 = _t0 + _t1",
+                "return _t2",
                 "end_function foo",
                 "begin_function bar",
+                "parameter int a",
                 "return",
                 "end_function bar",
                 "begin_function main",
-                "param a",
-                "param b",
-                "_t1 = call foo, 2",
-                "r = _t1",
-                "param a",
+                "_t3 = load a",
+                "param _t3",
+                "_t4 = load b",
+                "param _t4",
+                "_t5 = call foo, 2",
+                "r = _t5",
+                "_t6 = load a",
+                "param _t6",
                 "call bar, 1",
                 "end_function main");
 
         verificarInstrucciones(instrucciones, esperado);
+    }
+
+    /** Prueba integral de declaraciones, cargas, arreglos, operadores, switch, E/S y funciones. */
+    private static void verificarGeneracionIntermediaSolicitada(Compilador compilador)
+            throws Exception {
+        String fuente = "int ~ potencia<|int ~ base, int ~ exponente|>\n|:\n"
+                + "    return~base ^ exponente!\n:|\n"
+                + "empty ~ __main__<| |>\n|:\n"
+                + "    int ~ literalExp <- 2e3 !\n"
+                + "    float ~ literalFrac <- 1/2 !\n"
+                + "    int ~ matriz <<1>><<2>> <- |: |:4,5:| :| !\n"
+                + "    int ~ x !\n"
+                + "    cin <|x|> !\n"
+                + "    matriz <<0>> <<1>> <- x !\n"
+                + "    x <- matriz <<0>> <<0>> % 2 ^ 3 !\n"
+                + "    ++x !\n"
+                + "    bool ~ menor <- less_t<|x,10|> !\n"
+                + "    int ~ negativo <- -5 !\n"
+                + "    bool ~ inverso <- $ menor !\n"
+                + "    int ~ resultado <- potencia<|x,2|> !\n"
+                + "    switch <|x|>\n"
+                + "    |:\n"
+                + "        case ~ 1:\n        |:\n x <- 2 !\n break!\n :|\n"
+                + "        default ~:\n        |:\n x <- 3 !\n break!\n :|\n"
+                + "    :|\n"
+                + "    cout <|x|> !\n"
+                + ":|\n";
+        ResultadoCompilacion resultado = compilarTexto(compilador, fuente);
+        if (!resultado.isAceptado()) {
+            throw new AssertionError("La prueba integral de generacion debe aceptarse. Lexicos: "
+                    + resultado.getLexerTokens().getErroresLexicos() + ", sintacticos: "
+                    + resultado.getParser().erroresSintacticos + ", semanticos: "
+                    + resultado.getParser().tablaSimbolos.getErroresSemanticos());
+        }
+        List<String> codigo = new java.util.ArrayList<>();
+        for (Instruccion instruccion : resultado.getCodigoIntermedio()) {
+            codigo.add(instruccion.toString());
+        }
+        assertAlgunoContiene(codigo, "parameter int base");
+        assertAlgunoContiene(codigo, "parameter int exponente");
+        assertAlgunoContiene(codigo, "declare int literalExp");
+        assertAlgunoContiene(codigo, "literalExp = 2e3");
+        assertAlgunoContiene(codigo, "declare float literalFrac");
+        assertAlgunoContiene(codigo, "literalFrac = 1/2");
+        assertAlgunoContiene(codigo, "declare int matriz[1][2]");
+        assertAlgunoContiene(codigo, "store 4 -> matriz[0][0]");
+        assertAlgunoContiene(codigo, "store 5 -> matriz[0][1]");
+        assertAlgunoContiene(codigo, "read x");
+        assertAlgunoContiene(codigo, "store _t");
+        assertAlgunoContiene(codigo, "load matriz[0][0]");
+        assertAlgunoContiene(codigo, " % ");
+        assertAlgunoContiene(codigo, " ^ ");
+        assertAlgunoContiene(codigo, " < 10");
+        assertAlgunoContiene(codigo, " = -5");
+        assertAlgunoContiene(codigo, " = !_t");
+        assertAlgunoContiene(codigo, " + 1");
+        assertAlgunoContiene(codigo, "param _t");
+        assertAlgunoContiene(codigo, "call potencia, 2");
+        assertAlgunoContiene(codigo, "if_false ");
+        assertAlgunoContiene(codigo, "goto _L");
+        assertAlgunoContiene(codigo, "print _t");
+        verificarNumeracionContinua(codigo, "_t", " = ");
+        verificarNumeracionContinua(codigo, "_L", ":");
+    }
+
+    private static void verificarNumeracionContinua(List<String> codigo, String prefijo,
+                                                     String terminadorDefinicion) {
+        java.util.Set<Integer> numeros = new java.util.HashSet<>();
+        for (String linea : codigo) {
+            if (!linea.startsWith(prefijo)) {
+                continue;
+            }
+            int fin = prefijo.length();
+            while (fin < linea.length() && Character.isDigit(linea.charAt(fin))) {
+                fin++;
+            }
+            if (fin == prefijo.length() || !linea.substring(fin).startsWith(terminadorDefinicion)) {
+                continue;
+            }
+            int numero = Integer.parseInt(linea.substring(prefijo.length(), fin));
+            if (!numeros.add(numero)) {
+                throw new AssertionError("Definicion duplicada de " + prefijo + numero);
+            }
+        }
+        for (int i = 0; i < numeros.size(); i++) {
+            if (!numeros.contains(i)) {
+                throw new AssertionError("Numeracion discontinua: falta " + prefijo + i);
+            }
+        }
     }
 
     /**
@@ -435,14 +552,14 @@ public class CompiladorSmokeTest {
                 + "empty ~ __main__<| |>\n|:\n:|\n", "variable con mismo nombre que parametro");
 
         assertRechazado(compilador, "empty ~ __main__<| |>\n|:\n"
-                + "    int ~ matriz <<2,2>> !\n"
+                + "    int ~ matriz <<2>><<2>> !\n"
                 + "    int ~ x <- matriz !\n"
                 + ":|\n", "arreglo usado como operando escalar");
 
         assertRechazado(compilador, "empty ~ __main__<| |>\n|:\n"
-                + "    int ~ matriz <<2,2>> !\n"
+                + "    int ~ matriz <<2>><<2>> !\n"
                 + "    float ~ i <- 1.0 !\n"
-                + "    matriz <<i,0>> <- 1 !\n"
+                + "    matriz <<i>><<0>> <- 1 !\n"
                 + ":|\n", "indice de arreglo no entero");
 
         assertAceptado(compilador, "empty ~ __main__<| |>\n|:\n"
@@ -452,6 +569,15 @@ public class CompiladorSmokeTest {
         assertRechazado(compilador, "empty ~ __main__<| |>\n|:\n"
                 + "    int ~ x <- 1/2 !\n"
                 + ":|\n", "literal fraccionario como float");
+
+        assertAceptado(compilador, "empty ~ __main__<| |>\n|:\n"
+                + "    int ~ potenciaEntera <- 2 ^ 3 !\n"
+                + "    float ~ potenciaFlotante <- 2.0 ^ 3.0 !\n"
+                + ":|\n", "potencia con operandos numericos homogeneos");
+
+        assertRechazado(compilador, "empty ~ __main__<| |>\n|:\n"
+                + "    float ~ potenciaMixta <- 2.0 ^ 3 !\n"
+                + ":|\n", "potencia con operandos numericos mixtos");
 
         assertRechazado(compilador, "empty ~ __main__<| |>\n|:\n"
                 + "    int ~ x <- ++5 !\n"
@@ -466,7 +592,7 @@ public class CompiladorSmokeTest {
                 + ":|\n", "switch booleano invalido");
 
         assertRechazado(compilador, "empty ~ __main__<| |>\n|:\n"
-                + "    int ~ matriz <<2,2>> !\n"
+                + "    int ~ matriz <<2>><<2>> !\n"
                 + "    cin <|matriz|> !\n"
                 + ":|\n", "cin sobre arreglo");
 
@@ -484,19 +610,19 @@ public class CompiladorSmokeTest {
                 + ":|\n", "cout admite los cinco tipos permitidos como literales");
 
         assertRechazado(compilador, "empty ~ __main__<| |>\n|:\n"
-                + "    int ~ matriz <<0,2>> !\n"
+                + "    int ~ matriz <<0>><<2>> !\n"
                 + ":|\n", "dimensiones de arreglo positivas");
 
         assertRechazado(compilador, "empty ~ __main__<| |>\n|:\n"
-                + "    int ~ matriz <<-1,2>> !\n"
+                + "    int ~ matriz <<-1>><<2>> !\n"
                 + ":|\n", "dimensiones negativas de arreglo");
 
         assertRechazado(compilador, "empty ~ __main__<| |>\n|:\n"
-                + "    int ~ matriz <<2,2>> <- |: |:1,2:| :| !\n"
+                + "    int ~ matriz <<2>><<2>> <- |: |:1,2:| :| !\n"
                 + ":|\n", "inicializacion respeta dimensiones declaradas");
 
         assertRechazado(compilador, "empty ~ __main__<| |>\n|:\n"
-                + "    int ~ matriz <<2,2>> <- |: |:1,2:|, |:3,4:| :| !\n"
+                + "    int ~ matriz <<2>><<2>> <- |: |:1,2:|, |:3,4:| :| !\n"
                 + "    cout <|matriz <<2>> <<0>>|> !\n"
                 + ":|\n", "acceso fuera de dimensiones del arreglo");
 
@@ -511,6 +637,115 @@ public class CompiladorSmokeTest {
                 + "empty ~ __main__<| |>\n|:\n"
                 + "    int ~ x <- rec<|1|> !\n"
                 + ":|\n", "llamada recursiva con parametros");
+    }
+
+    /** Verifica individualmente las restricciones semanticas solicitadas y sus diagnosticos. */
+    private static void verificarRestriccionesSemanticasSolicitadas(Compilador compilador)
+            throws Exception {
+        assertErrorSemantico(compilador, "empty ~ __main__<| |>\n|:\n"
+                + "    int ~ x !\n    cout <|x|> !\n:|\n",
+                "usada antes de inicializarse", "inicializacion de variables");
+
+        assertErrorSemantico(compilador, "int ~ f<|int ~ dato|>\n|:\n"
+                + "    int ~ dato <- 1 !\n    return dato !\n:|\n"
+                + "empty ~ __main__<| |>\n|:\n:|\n",
+                "'dato' ya esta declarado", "unicidad entre parametros y variables");
+
+        assertAceptado(compilador, "empty ~ __main__<| |>\n|:\n"
+                + "    int ~ exponente <- 30e50 !\n"
+                + "    float ~ fraccion <- 10/3 !\n:|\n",
+                "literal exponencial int y literal fraccionario float");
+
+        assertRechazado(compilador, "empty ~ __main__<| |>\n|:\n"
+                + "    int ~ exponente <- 100e0 !\n:|\n",
+                "literal exponencial exige exponente estrictamente positivo");
+
+        assertRechazado(compilador, "empty ~ __main__<| |>\n|:\n"
+                + "    float ~ fraccion <- 5/0 !\n:|\n",
+                "literal fraccionario rechaza denominador cero");
+
+        assertRechazado(compilador, "empty ~ __main__<| |>\n|:\n"
+                + "    int ~ matriz <<2,2>> !\n:|\n",
+                "declaracion de arreglo rechaza indices agrupados con coma");
+
+        assertAceptado(compilador, "empty ~ __main__<| |>\n|:\n"
+                + "    int ~ matriz <<2>><<2>> <- |: |:1,2:|, |:3,4:| :| !\n"
+                + "    matriz <<0>><<1>> <- matriz <<1>><<0>> !\n:|\n",
+                "declaracion y acceso usan un delimitador por indice");
+
+        assertErrorSemantico(compilador, "empty ~ __main__<| |>\n|:\n"
+                + "    float ~ a <<1>><<2>> <- |: |:1.0:| :| !\n:|\n",
+                "tiene dimensiones 1x1, pero se declararon 1x2",
+                "dimensiones de inicializacion de arreglo");
+
+        assertErrorSemantico(compilador, "empty ~ __main__<| |>\n|:\n"
+                + "    int ~ a <<1>><<1>> <- |: |:1:| :| !\n"
+                + "    float ~ i <- 0.0 !\n    cout <|a <<i>> <<0>>|> !\n:|\n",
+                "indice del arreglo debe ser de tipo int", "tipo de indices de arreglo");
+
+        assertErrorSemantico(compilador, "empty ~ __main__<| |>\n|:\n"
+                + "    int ~ a <<1>><<1>> !\n    a <- 1 !\n:|\n",
+                "no se puede asignar directamente al arreglo completo 'a'",
+                "asignacion al arreglo completo");
+
+        assertErrorSemantico(compilador, "empty ~ __main__<| |>\n|:\n"
+                + "    int ~ a <<1>><<1>> <- |: |:1:| :| !\n"
+                + "    int ~ x <- a + 1 !\n:|\n",
+                "'a' es un arreglo y debe accederse con indices",
+                "arreglo como operando binario");
+
+        assertErrorSemantico(compilador, "empty ~ __main__<| |>\n|:\n"
+                + "    int ~ x <- 1 !\n    int ~ y <- -x !\n:|\n",
+                "operador '-' solo puede aplicarse a literales numericos",
+                "negativo unario sobre identificador");
+
+        assertErrorSemantico(compilador, "empty ~ __main__<| |>\n|:\n"
+                + "    int ~ x <- ++7 !\n:|\n",
+                "no puede aplicarse a un literal o expresion no modificable",
+                "incremento unario sobre literal");
+
+        assertErrorSemantico(compilador, "empty ~ __main__<| |>\n|:\n"
+                + "    int ~ a <<1>><<1>> <- |: |:1:| :| !\n"
+                + "    bool ~ b <- less_t<|a,1|> !\n:|\n",
+                "'a' es un arreglo y debe accederse con indices",
+                "arreglo como operando relacional");
+
+        assertAceptado(compilador, "empty ~ __main__<| |>\n|:\n"
+                + "    int ~ a <<1>><<1>> <- |: |:1:| :| !\n"
+                + "    ++a <<0>> <<0>> !\n:|\n",
+                "operador unario sobre una posicion de arreglo");
+
+        assertErrorSemantico(compilador, "empty ~ __main__<| |>\n|:\n"
+                + "    switch <|1.0|>\n    case ~ 1.0:\n    |:\n break !\n :|\n:|\n",
+                "expresion de switch no puede ser de tipo float", "tipo de switch");
+
+        assertErrorSemantico(compilador, "empty ~ __main__<| |>\n|:\n"
+                + "    int ~ opcion <- 1 !\n"
+                + "    switch <|opcion|>\n    case ~ 'a':\n    |:\n break !\n :|\n:|\n",
+                "tipo incompatible en case", "tipo del case respecto al switch");
+
+        assertErrorSemantico(compilador, "empty ~ __main__<| |>\n|:\n"
+                + "    char ~ c <- 'a' !\n    cin <|c|> !\n:|\n",
+                "cin solo puede leer variables escalares de tipo int o float",
+                "tipos admitidos por cin");
+
+        assertErrorSemantico(compilador, "void ~ procedimiento<| |>\n|:\n return!\n:|\n"
+                + "empty ~ __main__<| |>\n|:\n cout <|procedimiento<| |>|> !\n:|\n",
+                "cout no puede imprimir una expresion de tipo", "tipos admitidos por cout");
+
+        assertErrorSemantico(compilador, "int ~ f<| |>\n|:\n return~1.0!\n:|\n"
+                + "empty ~ __main__<| |>\n|:\n:|\n",
+                "tipo incompatible en return", "tipo de retorno de funcion");
+
+        assertErrorSemantico(compilador, "bool ~ f<| |>\n|:\n bool ~ b <- true !\n:|\n"
+                + "empty ~ __main__<| |>\n|:\n:|\n",
+                "debe contener al menos un return", "ausencia de return");
+
+        assertAceptado(compilador, "int ~ rec<|int ~ n|>\n|:\n"
+                + "    if <|equal<|n,0|>|> |:\n return~0!\n :|\n"
+                + "    return~rec<|n|>!\n:|\n"
+                + "empty ~ __main__<| |>\n|:\n int ~ r <- rec<|1|> !\n:|\n",
+                "llamada recursiva con parametros tipados");
     }
 
     /**
@@ -611,6 +846,24 @@ public class CompiladorSmokeTest {
         if (resultado.isAceptado()) {
             throw new AssertionError("El caso debe rechazarse: " + caso);
         }
+    }
+
+    /** Exige un rechazo puramente semantico y comprueba el diagnostico concreto. */
+    private static void assertErrorSemantico(Compilador compilador, String fuente,
+                                             String mensajeEsperado, String caso) throws Exception {
+        ResultadoCompilacion resultado = compilarTexto(compilador, fuente);
+        if (!resultado.getLexerTokens().getErroresLexicos().isEmpty()) {
+            throw new AssertionError("El caso no debe tener errores lexicos: " + caso);
+        }
+        if (resultado.getParser().getNumErrores() != 0) {
+            throw new AssertionError("El caso no debe tener errores sintacticos: " + caso
+                    + ". Errores: " + resultado.getParser().erroresSintacticos);
+        }
+        if (resultado.isAceptado()) {
+            throw new AssertionError("El caso debe producir un error semantico: " + caso);
+        }
+        assertAlgunoContiene(resultado.getParser().tablaSimbolos.getErroresSemanticos(),
+                mensajeEsperado);
     }
 
     /**
