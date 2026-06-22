@@ -582,7 +582,7 @@ public class CompiladorSmokeTest {
 
         assertRechazado(compilador, "int ~ dupParam<|int ~ a|>\n|:\n"
                 + "    int ~ a !\n"
-                + "    return a !\n"
+                + "    return ~ a !\n"
                 + ":|\n"
                 + "empty ~ __main__<| |>\n|:\n:|\n", "variable con mismo nombre que parametro");
 
@@ -617,6 +617,18 @@ public class CompiladorSmokeTest {
         assertRechazado(compilador, "empty ~ __main__<| |>\n|:\n"
                 + "    int ~ x <- ++5 !\n"
                 + ":|\n", "incremento sobre literal");
+
+        assertRechazado(compilador, "int ~ sinSeparador<| |>\n|:\n"
+                + "    return 1 !\n"
+                + ":|\n"
+                + "empty ~ __main__<| |>\n|:\n:|\n",
+                "return con valor exige separador");
+
+        assertRechazado(compilador, "empty ~ __main__<| |>\n|:\n"
+                + "    int ~ x <- 0 !\n"
+                + "    do |:\n        x <- x + 1 !\n    :|\n"
+                + "    while <|less_t<|x,10|>|>\n"
+                + ":|\n", "do-while sin terminador de admiracion");
 
         assertRechazado(compilador, "empty ~ __main__<| |>\n|:\n"
                 + "    switch <|true|>\n"
@@ -667,7 +679,7 @@ public class CompiladorSmokeTest {
                 + "empty ~ __main__<| |>\n|:\n:|\n", "funcion no void sin return");
 
         assertAceptado(compilador, "int ~ rec<|int ~ n|>\n|:\n"
-                + "    return rec<|n|> !\n"
+                + "    return ~ rec<|n|> !\n"
                 + ":|\n"
                 + "empty ~ __main__<| |>\n|:\n"
                 + "    int ~ x <- rec<|1|> !\n"
@@ -682,7 +694,7 @@ public class CompiladorSmokeTest {
                 "usada antes de inicializarse", "inicializacion de variables");
 
         assertErrorSemantico(compilador, "int ~ f<|int ~ dato|>\n|:\n"
-                + "    int ~ dato <- 1 !\n    return dato !\n:|\n"
+                + "    int ~ dato <- 1 !\n    return ~ dato !\n:|\n"
                 + "empty ~ __main__<| |>\n|:\n:|\n",
                 "'dato' ya esta declarado", "unicidad entre parametros y variables");
 
@@ -755,6 +767,18 @@ public class CompiladorSmokeTest {
                 "incremento unario sobre literal");
 
         assertErrorSemantico(compilador, "empty ~ __main__<| |>\n|:\n"
+                + "    break !\n:|\n",
+                "break solo puede utilizarse dentro de un ciclo o switch",
+                "break fuera de ciclo o switch");
+
+        assertAceptado(compilador, "empty ~ __main__<| |>\n|:\n"
+                + "    do |:\n"
+                + "        if <|true|> |:\n            break !\n        :|\n"
+                + "    :| while <|true|> !\n"
+                + ":|\n",
+                "break dentro de if anidado en ciclo");
+
+        assertErrorSemantico(compilador, "empty ~ __main__<| |>\n|:\n"
                 + "    int ~ a <<1>><<1>> <- |: |:1:| :| !\n"
                 + "    bool ~ b <- less_t<|a,1|> !\n:|\n",
                 "'a' es un arreglo y debe accederse con indices",
@@ -789,7 +813,34 @@ public class CompiladorSmokeTest {
 
         assertErrorSemantico(compilador, "bool ~ f<| |>\n|:\n bool ~ b <- true !\n:|\n"
                 + "empty ~ __main__<| |>\n|:\n:|\n",
-                "debe contener al menos un return", "ausencia de return");
+                "debe retornar un valor en todas las rutas", "ausencia de return");
+
+        assertErrorSemantico(compilador, "int ~ parcial<|bool ~ condicion|>\n|:\n"
+                + "    if <|condicion|> |:\n        return ~ 1 !\n    :|\n"
+                + ":|\nempty ~ __main__<| |>\n|:\n:|\n",
+                "debe retornar un valor en todas las rutas",
+                "if sin else no garantiza retorno");
+
+        assertAceptado(compilador, "int ~ completo<|bool ~ condicion|>\n|:\n"
+                + "    if <|condicion|> |:\n        return ~ 1 !\n    :|\n"
+                + "    else |:\n        return ~ 2 !\n    :|\n"
+                + ":|\n"
+                + "string ~ texto<| |>\n|:\n    return ~ \"ok\" !\n:|\n"
+                + "void ~ procedimiento<| |>\n|:\n    return !\n:|\n"
+                + "empty ~ __main__<| |>\n|:\n"
+                + "    int ~ resultado <- completo<|true|> !\n"
+                + "    cout <|texto<| |>|> !\n"
+                + "    procedimiento<| |> !\n:|\n",
+                "if completo y funciones string/void");
+
+        assertAceptado(compilador, "int ~ porSeleccion<|int ~ opcion|>\n|:\n"
+                + "    switch <|opcion|> |:\n"
+                + "        case ~ 1: |:\n            return ~ 10 !\n        :|\n"
+                + "        default ~: |:\n            return ~ 20 !\n        :|\n"
+                + "    :|\n:|\n"
+                + "empty ~ __main__<| |>\n|:\n"
+                + "    int ~ resultado <- porSeleccion<|1|> !\n:|\n",
+                "switch con default retorna en todas las rutas");
 
         assertAceptado(compilador, "int ~ rec<|int ~ n|>\n|:\n"
                 + "    if <|equal<|n,0|>|> |:\n return~0!\n :|\n"
@@ -824,7 +875,7 @@ public class CompiladorSmokeTest {
             throw new AssertionError("La prueba semantica extensa debe producir errores semanticos.");
         }
         assertAlgunoContiene(errores, "la expresion de switch no puede ser de tipo float");
-        assertAlgunoContiene(errores, "la funcion de tipo bool debe contener al menos un return");
+        assertAlgunoContiene(errores, "la funcion de tipo bool debe retornar un valor en todas las rutas");
         assertAlgunoContiene(errores, "no se puede asignar directamente al arreglo completo 'arr'");
     }
 

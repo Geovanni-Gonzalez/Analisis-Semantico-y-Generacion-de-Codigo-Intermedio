@@ -1,16 +1,16 @@
 int ~ retornaEnteroOk<| |>
 |:
-    return 5 !
+    return ~ 5 !
 :|
 
 int ~ retornaFloatEnInt<| |>
 |:
-    return 5.0 !
+    return ~ 5.0 !
 :|
 
 void ~ voidConValor<| |>
 |:
-    return 5 !
+    return ~ 5 !
 :|
 
 int ~ intSinValor<| |>

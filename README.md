@@ -155,7 +155,7 @@ Proyecto académico en evolución.
 Demuestra comprensión de fases de compiladores y herramientas de generación.
 
 ## Recuperación sintáctica a nivel de frase
-Se implementó una recuperación local para declaraciones sin terminador de sentencia. Cuando el parser reconoce una declaración completa y el siguiente token ya pertenece a la sentencia siguiente o al cierre del bloque, reduce la declaración como válida e inserta virtualmente el terminador faltante. El reporte sintáctico registra el mensaje `se insertó ';' para recuperar el análisis`.
+Se implementó una recuperación local para declaraciones sin terminador de sentencia. Cuando el parser reconoce una declaración completa y el siguiente token ya pertenece a la sentencia siguiente o al cierre del bloque, reduce la declaración como válida e inserta virtualmente el terminador faltante. El reporte sintáctico registra el mensaje `se insertó '!' para recuperar el análisis`.
 
 Este caso cubre declaraciones escalares o de arreglo que omiten el terminador antes de otra sentencia, por ejemplo `int ~ x <- 10` seguido de `cout <|x|>!`. La estrategia conserva el token inicial de la sentencia siguiente, por lo que el análisis puede continuar con menos pérdida de contexto que en modo pánico. Los errores internos de la declaración y otros tipos de sentencias siguen usando las producciones de recuperación existentes con `error`.
 

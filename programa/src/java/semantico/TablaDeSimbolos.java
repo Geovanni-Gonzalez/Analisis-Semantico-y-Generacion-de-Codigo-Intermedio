@@ -502,7 +502,8 @@ public class TablaDeSimbolos {
      * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
      */
     public void reportarReturnFaltante(TipoDato esperado, int linea) {
-        reportar("la funcion de tipo " + esperado + " debe contener al menos un return", linea);
+        reportar("la funcion de tipo " + esperado
+                + " debe retornar un valor en todas las rutas de ejecucion", linea);
     }
 
     /**
@@ -576,6 +577,10 @@ public class TablaDeSimbolos {
     public void reportarReturnTipoIncompatible(TipoDato esperado, TipoDato encontrado, int linea) {
         reportar("tipo incompatible en return: se esperaba tipo " + esperado
                 + " y se obtuvo tipo " + encontrado, linea);
+    }
+
+    public void reportarBreakFueraDeCicloOSwitch(int linea) {
+        reportar("la sentencia break solo puede utilizarse dentro de un ciclo o switch", linea);
     }
 
     /**
