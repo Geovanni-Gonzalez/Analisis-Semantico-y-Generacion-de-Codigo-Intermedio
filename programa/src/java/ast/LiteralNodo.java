@@ -1,24 +1,30 @@
 package ast;
 
 /**
- * <strong>Objetivo:</strong> Expresion hoja que representa un literal del codigo fuente.
+ * <strong>Nombre:</strong> LiteralNodo
  *
- * <p><strong>Entradas:</strong> Datos sintacticos reconocidos por el parser, posiciones de fuente y subnodos relacionados.</p>
+ * <p><strong>Objetivo:</strong> Representar un literal escrito en el código fuente
+ * (un número, una cadena, un carácter o un booleano).</p>
  *
- * <p><strong>Salidas:</strong> Nodos, valores o metadatos consultables por las fases semantica e intermedia.</p>
+ * <p><strong>Entrada:</strong> Posición en el fuente, el valor ya convertido y su tipo de dato.</p>
  *
- * <p><strong>Restricciones:</strong> No debe ejecutar validaciones globales ni escribir archivos; solo conserva estructura y metadatos.</p>
+ * <p><strong>Salida:</strong> Nodo de expresión hoja consultable por las fases posteriores.</p>
+ *
+ * <p><strong>Restricciones:</strong> Solo almacena el valor; no lo interpreta.</p>
  */
 public class LiteralNodo extends ExpresionNodo {
     private final Object valor;
+
     /**
-     * <strong>Objetivo:</strong> Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * <strong>Nombre:</strong> LiteralNodo
      *
-     * <p><strong>Entradas:</strong> int linea, int columna, Object valor, TipoDato tipo</p>
+     * <p><strong>Objetivo:</strong> Crear el literal con su valor ya convertido y su tipo de dato.</p>
      *
-     * <p><strong>Salidas:</strong> Instancia inicializada de LiteralNodo.</p>
+     * <p><strong>Entrada:</strong> int linea, int columna, Object valor, TipoDato tipo.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> Nueva instancia de LiteralNodo.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
      */
     public LiteralNodo(int linea, int columna, Object valor, TipoDato tipo) {
         super(linea, columna, tipo);
@@ -26,13 +32,15 @@ public class LiteralNodo extends ExpresionNodo {
     }
 
     /**
-     * <strong>Objetivo:</strong> Consulta el valor asociado a esta propiedad.
+     * <strong>Nombre:</strong> getValor
      *
-     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     * <p><strong>Objetivo:</strong> Devolver el valor del literal.</p>
      *
-     * <p><strong>Salidas:</strong> Retorna Object.</p>
+     * <p><strong>Entrada:</strong> Ninguna.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> Object con el valor (Integer, Float, String, etc.).</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
      */
     public Object getValor() {
         return valor;

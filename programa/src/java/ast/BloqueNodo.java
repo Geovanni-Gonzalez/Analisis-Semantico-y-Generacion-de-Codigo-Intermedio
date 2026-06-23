@@ -5,24 +5,30 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * <strong>Objetivo:</strong> Nodo que agrupa una secuencia de instrucciones dentro de un alcance.
+ * <strong>Nombre:</strong> BloqueNodo
  *
- * <p><strong>Entradas:</strong> Datos sintacticos reconocidos por el parser, posiciones de fuente y subnodos relacionados.</p>
+ * <p><strong>Objetivo:</strong> Agrupar una secuencia de instrucciones que forman un alcance
+ * (un bloque {@code |: ... :|}), como el cuerpo de una función, un if o un ciclo.</p>
  *
- * <p><strong>Salidas:</strong> Nodos, valores o metadatos consultables por las fases semantica e intermedia.</p>
+ * <p><strong>Entrada:</strong> Posición en el fuente y la lista de instrucciones del bloque.</p>
  *
- * <p><strong>Restricciones:</strong> No debe ejecutar validaciones globales ni escribir archivos; solo conserva estructura y metadatos.</p>
+ * <p><strong>Salida:</strong> Nodo que agrupa las instrucciones del alcance.</p>
+ *
+ * <p><strong>Restricciones:</strong> Copia la lista recibida y la expone como solo lectura.</p>
  */
 public class BloqueNodo extends Nodo {
     private final List<Nodo> instrucciones;
+
     /**
-     * <strong>Objetivo:</strong> Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * <strong>Nombre:</strong> BloqueNodo
      *
-     * <p><strong>Entradas:</strong> int linea, int columna, List<Nodo> instrucciones</p>
+     * <p><strong>Objetivo:</strong> Crear el bloque copiando la lista de instrucciones que contiene.</p>
      *
-     * <p><strong>Salidas:</strong> Instancia inicializada de BloqueNodo.</p>
+     * <p><strong>Entrada:</strong> int linea, int columna, List&lt;Nodo&gt; instrucciones.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> Nueva instancia de BloqueNodo.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
      */
     public BloqueNodo(int linea, int columna, List<Nodo> instrucciones) {
         super(linea, columna, TipoDato.EMPTY);
@@ -30,13 +36,15 @@ public class BloqueNodo extends Nodo {
     }
 
     /**
-     * <strong>Objetivo:</strong> Consulta el valor asociado a esta propiedad.
+     * <strong>Nombre:</strong> getInstrucciones
      *
-     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     * <p><strong>Objetivo:</strong> Devolver las instrucciones del bloque, en orden.</p>
      *
-     * <p><strong>Salidas:</strong> Retorna List<Nodo>.</p>
+     * <p><strong>Entrada:</strong> Ninguna.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> List&lt;Nodo&gt; no modificable con las instrucciones.</p>
+     *
+     * <p><strong>Restricciones:</strong> La lista no se puede modificar.</p>
      */
     public List<Nodo> getInstrucciones() {
         return Collections.unmodifiableList(instrucciones);

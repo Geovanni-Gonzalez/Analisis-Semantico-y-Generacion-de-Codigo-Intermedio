@@ -1,24 +1,30 @@
 package ast;
 
 /**
- * <strong>Objetivo:</strong> Sentencia de entrada del lenguaje, equivalente a leer hacia una variable.
+ * <strong>Nombre:</strong> EntradaNodo
  *
- * <p><strong>Entradas:</strong> Datos sintacticos reconocidos por el parser, posiciones de fuente y subnodos relacionados.</p>
+ * <p><strong>Objetivo:</strong> Representar la sentencia de entrada ({@code cin}): leer un valor
+ * desde el usuario y guardarlo en la variable destino.</p>
  *
- * <p><strong>Salidas:</strong> Nodos, valores o metadatos consultables por las fases semantica e intermedia.</p>
+ * <p><strong>Entrada:</strong> Posición en el fuente y el nombre de la variable destino.</p>
  *
- * <p><strong>Restricciones:</strong> No debe ejecutar validaciones globales ni escribir archivos; solo conserva estructura y metadatos.</p>
+ * <p><strong>Salida:</strong> Nodo de sentencia consultable por las fases posteriores.</p>
+ *
+ * <p><strong>Restricciones:</strong> Solo almacena el nombre del destino.</p>
  */
 public class EntradaNodo extends SentenciaNodo {
     private final String destino;
+
     /**
-     * <strong>Objetivo:</strong> Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * <strong>Nombre:</strong> EntradaNodo
      *
-     * <p><strong>Entradas:</strong> int linea, int columna, String destino</p>
+     * <p><strong>Objetivo:</strong> Crear la sentencia de entrada con el nombre de la variable que recibe el dato.</p>
      *
-     * <p><strong>Salidas:</strong> Instancia inicializada de EntradaNodo.</p>
+     * <p><strong>Entrada:</strong> int linea, int columna, String destino.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> Nueva instancia de EntradaNodo.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
      */
     public EntradaNodo(int linea, int columna, String destino) {
         super(linea, columna);
@@ -26,13 +32,15 @@ public class EntradaNodo extends SentenciaNodo {
     }
 
     /**
-     * <strong>Objetivo:</strong> Consulta el valor asociado a esta propiedad.
+     * <strong>Nombre:</strong> getDestino
      *
-     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     * <p><strong>Objetivo:</strong> Devolver el nombre de la variable donde se almacena el valor leído.</p>
      *
-     * <p><strong>Salidas:</strong> Retorna String.</p>
+     * <p><strong>Entrada:</strong> Ninguna.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> String con el nombre del destino.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
      */
     public String getDestino() {
         return destino;

@@ -1,23 +1,29 @@
 package ast;
 
 /**
- * <strong>Objetivo:</strong> Sentencia de interrupcion de flujo dentro de estructuras como switch.
+ * <strong>Nombre:</strong> BreakNodo
  *
- * <p><strong>Entradas:</strong> Datos sintacticos reconocidos por el parser, posiciones de fuente y subnodos relacionados.</p>
+ * <p><strong>Objetivo:</strong> Representar la sentencia {@code break}, que interrumpe el flujo
+ * de una estructura, típicamente para salir de un caso del switch.</p>
  *
- * <p><strong>Salidas:</strong> Nodos, valores o metadatos consultables por las fases semantica e intermedia.</p>
+ * <p><strong>Entrada:</strong> Posición en el fuente.</p>
  *
- * <p><strong>Restricciones:</strong> No debe ejecutar validaciones globales ni escribir archivos; solo conserva estructura y metadatos.</p>
+ * <p><strong>Salida:</strong> Nodo de sentencia consultable por las fases posteriores.</p>
+ *
+ * <p><strong>Restricciones:</strong> No lleva datos adicionales.</p>
  */
 public class BreakNodo extends SentenciaNodo {
+
     /**
-     * <strong>Objetivo:</strong> Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * <strong>Nombre:</strong> BreakNodo
      *
-     * <p><strong>Entradas:</strong> int linea, int columna</p>
+     * <p><strong>Objetivo:</strong> Crear el nodo break en la posición indicada.</p>
      *
-     * <p><strong>Salidas:</strong> Instancia inicializada de BreakNodo.</p>
+     * <p><strong>Entrada:</strong> int linea, int columna.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> Nueva instancia de BreakNodo.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
      */
     public BreakNodo(int linea, int columna) {
         super(linea, columna, TipoDato.EMPTY);

@@ -1,35 +1,44 @@
 package ast;
 
 /**
- * <strong>Objetivo:</strong> Clase base para nodos que representan instrucciones ejecutables.
+ * <strong>Nombre:</strong> SentenciaNodo
  *
- * <p><strong>Entradas:</strong> Datos sintacticos reconocidos por el parser, posiciones de fuente y subnodos relacionados.</p>
+ * <p><strong>Objetivo:</strong> Clase base de los nodos que representan instrucciones
+ * ejecutables (asignaciones, condicionales, ciclos, return, break, etc.).</p>
  *
- * <p><strong>Salidas:</strong> Nodos, valores o metadatos consultables por las fases semantica e intermedia.</p>
+ * <p><strong>Entrada:</strong> Posición en el fuente y, opcionalmente, el tipo de dato.</p>
  *
- * <p><strong>Restricciones:</strong> No debe ejecutar validaciones globales ni escribir archivos; solo conserva estructura y metadatos.</p>
+ * <p><strong>Salida:</strong> Nodo base reutilizado por todas las sentencias del AST.</p>
+ *
+ * <p><strong>Restricciones:</strong> Es abstracta; solo almacena datos.</p>
  */
 public abstract class SentenciaNodo extends Nodo {
+
     /**
-     * <strong>Objetivo:</strong> Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * <strong>Nombre:</strong> SentenciaNodo
      *
-     * <p><strong>Entradas:</strong> int linea, int columna</p>
+     * <p><strong>Objetivo:</strong> Crear una sentencia en la posición dada con tipo aún desconocido.</p>
      *
-     * <p><strong>Salidas:</strong> Instancia inicializada de SentenciaNodo.</p>
+     * <p><strong>Entrada:</strong> int linea, int columna.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> Nueva instancia de SentenciaNodo.</p>
+     *
+     * <p><strong>Restricciones:</strong> Constructor protegido; lo usan las subclases.</p>
      */
     protected SentenciaNodo(int linea, int columna) {
         super(linea, columna);
     }
+
     /**
-     * <strong>Objetivo:</strong> Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * <strong>Nombre:</strong> SentenciaNodo
      *
-     * <p><strong>Entradas:</strong> int linea, int columna, TipoDato tipo</p>
+     * <p><strong>Objetivo:</strong> Crear una sentencia en la posición dada con un tipo ya conocido.</p>
      *
-     * <p><strong>Salidas:</strong> Instancia inicializada de SentenciaNodo.</p>
+     * <p><strong>Entrada:</strong> int linea, int columna, TipoDato tipo.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> Nueva instancia de SentenciaNodo.</p>
+     *
+     * <p><strong>Restricciones:</strong> Constructor protegido; lo usan las subclases.</p>
      */
     protected SentenciaNodo(int linea, int columna, TipoDato tipo) {
         super(linea, columna, tipo);

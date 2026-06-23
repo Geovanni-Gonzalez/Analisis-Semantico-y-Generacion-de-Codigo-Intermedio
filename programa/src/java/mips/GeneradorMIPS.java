@@ -8,7 +8,20 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-/** Traduce instrucciones de tres direcciones a ensamblador MIPS para SPIM. */
+/**
+ * <strong>Nombre:</strong> GeneradorMIPS
+ *
+ * <p><strong>Objetivo:</strong> Traducir las instrucciones de código intermedio (tres direcciones) a
+ * ensamblador MIPS ejecutable en SPIM/QtSpim: reserva memoria en {@code .data}, traduce cada
+ * operación en {@code .text} y maneja registros, funciones, arreglos, flotantes y saltos.</p>
+ *
+ * <p><strong>Entrada:</strong> La lista de instrucciones intermedias ya validada.</p>
+ *
+ * <p><strong>Salida:</strong> Una lista de líneas de ensamblador MIPS.</p>
+ *
+ * <p><strong>Restricciones:</strong> Asume código intermedio correcto; reserva {@code $t6}–{@code $t9}
+ * para conversiones y direccionamiento de arreglos.</p>
+ */
 public final class GeneradorMIPS {
     private final List<String> salida = new ArrayList<>();
     private final AdministradorRegistros registros = new AdministradorRegistros();
@@ -26,7 +39,17 @@ public final class GeneradorMIPS {
     private String funcionActual;
     private int indiceParametroFormal;
 
-    /** Genera un programa MIPS completo a partir del codigo intermedio validado. */
+    /**
+     * <strong>Nombre:</strong> generarCodigo
+     *
+     * <p><strong>Objetivo:</strong> Generar un programa MIPS completo a partir del código intermedio validado.</p>
+     *
+     * <p><strong>Entrada:</strong> List&lt;Instruccion&gt; codigoIntermedio.</p>
+     *
+     * <p><strong>Salida:</strong> List&lt;String&gt; con las líneas de ensamblador MIPS.</p>
+     *
+     * <p><strong>Restricciones:</strong> Reinicia el estado interno en cada llamada.</p>
+     */
     public List<String> generarCodigo(List<Instruccion> codigoIntermedio) {
         reiniciar();
         analizar(codigoIntermedio);
@@ -37,6 +60,17 @@ public final class GeneradorMIPS {
         return new ArrayList<>(salida);
     }
 
+    /**
+     * <strong>Nombre:</strong> reiniciar
+     *
+     * <p><strong>Objetivo:</strong> Limpiar la salida, los registros y todas las tablas internas antes de una nueva generación.</p>
+     *
+     * <p><strong>Entrada:</strong> Ninguna.</p>
+     *
+     * <p><strong>Salida:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
+     */
     private void reiniciar() {
         salida.clear();
         registros.reiniciar();
@@ -55,6 +89,18 @@ public final class GeneradorMIPS {
         indiceParametroFormal = 0;
     }
 
+    /**
+     * <strong>Nombre:</strong> analizar
+     *
+     * <p><strong>Objetivo:</strong> Primer recorrido del código intermedio para recolectar tipos,
+     * dimensiones de arreglos, constantes y conteo de parámetros, y propagar tipos hasta un punto fijo.</p>
+     *
+     * <p><strong>Entrada:</strong> List&lt;Instruccion&gt; codigo.</p>
+     *
+     * <p><strong>Salida:</strong> No retorna valor; llena las tablas internas.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe ejecutarse antes de traducir.</p>
+     */
     private void analizar(List<Instruccion> codigo) {
         String funcion = null;
         for (Instruccion instruccion : codigo) {
@@ -116,6 +162,18 @@ public final class GeneradorMIPS {
         construirTablaDirecciones();
     }
 
+    /**
+     * <strong>Nombre:</strong> construirTablaDirecciones
+     *
+     * <p><strong>Objetivo:</strong> Asignar a cada variable/temporal una etiqueta única en {@code .data},
+     * desambiguando con un sufijo cuando dos nombres producirían la misma etiqueta.</p>
+     *
+     * <p><strong>Entrada:</strong> Ninguna (usa la tabla de tipos).</p>
+     *
+     * <p><strong>Salida:</strong> No retorna valor; llena la tabla de direcciones.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
+     */
     private void construirTablaDirecciones() {
         Map<String, Integer> repeticiones = new LinkedHashMap<>();
         for (String clave : tipos.keySet()) {
@@ -126,6 +184,17 @@ public final class GeneradorMIPS {
         }
     }
 
+    /**
+     * <strong>Nombre:</strong> tipoResultado
+     *
+     * <p><strong>Objetivo:</strong> Deducir el tipo del resultado de una instrucción según su operación y operandos.</p>
+     *
+     * <p><strong>Entrada:</strong> Instruccion i, String funcion.</p>
+     *
+     * <p><strong>Salida:</strong> String con el tipo ("int", "float", "bool"), o {@code null} si no aplica.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
+     */
     private String tipoResultado(Instruccion i, String funcion) {
         switch (i.op) {
             case LOAD:
@@ -156,6 +225,18 @@ public final class GeneradorMIPS {
         }
     }
 
+    /**
+     * <strong>Nombre:</strong> emitirDatos
+     *
+     * <p><strong>Objetivo:</strong> Emitir la sección {@code .data} reservando espacio para variables
+     * ({@code .word}/{@code .float}), arreglos ({@code .space}), cadenas ({@code .asciiz}) y flotantes literales.</p>
+     *
+     * <p><strong>Entrada:</strong> Ninguna (usa las tablas internas).</p>
+     *
+     * <p><strong>Salida:</strong> No retorna valor; agrega líneas a la salida.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
+     */
     private void emitirDatos() {
         salida.add(".data");
         for (Map.Entry<String, String> entrada : tipos.entrySet()) {
@@ -178,12 +259,35 @@ public final class GeneradorMIPS {
         salida.add("");
     }
 
+    /**
+     * <strong>Nombre:</strong> espacioArreglo
+     *
+     * <p><strong>Objetivo:</strong> Calcular los bytes a reservar para un arreglo (número de celdas por 4).</p>
+     *
+     * <p><strong>Entrada:</strong> String clave.</p>
+     *
+     * <p><strong>Salida:</strong> int con el tamaño en bytes.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
+     */
     private int espacioArreglo(String clave) {
         return dimensionesDeclaradas.getOrDefault(clave, 1) * 4;
     }
 
     private final Map<String, Integer> dimensionesDeclaradas = new LinkedHashMap<>();
 
+    /**
+     * <strong>Nombre:</strong> traducir
+     *
+     * <p><strong>Objetivo:</strong> Segundo recorrido: traducir cada instrucción intermedia a sus
+     * líneas MIPS, fusionando comparación + salto cuando es posible.</p>
+     *
+     * <p><strong>Entrada:</strong> List&lt;Instruccion&gt; codigo.</p>
+     *
+     * <p><strong>Salida:</strong> No retorna valor; agrega líneas a la salida.</p>
+     *
+     * <p><strong>Restricciones:</strong> Requiere que {@link #analizar} ya se haya ejecutado.</p>
+     */
     private void traducir(List<Instruccion> codigo) {
         funcionActual = null;
         for (int indice = 0; indice < codigo.size(); indice++) {
@@ -274,6 +378,18 @@ public final class GeneradorMIPS {
         }
     }
 
+    /**
+     * <strong>Nombre:</strong> puedeFusionarSalto
+     *
+     * <p><strong>Objetivo:</strong> Decidir si una comparación entera seguida de un IF_FALSE sobre su
+     * resultado puede traducirse como un único branch condicional.</p>
+     *
+     * <p><strong>Entrada:</strong> Instruccion comparacion, Instruccion salto.</p>
+     *
+     * <p><strong>Salida:</strong> boolean; true si pueden fusionarse.</p>
+     *
+     * <p><strong>Restricciones:</strong> No aplica a comparaciones de flotantes.</p>
+     */
     private boolean puedeFusionarSalto(Instruccion comparacion, Instruccion salto) {
         return esComparacion(comparacion.op)
                 && salto.op == Operacion.IF_FALSE
@@ -283,7 +399,18 @@ public final class GeneradorMIPS {
                 && !esFloat(tipoOperando(comparacion.op2, funcionActual));
     }
 
-    /** Traduce directamente el caso falso de una comparacion hacia su etiqueta 3D. */
+    /**
+     * <strong>Nombre:</strong> traducirSaltoComparacion
+     *
+     * <p><strong>Objetivo:</strong> Traducir directamente el caso falso de una comparación hacia su
+     * etiqueta destino, usando el branch MIPS inverso ({@code bne}, {@code bge}, {@code ble}, ...).</p>
+     *
+     * <p><strong>Entrada:</strong> Instruccion comparacion, String destino.</p>
+     *
+     * <p><strong>Salida:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Solo para comparaciones enteras.</p>
+     */
     private void traducirSaltoComparacion(Instruccion comparacion, String destino) {
         String izquierdo = cargarValor(comparacion.op1);
         String derecho = cargarValor(comparacion.op2);
@@ -302,6 +429,17 @@ public final class GeneradorMIPS {
         registros.liberarRegistro(izquierdo);
     }
 
+    /**
+     * <strong>Nombre:</strong> traducirTransferencia
+     *
+     * <p><strong>Objetivo:</strong> Traducir una transferencia (LOAD/ASIG/STORE_ARRAY) cargando el origen y guardándolo en el destino.</p>
+     *
+     * <p><strong>Entrada:</strong> Instruccion i.</p>
+     *
+     * <p><strong>Salida:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Distingue entre enteros y flotantes.</p>
+     */
     private void traducirTransferencia(Instruccion i) {
         if (esFloat(tipoOperando(i.op1, funcionActual))) {
             cargarFloat(i.op1, "$f0");
@@ -313,6 +451,17 @@ public final class GeneradorMIPS {
         registros.liberarRegistro(registro);
     }
 
+    /**
+     * <strong>Nombre:</strong> iniciarFuncion
+     *
+     * <p><strong>Objetivo:</strong> Emitir la etiqueta de la función y su prólogo (guardar {@code $ra} en la pila, salvo en main).</p>
+     *
+     * <p><strong>Entrada:</strong> String nombre.</p>
+     *
+     * <p><strong>Salida:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
+     */
     private void iniciarFuncion(String nombre) {
         funcionActual = nombre;
         indiceParametroFormal = 0;
@@ -324,6 +473,18 @@ public final class GeneradorMIPS {
         }
     }
 
+    /**
+     * <strong>Nombre:</strong> finalizarFuncion
+     *
+     * <p><strong>Objetivo:</strong> Emitir el epílogo: en main termina con {@code li $v0, 10} + {@code syscall};
+     * en las demás restaura {@code $ra} y retorna con {@code jr $ra}.</p>
+     *
+     * <p><strong>Entrada:</strong> String nombre.</p>
+     *
+     * <p><strong>Salida:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
+     */
     private void finalizarFuncion(String nombre) {
         salida.add(etiquetaEpilogo(nombre) + ":");
         if ("__main__".equals(nombre)) {
@@ -337,6 +498,17 @@ public final class GeneradorMIPS {
         funcionActual = null;
     }
 
+    /**
+     * <strong>Nombre:</strong> traducirParametroFormal
+     *
+     * <p><strong>Objetivo:</strong> Copiar un parámetro recibido por la pila a la variable local que lo representa.</p>
+     *
+     * <p><strong>Entrada:</strong> Instruccion i.</p>
+     *
+     * <p><strong>Salida:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Usa el orden de los parámetros para calcular el desplazamiento en la pila.</p>
+     */
     private void traducirParametroFormal(Instruccion i) {
         int total = parametrosFuncion.getOrDefault(funcionActual, 0);
         int desplazamiento = 4 * (total - indiceParametroFormal);
@@ -347,6 +519,18 @@ public final class GeneradorMIPS {
         indiceParametroFormal++;
     }
 
+    /**
+     * <strong>Nombre:</strong> traducirLlamada
+     *
+     * <p><strong>Objetivo:</strong> Emitir la llamada ({@code jal}), recuperar el espacio de los parámetros y
+     * guardar el valor retornado ({@code $v0}) si la llamada produce resultado.</p>
+     *
+     * <p><strong>Entrada:</strong> Instruccion i.</p>
+     *
+     * <p><strong>Salida:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Maneja por separado los retornos flotantes.</p>
+     */
     private void traducirLlamada(Instruccion i) {
         instruccion("jal " + etiquetaFuncion(i.op1));
         int cantidad = parseEntero(i.op2, 0);
@@ -363,6 +547,18 @@ public final class GeneradorMIPS {
         }
     }
 
+    /**
+     * <strong>Nombre:</strong> traducirRetorno
+     *
+     * <p><strong>Objetivo:</strong> Colocar el valor de retorno en {@code $v0} (o desde {@code $f0} si es flotante)
+     * y saltar al epílogo de la función.</p>
+     *
+     * <p><strong>Entrada:</strong> Instruccion i.</p>
+     *
+     * <p><strong>Salida:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
+     */
     private void traducirRetorno(Instruccion i) {
         if (i.op1 != null) {
             if (esFloat(tipoOperando(i.op1, funcionActual))) {
@@ -375,6 +571,18 @@ public final class GeneradorMIPS {
         instruccion("j " + etiquetaEpilogo(funcionActual));
     }
 
+    /**
+     * <strong>Nombre:</strong> traducirBinaria
+     *
+     * <p><strong>Objetivo:</strong> Traducir una operación binaria (aritmética, lógica o de comparación),
+     * eligiendo la variante entera o flotante según los operandos.</p>
+     *
+     * <p><strong>Entrada:</strong> Instruccion i.</p>
+     *
+     * <p><strong>Salida:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Para flotantes delega en rutinas específicas.</p>
+     */
     private void traducirBinaria(Instruccion i) {
         boolean flotante = esFloat(tipoOperando(i.op1, funcionActual))
                 || esFloat(tipoOperando(i.op2, funcionActual));
@@ -443,6 +651,18 @@ public final class GeneradorMIPS {
         registros.liberarRegistro(izquierdo);
     }
 
+    /**
+     * <strong>Nombre:</strong> traducirComparacionFloat
+     *
+     * <p><strong>Objetivo:</strong> Traducir una comparación entre flotantes usando {@code c.*.s} y los
+     * branches del coprocesador, dejando 0 o 1 en el resultado.</p>
+     *
+     * <p><strong>Entrada:</strong> Instruccion i.</p>
+     *
+     * <p><strong>Salida:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
+     */
     private void traducirComparacionFloat(Instruccion i) {
         cargarFloat(i.op1, "$f0");
         cargarFloat(i.op2, "$f2");
@@ -485,6 +705,17 @@ public final class GeneradorMIPS {
         registros.liberarRegistro(resultado);
     }
 
+    /**
+     * <strong>Nombre:</strong> traducirPotenciaFloat
+     *
+     * <p><strong>Objetivo:</strong> Calcular una potencia con base flotante mediante un ciclo de multiplicaciones.</p>
+     *
+     * <p><strong>Entrada:</strong> String resultado (etiqueta destino).</p>
+     *
+     * <p><strong>Salida:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> El exponente se toma truncado de {@code $f2}.</p>
+     */
     private void traducirPotenciaFloat(String resultado) {
         String ciclo = nuevaEtiquetaInterna("powf");
         String fin = nuevaEtiquetaInterna("powf_fin");
@@ -504,6 +735,17 @@ public final class GeneradorMIPS {
         registros.liberarRegistro(contador);
     }
 
+    /**
+     * <strong>Nombre:</strong> traducirPotenciaEntera
+     *
+     * <p><strong>Objetivo:</strong> Calcular una potencia entera mediante un ciclo de multiplicaciones.</p>
+     *
+     * <p><strong>Entrada:</strong> String base, String exponente, String resultado (registros).</p>
+     *
+     * <p><strong>Salida:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Consume el registro del exponente como contador.</p>
+     */
     private void traducirPotenciaEntera(String base, String exponente, String resultado) {
         String ciclo = nuevaEtiquetaInterna("pow");
         String fin = nuevaEtiquetaInterna("pow_fin");
@@ -516,6 +758,17 @@ public final class GeneradorMIPS {
         salida.add(fin + ":");
     }
 
+    /**
+     * <strong>Nombre:</strong> traducirUnaria
+     *
+     * <p><strong>Objetivo:</strong> Traducir una operación unaria: negación aritmética (entera o flotante) o negación lógica.</p>
+     *
+     * <p><strong>Entrada:</strong> Instruccion i.</p>
+     *
+     * <p><strong>Salida:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
+     */
     private void traducirUnaria(Instruccion i) {
         if (i.op == Operacion.NEG && esFloat(tipoOperando(i.op1, funcionActual))) {
             cargarFloat(i.op1, "$f0");
@@ -535,6 +788,18 @@ public final class GeneradorMIPS {
         registros.liberarRegistro(operando);
     }
 
+    /**
+     * <strong>Nombre:</strong> traducirPrint
+     *
+     * <p><strong>Objetivo:</strong> Emitir la impresión del operando con el syscall adecuado según su tipo
+     * (entero, cadena, carácter o flotante).</p>
+     *
+     * <p><strong>Entrada:</strong> String operando.</p>
+     *
+     * <p><strong>Salida:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
+     */
     private void traducirPrint(String operando) {
         String tipo = tipoOperando(operando, funcionActual);
         if ("string".equals(tipo)) {
@@ -553,6 +818,17 @@ public final class GeneradorMIPS {
         instruccion("syscall");
     }
 
+    /**
+     * <strong>Nombre:</strong> traducirRead
+     *
+     * <p><strong>Objetivo:</strong> Emitir la lectura de un valor desde el usuario (syscall 5 o 6) y guardarlo en el destino.</p>
+     *
+     * <p><strong>Entrada:</strong> String destino.</p>
+     *
+     * <p><strong>Salida:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Distingue entre lectura entera y flotante.</p>
+     */
     private void traducirRead(String destino) {
         if (esFloat(tipoOperando(destino, funcionActual))) {
             instruccion("li $v0, 6");
@@ -565,13 +841,35 @@ public final class GeneradorMIPS {
         }
     }
 
-    /** Obtiene un temporal administrado y carga en el el valor entero solicitado. */
+    /**
+     * <strong>Nombre:</strong> cargarValor
+     *
+     * <p><strong>Objetivo:</strong> Obtener un registro temporal libre y cargar en él el valor entero solicitado.</p>
+     *
+     * <p><strong>Entrada:</strong> String operando.</p>
+     *
+     * <p><strong>Salida:</strong> String con el nombre del registro usado.</p>
+     *
+     * <p><strong>Restricciones:</strong> Quien lo llama debe liberar el registro.</p>
+     */
     private String cargarValor(String operando) {
         String registro = registros.obtenerRegistro();
         cargarEntero(operando, registro);
         return registro;
     }
 
+    /**
+     * <strong>Nombre:</strong> cargarEntero
+     *
+     * <p><strong>Objetivo:</strong> Cargar en un registro un valor entero, según sea constante, carácter,
+     * booleano, cadena (dirección), celda de arreglo o variable en memoria.</p>
+     *
+     * <p><strong>Entrada:</strong> String operando, String registro.</p>
+     *
+     * <p><strong>Salida:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Un operando {@code null} carga $zero.</p>
+     */
     private void cargarEntero(String operando, String registro) {
         if (operando == null) {
             instruccion("move " + registro + ", $zero");
@@ -591,6 +889,18 @@ public final class GeneradorMIPS {
         }
     }
 
+    /**
+     * <strong>Nombre:</strong> cargarFloat
+     *
+     * <p><strong>Objetivo:</strong> Cargar en un registro del coprocesador un valor flotante, convirtiendo
+     * desde entero o leyendo desde una celda de arreglo o variable según el caso.</p>
+     *
+     * <p><strong>Entrada:</strong> String operando, String registro.</p>
+     *
+     * <p><strong>Salida:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
+     */
     private void cargarFloat(String operando, String registro) {
         if (esFloatLiteral(operando)) {
             instruccion("l.s " + registro + ", " + flotantes.get(operando));
@@ -606,6 +916,17 @@ public final class GeneradorMIPS {
         }
     }
 
+    /**
+     * <strong>Nombre:</strong> guardar
+     *
+     * <p><strong>Objetivo:</strong> Guardar un valor (entero o flotante) en el destino, sea una celda de arreglo o una variable.</p>
+     *
+     * <p><strong>Entrada:</strong> String destino, String registroEntero, String registroFloat.</p>
+     *
+     * <p><strong>Salida:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Usa el registro entero o el flotante según el tipo del destino.</p>
+     */
     private void guardar(String destino, String registroEntero, String registroFloat) {
         if (esAccesoArreglo(destino)) {
             direccionArreglo(destino, "$t7");
@@ -618,6 +939,18 @@ public final class GeneradorMIPS {
         }
     }
 
+    /**
+     * <strong>Nombre:</strong> direccionArreglo
+     *
+     * <p><strong>Objetivo:</strong> Calcular en un registro la dirección de una celda {@code nombre[fila][col]}
+     * con la fórmula {@code base + (fila*columnas + col)*4}.</p>
+     *
+     * <p><strong>Entrada:</strong> String acceso, String registroDireccion.</p>
+     *
+     * <p><strong>Salida:</strong> No retorna valor; deja la dirección en el registro indicado.</p>
+     *
+     * <p><strong>Restricciones:</strong> Usa {@code $t6}, {@code $t8} y {@code $t9} como auxiliares.</p>
+     */
     private void direccionArreglo(String acceso, String registroDireccion) {
         int primero = acceso.indexOf('[');
         String nombre = acceso.substring(0, primero);
@@ -637,6 +970,17 @@ public final class GeneradorMIPS {
         instruccion("add " + registroDireccion + ", " + registroDireccion + ", $t8");
     }
 
+    /**
+     * <strong>Nombre:</strong> tipoOperando
+     *
+     * <p><strong>Objetivo:</strong> Determinar el tipo de un operando: por su forma si es literal, o consultando la tabla de tipos.</p>
+     *
+     * <p><strong>Entrada:</strong> String operando, String funcion.</p>
+     *
+     * <p><strong>Salida:</strong> String con el tipo ("int", "float", "bool", "char", "string").</p>
+     *
+     * <p><strong>Restricciones:</strong> Por defecto asume "int".</p>
+     */
     private String tipoOperando(String operando, String funcion) {
         if (operando == null) return "int";
         if (esCadena(operando)) return "string";
@@ -648,6 +992,18 @@ public final class GeneradorMIPS {
         return tipos.getOrDefault(clave(funcion, base), "int");
     }
 
+    /**
+     * <strong>Nombre:</strong> registrarConstante
+     *
+     * <p><strong>Objetivo:</strong> Reservar una etiqueta en {@code .data} para una constante de cadena
+     * ({@code _str_N}) o flotante ({@code _flt_N}) la primera vez que aparece.</p>
+     *
+     * <p><strong>Entrada:</strong> String valor.</p>
+     *
+     * <p><strong>Salida:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ignora valores que no son cadena ni flotante literal.</p>
+     */
     private void registrarConstante(String valor) {
         if (esCadena(valor)) {
             cadenas.computeIfAbsent(valor, k -> "_str_" + contadorCadena++);
@@ -656,11 +1012,33 @@ public final class GeneradorMIPS {
         }
     }
 
+    /**
+     * <strong>Nombre:</strong> etiqueta
+     *
+     * <p><strong>Objetivo:</strong> Obtener la etiqueta {@code .data} de una variable o de la base de un acceso a arreglo.</p>
+     *
+     * <p><strong>Entrada:</strong> String operando.</p>
+     *
+     * <p><strong>Salida:</strong> String con la etiqueta en memoria.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
+     */
     private String etiqueta(String operando) {
         String base = esAccesoArreglo(operando) ? operando.substring(0, operando.indexOf('[')) : operando;
         return direccionDato(clave(funcionActual, base));
     }
 
+    /**
+     * <strong>Nombre:</strong> direccionDato
+     *
+     * <p><strong>Objetivo:</strong> Devolver la etiqueta de memoria reservada para una clave variable/función.</p>
+     *
+     * <p><strong>Entrada:</strong> String clave.</p>
+     *
+     * <p><strong>Salida:</strong> String con la etiqueta.</p>
+     *
+     * <p><strong>Restricciones:</strong> Lanza excepción si no se reservó memoria para la clave.</p>
+     */
     private String direccionDato(String clave) {
         String direccion = direcciones.get(clave);
         if (direccion == null) {
@@ -669,82 +1047,291 @@ public final class GeneradorMIPS {
         return direccion;
     }
 
+    /**
+     * <strong>Nombre:</strong> clave
+     *
+     * <p><strong>Objetivo:</strong> Construir la clave única de un símbolo combinando su función y su nombre.</p>
+     *
+     * <p><strong>Entrada:</strong> String funcion, String nombre.</p>
+     *
+     * <p><strong>Salida:</strong> String con la forma {@code funcion::nombre}.</p>
+     *
+     * <p><strong>Restricciones:</strong> Si la función es {@code null}, usa "global".</p>
+     */
     private static String clave(String funcion, String nombre) {
         return (funcion == null ? "global" : funcion) + "::" + nombre;
     }
 
+    /**
+     * <strong>Nombre:</strong> etiquetaDato
+     *
+     * <p><strong>Objetivo:</strong> Derivar la etiqueta base de {@code .data} a partir de una clave de símbolo.</p>
+     *
+     * <p><strong>Entrada:</strong> String clave.</p>
+     *
+     * <p><strong>Salida:</strong> String con la etiqueta {@code _d_...}.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
+     */
     private static String etiquetaDato(String clave) {
         return "_d_" + limpiar(clave.replace("::", "__"));
     }
 
+    /**
+     * <strong>Nombre:</strong> etiquetaFuncion
+     *
+     * <p><strong>Objetivo:</strong> Traducir el nombre de una función a su etiqueta MIPS ({@code main} para __main__, {@code _fn_...} para el resto).</p>
+     *
+     * <p><strong>Entrada:</strong> String nombre.</p>
+     *
+     * <p><strong>Salida:</strong> String con la etiqueta de la función.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
+     */
     private static String etiquetaFuncion(String nombre) {
         return "__main__".equals(nombre) ? "main" : "_fn_" + limpiar(nombre);
     }
 
+    /**
+     * <strong>Nombre:</strong> etiquetaEpilogo
+     *
+     * <p><strong>Objetivo:</strong> Construir la etiqueta del epílogo de una función (su etiqueta más {@code __fin}).</p>
+     *
+     * <p><strong>Entrada:</strong> String nombre.</p>
+     *
+     * <p><strong>Salida:</strong> String con la etiqueta del epílogo.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
+     */
     private static String etiquetaEpilogo(String nombre) {
         return etiquetaFuncion(nombre) + "__fin";
     }
 
+    /**
+     * <strong>Nombre:</strong> etiquetaCodigo
+     *
+     * <p><strong>Objetivo:</strong> Traducir una etiqueta del código intermedio a su etiqueta MIPS ({@code _ic_...}).</p>
+     *
+     * <p><strong>Entrada:</strong> String nombre.</p>
+     *
+     * <p><strong>Salida:</strong> String con la etiqueta de código.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
+     */
     private static String etiquetaCodigo(String nombre) {
         return "_ic_" + limpiar(nombre);
     }
 
+    /**
+     * <strong>Nombre:</strong> nuevaEtiquetaInterna
+     *
+     * <p><strong>Objetivo:</strong> Generar una etiqueta auxiliar única para las rutinas internas del generador.</p>
+     *
+     * <p><strong>Entrada:</strong> String prefijo.</p>
+     *
+     * <p><strong>Salida:</strong> String con la etiqueta ({@code _mips_<prefijo>_N}).</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
+     */
     private String nuevaEtiquetaInterna(String prefijo) {
         return "_mips_" + prefijo + "_" + contadorEtiquetaInterna++;
     }
 
+    /**
+     * <strong>Nombre:</strong> instruccion
+     *
+     * <p><strong>Objetivo:</strong> Agregar una línea de instrucción a la salida con la tabulación de sangría.</p>
+     *
+     * <p><strong>Entrada:</strong> String texto.</p>
+     *
+     * <p><strong>Salida:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
+     */
     private void instruccion(String texto) {
         salida.add("\t" + texto);
     }
 
+    /**
+     * <strong>Nombre:</strong> limpiar
+     *
+     * <p><strong>Objetivo:</strong> Reemplazar por {@code _} los caracteres no válidos en una etiqueta MIPS.</p>
+     *
+     * <p><strong>Entrada:</strong> String texto.</p>
+     *
+     * <p><strong>Salida:</strong> String saneado.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
+     */
     private static String limpiar(String texto) {
         return texto.replaceAll("[^A-Za-z0-9_]", "_");
     }
 
+    /**
+     * <strong>Nombre:</strong> normalizarTipo
+     *
+     * <p><strong>Objetivo:</strong> Pasar un tipo a minúsculas, usando "int" si viene {@code null}.</p>
+     *
+     * <p><strong>Entrada:</strong> String tipo.</p>
+     *
+     * <p><strong>Salida:</strong> String con el tipo normalizado.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
+     */
     private static String normalizarTipo(String tipo) {
         return tipo == null ? "int" : tipo.toLowerCase(Locale.ROOT);
     }
 
+    /**
+     * <strong>Nombre:</strong> esFloat
+     *
+     * <p><strong>Objetivo:</strong> Indicar si un tipo es flotante.</p>
+     *
+     * <p><strong>Entrada:</strong> String tipo.</p>
+     *
+     * <p><strong>Salida:</strong> boolean; true si es "float".</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
+     */
     private static boolean esFloat(String tipo) {
         return "float".equals(tipo);
     }
 
+    /**
+     * <strong>Nombre:</strong> esAritmetica
+     *
+     * <p><strong>Objetivo:</strong> Indicar si una operación es aritmética (+, -, *, /, %, ^).</p>
+     *
+     * <p><strong>Entrada:</strong> Operacion op.</p>
+     *
+     * <p><strong>Salida:</strong> boolean; true si es aritmética.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
+     */
     private static boolean esAritmetica(Operacion op) {
         return op == Operacion.SUMA || op == Operacion.RESTA || op == Operacion.MULT
                 || op == Operacion.DIV || op == Operacion.MOD || op == Operacion.POW;
     }
 
+    /**
+     * <strong>Nombre:</strong> esComparacion
+     *
+     * <p><strong>Objetivo:</strong> Indicar si una operación es de comparación (==, !=, <, >, <=, >=).</p>
+     *
+     * <p><strong>Entrada:</strong> Operacion op.</p>
+     *
+     * <p><strong>Salida:</strong> boolean; true si es comparación.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
+     */
     private static boolean esComparacion(Operacion op) {
         return op == Operacion.IGUAL || op == Operacion.DISTINTO || op == Operacion.MENOR
                 || op == Operacion.MAYOR || op == Operacion.MENOR_IGUAL
                 || op == Operacion.MAYOR_IGUAL;
     }
 
+    /**
+     * <strong>Nombre:</strong> esCadena
+     *
+     * <p><strong>Objetivo:</strong> Indicar si un operando es un literal de cadena (entre comillas dobles).</p>
+     *
+     * <p><strong>Entrada:</strong> String valor.</p>
+     *
+     * <p><strong>Salida:</strong> boolean; true si es cadena.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
+     */
     private static boolean esCadena(String valor) {
         return valor != null && valor.length() >= 2 && valor.startsWith("\"") && valor.endsWith("\"");
     }
 
+    /**
+     * <strong>Nombre:</strong> esChar
+     *
+     * <p><strong>Objetivo:</strong> Indicar si un operando es un literal de carácter (entre apóstrofos).</p>
+     *
+     * <p><strong>Entrada:</strong> String valor.</p>
+     *
+     * <p><strong>Salida:</strong> boolean; true si es carácter.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
+     */
     private static boolean esChar(String valor) {
         return valor != null && valor.length() >= 3 && valor.startsWith("'") && valor.endsWith("'");
     }
 
+    /**
+     * <strong>Nombre:</strong> valorChar
+     *
+     * <p><strong>Objetivo:</strong> Extraer el carácter contenido en un literal de carácter.</p>
+     *
+     * <p><strong>Entrada:</strong> String valor.</p>
+     *
+     * <p><strong>Salida:</strong> char con el carácter.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
+     */
     private static char valorChar(String valor) {
         return valor.charAt(1);
     }
 
+    /**
+     * <strong>Nombre:</strong> esFloatLiteral
+     *
+     * <p><strong>Objetivo:</strong> Indicar si un operando es un literal flotante (decimal o fracción).</p>
+     *
+     * <p><strong>Entrada:</strong> String valor.</p>
+     *
+     * <p><strong>Salida:</strong> boolean; true si es flotante literal.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
+     */
     private static boolean esFloatLiteral(String valor) {
         return valor != null && (valor.matches("[0-9]+\\.[0-9]+")
                 || valor.matches("[0-9]+/[1-9][0-9]*"));
     }
 
+    /**
+     * <strong>Nombre:</strong> esEnteroLiteral
+     *
+     * <p><strong>Objetivo:</strong> Indicar si un operando es un literal entero (con o sin notación exponencial).</p>
+     *
+     * <p><strong>Entrada:</strong> String valor.</p>
+     *
+     * <p><strong>Salida:</strong> boolean; true si es entero literal.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
+     */
     private static boolean esEnteroLiteral(String valor) {
         return valor != null && (valor.matches("[0-9]+") || valor.matches("[0-9]+e[1-9][0-9]*"));
     }
 
+    /**
+     * <strong>Nombre:</strong> esAccesoArreglo
+     *
+     * <p><strong>Objetivo:</strong> Indicar si un operando tiene la forma de acceso a arreglo {@code nombre[..][..]}.</p>
+     *
+     * <p><strong>Entrada:</strong> String valor.</p>
+     *
+     * <p><strong>Salida:</strong> boolean; true si es acceso a arreglo.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
+     */
     private static boolean esAccesoArreglo(String valor) {
         return valor != null && valor.matches("[A-Za-z_][A-Za-z0-9_]*\\[[^]]+\\]\\[[^]]+\\]");
     }
 
+    /**
+     * <strong>Nombre:</strong> valorEntero
+     *
+     * <p><strong>Objetivo:</strong> Convertir un literal entero (incluida la notación {@code NeM}) a su valor int.</p>
+     *
+     * <p><strong>Entrada:</strong> String valor.</p>
+     *
+     * <p><strong>Salida:</strong> int con el valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
+     */
     private static int valorEntero(String valor) {
         if (valor.contains("e")) {
             String[] partes = valor.split("e", 2);
@@ -754,6 +1341,17 @@ public final class GeneradorMIPS {
         return Integer.parseInt(valor);
     }
 
+    /**
+     * <strong>Nombre:</strong> valorFloat
+     *
+     * <p><strong>Objetivo:</strong> Convertir un literal flotante (decimal o fracción {@code a/b}) a su texto numérico.</p>
+     *
+     * <p><strong>Entrada:</strong> String valor.</p>
+     *
+     * <p><strong>Salida:</strong> String con el valor flotante.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
+     */
     private static String valorFloat(String valor) {
         if (valor.contains("/")) {
             String[] partes = valor.split("/", 2);
@@ -762,6 +1360,17 @@ public final class GeneradorMIPS {
         return valor;
     }
 
+    /**
+     * <strong>Nombre:</strong> parseEntero
+     *
+     * <p><strong>Objetivo:</strong> Convertir un texto a int, devolviendo un valor por defecto si no es válido.</p>
+     *
+     * <p><strong>Entrada:</strong> String valor, int defecto.</p>
+     *
+     * <p><strong>Salida:</strong> int con el valor convertido o el defecto.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
+     */
     private static int parseEntero(String valor, int defecto) {
         try {
             return Integer.parseInt(valor);
@@ -770,6 +1379,17 @@ public final class GeneradorMIPS {
         }
     }
 
+    /**
+     * <strong>Nombre:</strong> dimensiones
+     *
+     * <p><strong>Objetivo:</strong> Extraer las dimensiones {@code [filas][columnas]} de un arreglo desde su texto.</p>
+     *
+     * <p><strong>Entrada:</strong> String texto.</p>
+     *
+     * <p><strong>Salida:</strong> int[] con {filas, columnas}; {1,1} si el texto no tiene el formato esperado.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
+     */
     private int[] dimensiones(String texto) {
         if (texto != null && texto.matches("\\[[0-9]+\\]\\[[0-9]+\\]")) {
             int medio = texto.indexOf("][");

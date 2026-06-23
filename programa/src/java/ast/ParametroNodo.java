@@ -1,24 +1,30 @@
 package ast;
 
 /**
- * <strong>Objetivo:</strong> Parametro formal declarado en la firma de una funcion.
+ * <strong>Nombre:</strong> ParametroNodo
  *
- * <p><strong>Entradas:</strong> Datos sintacticos reconocidos por el parser, posiciones de fuente y subnodos relacionados.</p>
+ * <p><strong>Objetivo:</strong> Representar un parámetro formal de la firma de una función,
+ * por ejemplo {@code int ~ a} en {@code sumar<|int ~ a, int ~ b|>}.</p>
  *
- * <p><strong>Salidas:</strong> Nodos, valores o metadatos consultables por las fases semantica e intermedia.</p>
+ * <p><strong>Entrada:</strong> Posición en el fuente, el nombre y el tipo declarado.</p>
  *
- * <p><strong>Restricciones:</strong> No debe ejecutar validaciones globales ni escribir archivos; solo conserva estructura y metadatos.</p>
+ * <p><strong>Salida:</strong> Nodo consultable por las fases semántica e intermedia.</p>
+ *
+ * <p><strong>Restricciones:</strong> Solo almacena la estructura del parámetro.</p>
  */
 public class ParametroNodo extends Nodo {
     private final String nombre;
+
     /**
-     * <strong>Objetivo:</strong> Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * <strong>Nombre:</strong> ParametroNodo
      *
-     * <p><strong>Entradas:</strong> int linea, int columna, String nombre, TipoDato tipo</p>
+     * <p><strong>Objetivo:</strong> Crear el parámetro con su nombre y su tipo declarado.</p>
      *
-     * <p><strong>Salidas:</strong> Instancia inicializada de ParametroNodo.</p>
+     * <p><strong>Entrada:</strong> int linea, int columna, String nombre, TipoDato tipo.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> Nueva instancia de ParametroNodo.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
      */
     public ParametroNodo(int linea, int columna, String nombre, TipoDato tipo) {
         super(linea, columna, tipo);
@@ -26,13 +32,15 @@ public class ParametroNodo extends Nodo {
     }
 
     /**
-     * <strong>Objetivo:</strong> Consulta el valor asociado a esta propiedad.
+     * <strong>Nombre:</strong> getNombre
      *
-     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     * <p><strong>Objetivo:</strong> Devolver el nombre del parámetro tal como se usa dentro de la función.</p>
      *
-     * <p><strong>Salidas:</strong> Retorna String.</p>
+     * <p><strong>Entrada:</strong> Ninguna.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> String con el nombre.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
      */
     public String getNombre() {
         return nombre;

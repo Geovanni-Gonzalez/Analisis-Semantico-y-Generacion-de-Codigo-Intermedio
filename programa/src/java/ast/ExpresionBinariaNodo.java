@@ -1,26 +1,32 @@
 package ast;
 
 /**
- * <strong>Objetivo:</strong> Expresion formada por dos operandos y un operador binario.
+ * <strong>Nombre:</strong> ExpresionBinariaNodo
  *
- * <p><strong>Entradas:</strong> Datos sintacticos reconocidos por el parser, posiciones de fuente y subnodos relacionados.</p>
+ * <p><strong>Objetivo:</strong> Representar una expresión con dos operandos y un operador
+ * binario, por ejemplo {@code a + b} o {@code x < y}.</p>
  *
- * <p><strong>Salidas:</strong> Nodos, valores o metadatos consultables por las fases semantica e intermedia.</p>
+ * <p><strong>Entrada:</strong> Posición en el fuente, el operador y los operandos izquierdo y derecho.</p>
  *
- * <p><strong>Restricciones:</strong> No debe ejecutar validaciones globales ni escribir archivos; solo conserva estructura y metadatos.</p>
+ * <p><strong>Salida:</strong> Nodo de expresión consultable por las fases posteriores.</p>
+ *
+ * <p><strong>Restricciones:</strong> Solo almacena la estructura; no evalúa la operación.</p>
  */
 public class ExpresionBinariaNodo extends ExpresionNodo {
     private final String operador;
     private final ExpresionNodo izquierda;
     private final ExpresionNodo derecha;
+
     /**
-     * <strong>Objetivo:</strong> Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * <strong>Nombre:</strong> ExpresionBinariaNodo
      *
-     * <p><strong>Entradas:</strong> int linea, int columna, String operador, ExpresionNodo izquierda, ExpresionNodo derecha</p>
+     * <p><strong>Objetivo:</strong> Crear la expresión con su operador y sus dos operandos.</p>
      *
-     * <p><strong>Salidas:</strong> Instancia inicializada de ExpresionBinariaNodo.</p>
+     * <p><strong>Entrada:</strong> int linea, int columna, String operador, ExpresionNodo izquierda, ExpresionNodo derecha.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> Nueva instancia de ExpresionBinariaNodo.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
      */
     public ExpresionBinariaNodo(int linea, int columna, String operador,
                                 ExpresionNodo izquierda, ExpresionNodo derecha) {
@@ -29,40 +35,47 @@ public class ExpresionBinariaNodo extends ExpresionNodo {
         this.izquierda = izquierda;
         this.derecha = derecha;
     }
+
     /**
-     * <strong>Objetivo:</strong> Consulta el valor asociado a esta propiedad.
+     * <strong>Nombre:</strong> getOperador
      *
-     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     * <p><strong>Objetivo:</strong> Devolver el símbolo del operador ({@code +}, {@code *}, {@code <}, ...).</p>
      *
-     * <p><strong>Salidas:</strong> Retorna String.</p>
+     * <p><strong>Entrada:</strong> Ninguna.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> String con el operador.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
      */
     public String getOperador() {
         return operador;
     }
 
     /**
-     * <strong>Objetivo:</strong> Consulta el valor asociado a esta propiedad.
+     * <strong>Nombre:</strong> getIzquierda
      *
-     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     * <p><strong>Objetivo:</strong> Devolver el operando del lado izquierdo.</p>
      *
-     * <p><strong>Salidas:</strong> Retorna ExpresionNodo.</p>
+     * <p><strong>Entrada:</strong> Ninguna.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> ExpresionNodo del operando izquierdo.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
      */
     public ExpresionNodo getIzquierda() {
         return izquierda;
     }
 
     /**
-     * <strong>Objetivo:</strong> Consulta el valor asociado a esta propiedad.
+     * <strong>Nombre:</strong> getDerecha
      *
-     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     * <p><strong>Objetivo:</strong> Devolver el operando del lado derecho.</p>
      *
-     * <p><strong>Salidas:</strong> Retorna ExpresionNodo.</p>
+     * <p><strong>Entrada:</strong> Ninguna.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> ExpresionNodo del operando derecho.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
      */
     public ExpresionNodo getDerecha() {
         return derecha;

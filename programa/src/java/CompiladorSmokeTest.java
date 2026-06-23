@@ -32,23 +32,28 @@ import reporte.EscritorCodigo;
 import reporte.EscritorMIPS;
 
 /**
- * <strong>Objetivo:</strong> Prueba ejecutable de humo para validar el flujo principal del compilador.
+ * <strong>Nombre:</strong> CompiladorSmokeTest
  *
- * <p><strong>Entradas:</strong> Argumentos o datos necesarios para cumplir la responsabilidad de la clase.</p>
+ * <p><strong>Objetivo:</strong> Prueba de humo ejecutable que valida el flujo principal del compilador:
+ * análisis, generación de código intermedio y generación de MIPS, mediante aserciones de regresión.</p>
  *
- * <p><strong>Salidas:</strong> Resultado correspondiente a la responsabilidad de la clase.</p>
+ * <p><strong>Entrada:</strong> Archivos de prueba en disco y fragmentos de código fuente embebidos.</p>
  *
- * <p><strong>Restricciones:</strong> Debe mantenerse dentro de su responsabilidad y no mezclar fases independientes.</p>
+ * <p><strong>Salida:</strong> Termina con éxito si todo pasa, o lanza AssertionError ante la primera falla.</p>
+ *
+ * <p><strong>Restricciones:</strong> Es código de prueba; no forma parte del compilador en producción.</p>
  */
 public class CompiladorSmokeTest {
     /**
-     * <strong>Objetivo:</strong> Ejecuta todos los escenarios de regresion y falla con AssertionError si una garantia basica del compilador se rompe.
+     * <strong>Nombre:</strong> main
      *
-     * <p><strong>Entradas:</strong> String[] args</p>
+     * <p><strong>Objetivo:</strong> Ejecutar todos los escenarios de regresión del compilador en orden.</p>
      *
-     * <p><strong>Salidas:</strong> No retorna valor.</p>
+     * <p><strong>Entrada:</strong> String[] args (no se usan).</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> No retorna valor; falla con AssertionError si una garantía básica se rompe.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
      */
     public static void main(String[] args) throws Exception {
         Compilador compilador = new Compilador();
@@ -89,7 +94,17 @@ public class CompiladorSmokeTest {
         verificarGeneracionMIPS(compilador, valido, invalido);
     }
 
-    /** Comprueba que las rutas invalidas se rechacen antes de construir el lexer. */
+    /**
+     * <strong>Nombre:</strong> verificarValidacionArchivoFuente
+     *
+     * <p><strong>Objetivo:</strong> Comprobar que las rutas de fuente inválidas se rechacen antes de construir el lexer.</p>
+     *
+     * <p><strong>Entrada:</strong> Compilador compilador.</p>
+     *
+     * <p><strong>Salida:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
+     */
     private static void verificarValidacionArchivoFuente(Compilador compilador) throws Exception {
         Path directorio = Files.createTempDirectory("fuente-invalida-");
         Path inexistente = directorio.resolve("no-existe.chip");
@@ -99,6 +114,17 @@ public class CompiladorSmokeTest {
         assertFallaLecturaFuente(compilador, null, "No se proporciono una ruta");
     }
 
+    /**
+     * <strong>Nombre:</strong> assertFallaLecturaFuente
+     *
+     * <p><strong>Objetivo:</strong> Verificar que compilar una fuente inválida lance IOException con el mensaje esperado.</p>
+     *
+     * <p><strong>Entrada:</strong> Compilador compilador, Path fuente, String mensajeEsperado.</p>
+     *
+     * <p><strong>Salida:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Falla si no se lanza la excepción o el mensaje no coincide.</p>
+     */
     private static void assertFallaLecturaFuente(Compilador compilador, Path fuente,
                                                   String mensajeEsperado) throws Exception {
         try {
@@ -111,7 +137,17 @@ public class CompiladorSmokeTest {
         }
     }
 
-    /** Verifica que un EOF inesperado conserve simbolo y posicion en el diagnostico. */
+    /**
+     * <strong>Nombre:</strong> verificarDiagnosticoFinArchivo
+     *
+     * <p><strong>Objetivo:</strong> Verificar que un fin de archivo inesperado conserve el símbolo y la posición en el diagnóstico sintáctico.</p>
+     *
+     * <p><strong>Entrada:</strong> Compilador compilador.</p>
+     *
+     * <p><strong>Salida:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
+     */
     private static void verificarDiagnosticoFinArchivo(Compilador compilador) throws Exception {
         ResultadoCompilacion resultado = compilarTexto(compilador,
                 "empty ~ __main__<| |>\n|:\n    int ~ x <- 1 !\n");
@@ -123,13 +159,15 @@ public class CompiladorSmokeTest {
     }
 
     /**
-     * <strong>Objetivo:</strong> Verifica la traduccion de expresiones binarias, unarias y temporales.
+     * <strong>Nombre:</strong> verificarCodigoIntermedioExpresiones
      *
-     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     * <p><strong>Objetivo:</strong> Verificar la traducción a código intermedio de expresiones binarias, unarias y el uso de temporales.</p>
      *
-     * <p><strong>Salidas:</strong> No retorna valor.</p>
+     * <p><strong>Entrada:</strong> Ninguna.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Compara contra una secuencia de instrucciones esperada.</p>
      */
     private static void verificarCodigoIntermedioExpresiones() {
         ExpresionNodo multiplicacion = new ExpresionBinariaNodo(1, 1, "*",
@@ -174,26 +212,30 @@ public class CompiladorSmokeTest {
     }
 
     /**
-     * <strong>Objetivo:</strong> Crea rapidamente un nodo identificador para construir AST de prueba.
+     * <strong>Nombre:</strong> id
      *
-     * <p><strong>Entradas:</strong> String nombre</p>
+     * <p><strong>Objetivo:</strong> Crear rápidamente un nodo identificador para construir AST de prueba.</p>
      *
-     * <p><strong>Salidas:</strong> Retorna IdentificadorNodo.</p>
+     * <p><strong>Entrada:</strong> String nombre.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> IdentificadorNodo con ese nombre.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
      */
     private static IdentificadorNodo id(String nombre) {
         return new IdentificadorNodo(1, 1, nombre);
     }
 
     /**
-     * <strong>Objetivo:</strong> Comprueba que declaraciones inicializadas y asignaciones produzcan codigo.
+     * <strong>Nombre:</strong> verificarCodigoIntermedioDeclaracionesYAsignaciones
      *
-     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     * <p><strong>Objetivo:</strong> Comprobar que declaraciones inicializadas y asignaciones produzcan el código intermedio esperado.</p>
      *
-     * <p><strong>Salidas:</strong> No retorna valor.</p>
+     * <p><strong>Entrada:</strong> Ninguna.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Compara contra una secuencia de instrucciones esperada.</p>
      */
     private static void verificarCodigoIntermedioDeclaracionesYAsignaciones() {
         ExpresionNodo sumaInicializador = new ExpresionBinariaNodo(1, 1, "+",
@@ -226,13 +268,15 @@ public class CompiladorSmokeTest {
     }
 
     /**
-     * <strong>Objetivo:</strong> Valida el patron de saltos generado para una sentencia if sin else.
+     * <strong>Nombre:</strong> verificarCodigoIntermedioIf
      *
-     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     * <p><strong>Objetivo:</strong> Validar el patrón de saltos del código intermedio para un if sin else.</p>
      *
-     * <p><strong>Salidas:</strong> No retorna valor.</p>
+     * <p><strong>Entrada:</strong> Ninguna.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Compara contra una secuencia de instrucciones esperada.</p>
      */
     private static void verificarCodigoIntermedioIf() {
         ExpresionNodo condicion = new ExpresionBinariaNodo(1, 1, "less_t",
@@ -261,13 +305,15 @@ public class CompiladorSmokeTest {
     }
 
     /**
-     * <strong>Objetivo:</strong> Valida las etiquetas y saltos generados para una sentencia if-else.
+     * <strong>Nombre:</strong> verificarCodigoIntermedioIfElse
      *
-     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     * <p><strong>Objetivo:</strong> Validar las etiquetas y saltos del código intermedio para un if-else.</p>
      *
-     * <p><strong>Salidas:</strong> No retorna valor.</p>
+     * <p><strong>Entrada:</strong> Ninguna.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Compara contra una secuencia de instrucciones esperada.</p>
      */
     private static void verificarCodigoIntermedioIfElse() {
         ExpresionNodo condicion = new ExpresionBinariaNodo(1, 1, "greather_t",
@@ -302,13 +348,15 @@ public class CompiladorSmokeTest {
     }
 
     /**
-     * <strong>Objetivo:</strong> Comprueba el codigo intermedio de un while con condicion y salto de retorno.
+     * <strong>Nombre:</strong> verificarCodigoIntermedioWhile
      *
-     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     * <p><strong>Objetivo:</strong> Comprobar el código intermedio de un while con su condición y su salto de regreso.</p>
      *
-     * <p><strong>Salidas:</strong> No retorna valor.</p>
+     * <p><strong>Entrada:</strong> Ninguna.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Compara contra una secuencia de instrucciones esperada.</p>
      */
     private static void verificarCodigoIntermedioWhile() {
         ExpresionNodo condicion = new ExpresionBinariaNodo(1, 1, "less_t",
@@ -342,13 +390,15 @@ public class CompiladorSmokeTest {
     }
 
     /**
-     * <strong>Objetivo:</strong> Verifica que cout se traduzca como una instruccion print.
+     * <strong>Nombre:</strong> verificarCodigoIntermedioSalida
      *
-     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     * <p><strong>Objetivo:</strong> Verificar que {@code cout} se traduzca a una instrucción print en el código intermedio.</p>
      *
-     * <p><strong>Salidas:</strong> No retorna valor.</p>
+     * <p><strong>Entrada:</strong> Ninguna.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Compara contra una secuencia de instrucciones esperada.</p>
      */
     private static void verificarCodigoIntermedioSalida() {
         ProgramaNodo programa = new ProgramaNodo(1, 1, Arrays.asList(
@@ -368,13 +418,15 @@ public class CompiladorSmokeTest {
     }
 
     /**
-     * <strong>Objetivo:</strong> Asegura que estructuras consecutivas no reutilicen etiquetas internas.
+     * <strong>Nombre:</strong> verificarEtiquetasUnicasEntreIfYWhile
      *
-     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     * <p><strong>Objetivo:</strong> Asegurar que estructuras de control consecutivas no reutilicen las mismas etiquetas internas.</p>
      *
-     * <p><strong>Salidas:</strong> No retorna valor.</p>
+     * <p><strong>Entrada:</strong> Ninguna.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Compara contra una secuencia de instrucciones esperada.</p>
      */
     private static void verificarEtiquetasUnicasEntreIfYWhile() {
         ExpresionNodo condicionIf = new ExpresionBinariaNodo(1, 1, "less_t",
@@ -419,13 +471,15 @@ public class CompiladorSmokeTest {
     }
 
     /**
-     * <strong>Objetivo:</strong> Verifica generacion de begin/end, parametros, llamadas y retornos.
+     * <strong>Nombre:</strong> verificarCodigoIntermedioFuncionesYLlamadas
      *
-     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     * <p><strong>Objetivo:</strong> Verificar la generación de begin/end de función, parámetros, llamadas y retornos en el código intermedio.</p>
      *
-     * <p><strong>Salidas:</strong> No retorna valor.</p>
+     * <p><strong>Entrada:</strong> Ninguna.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Compara contra una secuencia de instrucciones esperada.</p>
      */
     private static void verificarCodigoIntermedioFuncionesYLlamadas() {
         LlamadaFuncionNodo llamadaConRetorno = new LlamadaFuncionNodo(1, 1, "foo",
@@ -483,7 +537,17 @@ public class CompiladorSmokeTest {
         verificarInstrucciones(instrucciones, esperado);
     }
 
-    /** Prueba integral de declaraciones, cargas, arreglos, operadores, switch, E/S y funciones. */
+    /**
+     * <strong>Nombre:</strong> verificarGeneracionIntermediaSolicitada
+     *
+     * <p><strong>Objetivo:</strong> Prueba integral de generación intermedia: declaraciones, cargas, arreglos, operadores, switch, E/S y funciones.</p>
+     *
+     * <p><strong>Entrada:</strong> Compilador compilador.</p>
+     *
+     * <p><strong>Salida:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Verifica que el fuente sea aceptado y contenga las instrucciones clave.</p>
+     */
     private static void verificarGeneracionIntermediaSolicitada(Compilador compilador)
             throws Exception {
         String fuente = "int ~ potencia<|int ~ base, int ~ exponente|>\n|:\n"
@@ -546,7 +610,17 @@ public class CompiladorSmokeTest {
         verificarNumeracionContinua(codigo, "_L", ":");
     }
 
-    /** Comprueba la precedencia matematica entre potencia, signo unario y parentesis. */
+    /**
+     * <strong>Nombre:</strong> verificarPrecedenciaPotenciaYSigno
+     *
+     * <p><strong>Objetivo:</strong> Comprobar la precedencia entre la potencia, el signo unario y los paréntesis al analizar expresiones.</p>
+     *
+     * <p><strong>Entrada:</strong> Compilador compilador.</p>
+     *
+     * <p><strong>Salida:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Inspecciona la forma del AST resultante.</p>
+     */
     private static void verificarPrecedenciaPotenciaYSigno(Compilador compilador) throws Exception {
         ResultadoCompilacion resultado = compilarTexto(compilador,
                 "empty ~ __main__<| |>\n|:\n"
@@ -580,6 +654,17 @@ public class CompiladorSmokeTest {
         }
     }
 
+    /**
+     * <strong>Nombre:</strong> verificarNumeracionContinua
+     *
+     * <p><strong>Objetivo:</strong> Verificar que los temporales o etiquetas con cierto prefijo se definan una sola vez y con numeración consecutiva sin huecos.</p>
+     *
+     * <p><strong>Entrada:</strong> List&lt;String&gt; codigo, String prefijo, String terminadorDefinicion.</p>
+     *
+     * <p><strong>Salida:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Falla si hay duplicados o números faltantes.</p>
+     */
     private static void verificarNumeracionContinua(List<String> codigo, String prefijo,
                                                      String terminadorDefinicion) {
         java.util.Set<Integer> numeros = new java.util.HashSet<>();
@@ -607,13 +692,15 @@ public class CompiladorSmokeTest {
     }
 
     /**
-     * <strong>Objetivo:</strong> Ejecuta casos compactos que cubren las correcciones semanticas recientes.
+     * <strong>Nombre:</strong> verificarCorreccionesSemanticas
      *
-     * <p><strong>Entradas:</strong> Compilador compilador</p>
+     * <p><strong>Objetivo:</strong> Ejecutar casos compactos que cubren las validaciones semánticas (aceptación y rechazo).</p>
      *
-     * <p><strong>Salidas:</strong> No retorna valor.</p>
+     * <p><strong>Entrada:</strong> Compilador compilador.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Cada caso se afirma como aceptado o rechazado.</p>
      */
     private static void verificarCorreccionesSemanticas(Compilador compilador) throws Exception {
         assertRechazado(compilador, "empty ~ __main__<| |>\n|:\n"
@@ -727,7 +814,17 @@ public class CompiladorSmokeTest {
                 + ":|\n", "llamada recursiva con parametros");
     }
 
-    /** Verifica individualmente las restricciones semanticas solicitadas y sus diagnosticos. */
+    /**
+     * <strong>Nombre:</strong> verificarRestriccionesSemanticasSolicitadas
+     *
+     * <p><strong>Objetivo:</strong> Verificar individualmente cada restricción semántica y el diagnóstico concreto que produce.</p>
+     *
+     * <p><strong>Entrada:</strong> Compilador compilador.</p>
+     *
+     * <p><strong>Salida:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Comprueba el mensaje de error exacto de cada caso.</p>
+     */
     private static void verificarRestriccionesSemanticasSolicitadas(Compilador compilador)
             throws Exception {
         assertErrorSemantico(compilador, "empty ~ __main__<| |>\n|:\n"
@@ -891,13 +988,15 @@ public class CompiladorSmokeTest {
     }
 
     /**
-     * <strong>Objetivo:</strong> Compila el archivo grande de errores esperados y revisa diagnosticos clave.
+     * <strong>Nombre:</strong> verificarPruebaSemanticaExtensa
      *
-     * <p><strong>Entradas:</strong> Compilador compilador</p>
+     * <p><strong>Objetivo:</strong> Compilar el archivo extenso con errores esperados y revisar los diagnósticos semánticos clave.</p>
      *
-     * <p><strong>Salidas:</strong> No retorna valor.</p>
+     * <p><strong>Entrada:</strong> Compilador compilador.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Exige rechazo sin errores léxicos ni sintácticos.</p>
      */
     private static void verificarPruebaSemanticaExtensa(Compilador compilador) throws Exception {
         ResultadoCompilacion resultado = compilador.compilar(
@@ -921,13 +1020,15 @@ public class CompiladorSmokeTest {
     }
 
     /**
-     * <strong>Objetivo:</strong> Compila el caso valido integral para confirmar que no haya falsos positivos.
+     * <strong>Nombre:</strong> verificarPruebaBalanceGeneral
      *
-     * <p><strong>Entradas:</strong> Compilador compilador</p>
+     * <p><strong>Objetivo:</strong> Compilar un caso válido integral para confirmar que no haya falsos positivos en el análisis.</p>
      *
-     * <p><strong>Salidas:</strong> No retorna valor.</p>
+     * <p><strong>Entrada:</strong> Compilador compilador.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Exige aceptación y generación de código intermedio.</p>
      */
     private static void verificarPruebaBalanceGeneral(Compilador compilador) throws Exception {
         ResultadoCompilacion resultado = compilador.compilar(
@@ -941,13 +1042,15 @@ public class CompiladorSmokeTest {
     }
 
     /**
-     * <strong>Objetivo:</strong> Revisa que al menos una linea de diagnostico contenga el texto esperado.
+     * <strong>Nombre:</strong> assertAlgunoContiene
      *
-     * <p><strong>Entradas:</strong> List<String> lineas, String esperado</p>
+     * <p><strong>Objetivo:</strong> Verificar que al menos una línea de una lista contenga el texto esperado.</p>
      *
-     * <p><strong>Salidas:</strong> No retorna valor.</p>
+     * <p><strong>Entrada:</strong> List&lt;String&gt; lineas, String esperado.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Falla si ninguna línea contiene el texto.</p>
      */
     private static void assertAlgunoContiene(List<String> lineas, String esperado) {
         for (String linea : lineas) {
@@ -959,13 +1062,15 @@ public class CompiladorSmokeTest {
     }
 
     /**
-     * <strong>Objetivo:</strong> Compila un fragmento temporal y falla si el compilador lo rechaza.
+     * <strong>Nombre:</strong> assertAceptado
      *
-     * <p><strong>Entradas:</strong> Compilador compilador, String fuente, String caso</p>
+     * <p><strong>Objetivo:</strong> Compilar un fragmento de fuente y fallar si el compilador lo rechaza.</p>
      *
-     * <p><strong>Salidas:</strong> No retorna valor.</p>
+     * <p><strong>Entrada:</strong> Compilador compilador, String fuente, String caso (descripción).</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Falla si el caso no es aceptado.</p>
      */
     private static void assertAceptado(Compilador compilador, String fuente, String caso) throws Exception {
         ResultadoCompilacion resultado = compilarTexto(compilador, fuente);
@@ -975,13 +1080,15 @@ public class CompiladorSmokeTest {
     }
 
     /**
-     * <strong>Objetivo:</strong> Compila un fragmento temporal y falla si el compilador lo acepta.
+     * <strong>Nombre:</strong> assertRechazado
      *
-     * <p><strong>Entradas:</strong> Compilador compilador, String fuente, String caso</p>
+     * <p><strong>Objetivo:</strong> Compilar un fragmento de fuente y fallar si el compilador lo acepta.</p>
      *
-     * <p><strong>Salidas:</strong> No retorna valor.</p>
+     * <p><strong>Entrada:</strong> Compilador compilador, String fuente, String caso (descripción).</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Falla si el caso no es rechazado.</p>
      */
     private static void assertRechazado(Compilador compilador, String fuente, String caso) throws Exception {
         ResultadoCompilacion resultado = compilarTexto(compilador, fuente);
@@ -990,7 +1097,17 @@ public class CompiladorSmokeTest {
         }
     }
 
-    /** Exige un rechazo puramente semantico y comprueba el diagnostico concreto. */
+    /**
+     * <strong>Nombre:</strong> assertErrorSemantico
+     *
+     * <p><strong>Objetivo:</strong> Exigir un rechazo puramente semántico (sin errores léxicos ni sintácticos) y comprobar el mensaje concreto.</p>
+     *
+     * <p><strong>Entrada:</strong> Compilador compilador, String fuente, String mensajeEsperado, String caso (descripción).</p>
+     *
+     * <p><strong>Salida:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Falla si hay errores de otras fases o no aparece el mensaje esperado.</p>
+     */
     private static void assertErrorSemantico(Compilador compilador, String fuente,
                                              String mensajeEsperado, String caso) throws Exception {
         ResultadoCompilacion resultado = compilarTexto(compilador, fuente);
@@ -1009,13 +1126,15 @@ public class CompiladorSmokeTest {
     }
 
     /**
-     * <strong>Objetivo:</strong> Escribe un fuente en un archivo temporal para usar el pipeline real.
+     * <strong>Nombre:</strong> compilarTexto
      *
-     * <p><strong>Entradas:</strong> Compilador compilador, String fuente</p>
+     * <p><strong>Objetivo:</strong> Escribir un fuente en un archivo temporal y compilarlo con el pipeline real.</p>
      *
-     * <p><strong>Salidas:</strong> Retorna ResultadoCompilacion.</p>
+     * <p><strong>Entrada:</strong> Compilador compilador, String fuente.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> ResultadoCompilacion del fuente compilado.</p>
+     *
+     * <p><strong>Restricciones:</strong> Crea un archivo temporal en UTF-8.</p>
      */
     private static ResultadoCompilacion compilarTexto(Compilador compilador, String fuente) throws Exception {
         Path archivo = Files.createTempFile("semantica-", ".chip");
@@ -1024,13 +1143,15 @@ public class CompiladorSmokeTest {
     }
 
     /**
-     * <strong>Objetivo:</strong> Compara exactamente la secuencia de instrucciones generada.
+     * <strong>Nombre:</strong> verificarInstrucciones
      *
-     * <p><strong>Entradas:</strong> List<Instruccion> instrucciones, List<String> esperado</p>
+     * <p><strong>Objetivo:</strong> Comparar exactamente la secuencia de instrucciones generada contra la esperada.</p>
      *
-     * <p><strong>Salidas:</strong> No retorna valor.</p>
+     * <p><strong>Entrada:</strong> List&lt;Instruccion&gt; instrucciones, List&lt;String&gt; esperado.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Falla si difieren en cantidad o en cualquier instrucción.</p>
      */
     private static void verificarInstrucciones(List<Instruccion> instrucciones, List<String> esperado) {
         if (instrucciones.size() != esperado.size()) {
@@ -1047,7 +1168,17 @@ public class CompiladorSmokeTest {
         }
     }
 
-    /** Verifica traduccion estructurada a MIPS y persistencia del archivo .asm. */
+    /**
+     * <strong>Nombre:</strong> verificarGeneracionMIPS
+     *
+     * <p><strong>Objetivo:</strong> Verificar la traducción a MIPS de las distintas construcciones y la persistencia del archivo {@code .asm}.</p>
+     *
+     * <p><strong>Entrada:</strong> Compilador compilador, ResultadoCompilacion valido, ResultadoCompilacion invalido.</p>
+     *
+     * <p><strong>Salida:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Comprueba instrucciones clave y que un programa rechazado no genere {@code .asm}.</p>
+     */
     private static void verificarGeneracionMIPS(Compilador compilador,
                                                  ResultadoCompilacion valido,
                                                  ResultadoCompilacion invalido) throws Exception {
@@ -1172,6 +1303,17 @@ public class CompiladorSmokeTest {
         }
     }
 
+    /**
+     * <strong>Nombre:</strong> verificarAdministradorRegistros
+     *
+     * <p><strong>Objetivo:</strong> Verificar que el administrador de registros reutilice los liberados, marque los ocupados y detecte el agotamiento.</p>
+     *
+     * <p><strong>Entrada:</strong> Ninguna.</p>
+     *
+     * <p><strong>Salida:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Espera una excepción cuando se agotan los registros.</p>
+     */
     private static void verificarAdministradorRegistros() {
         AdministradorRegistros administrador = new AdministradorRegistros();
         String primero = administrador.obtenerRegistro();
@@ -1194,6 +1336,17 @@ public class CompiladorSmokeTest {
         }
     }
 
+    /**
+     * <strong>Nombre:</strong> verificarSaltosMIPS
+     *
+     * <p><strong>Objetivo:</strong> Verificar que cada operador de comparación del código intermedio genere su branch MIPS correspondiente.</p>
+     *
+     * <p><strong>Entrada:</strong> Ninguna.</p>
+     *
+     * <p><strong>Salida:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Comprueba la presencia de beq, bne, blt, ble, bgt y bge.</p>
+     */
     private static void verificarSaltosMIPS() {
         List<Instruccion> codigo = Arrays.asList(
                 new Instruccion(Operacion.INICIO_FUNC, "__main__"),
@@ -1221,6 +1374,17 @@ public class CompiladorSmokeTest {
         assertAlgunoContiene(mips, "blt ");
     }
 
+    /**
+     * <strong>Nombre:</strong> verificarCorrespondenciaEtiquetas
+     *
+     * <p><strong>Objetivo:</strong> Verificar que cada etiqueta del código intermedio se conserve como etiqueta {@code _ic_...} en el MIPS.</p>
+     *
+     * <p><strong>Entrada:</strong> ResultadoCompilacion resultado.</p>
+     *
+     * <p><strong>Salida:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Falla si alguna etiqueta no se conserva.</p>
+     */
     private static void verificarCorrespondenciaEtiquetas(ResultadoCompilacion resultado) {
         for (Instruccion instruccion : resultado.getCodigoIntermedio()) {
             if (instruccion.op == Operacion.LABEL
@@ -1232,13 +1396,15 @@ public class CompiladorSmokeTest {
     }
 
     /**
-     * <strong>Objetivo:</strong> Valida nombre, encabezado, indentacion y limpieza del escritor .ic.
+     * <strong>Nombre:</strong> verificarEscritorCodigo
      *
-     * <p><strong>Entradas:</strong> Compilador compilador, ResultadoCompilacion valido, ResultadoCompilacion invalido</p>
+     * <p><strong>Objetivo:</strong> Validar el nombre del archivo, el encabezado, la indentación y la limpieza del escritor de código intermedio ({@code .ic}).</p>
      *
-     * <p><strong>Salidas:</strong> No retorna valor.</p>
+     * <p><strong>Entrada:</strong> Compilador compilador, ResultadoCompilacion valido, ResultadoCompilacion invalido.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Exige que un programa rechazado no genere {@code .ic}.</p>
      */
     private static void verificarEscritorCodigo(Compilador compilador,
                                                 ResultadoCompilacion valido,
@@ -1290,13 +1456,15 @@ public class CompiladorSmokeTest {
     }
 
     /**
-     * <strong>Objetivo:</strong> Falla si un texto no incluye la subcadena requerida.
+     * <strong>Nombre:</strong> assertContiene
      *
-     * <p><strong>Entradas:</strong> String texto, String esperado</p>
+     * <p><strong>Objetivo:</strong> Fallar si un texto no incluye la subcadena requerida.</p>
      *
-     * <p><strong>Salidas:</strong> No retorna valor.</p>
+     * <p><strong>Entrada:</strong> String texto, String esperado.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
      */
     private static void assertContiene(String texto, String esperado) {
         if (!texto.contains(esperado)) {

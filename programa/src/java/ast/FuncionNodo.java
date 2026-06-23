@@ -5,13 +5,16 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * <strong>Objetivo:</strong> Declaracion completa de una funcion o del procedimiento principal.
+ * <strong>Nombre:</strong> FuncionNodo
  *
- * <p><strong>Entradas:</strong> Datos sintacticos reconocidos por el parser, posiciones de fuente y subnodos relacionados.</p>
+ * <p><strong>Objetivo:</strong> Representar la declaración completa de una función o del
+ * procedimiento principal ({@code __main__}).</p>
  *
- * <p><strong>Salidas:</strong> Nodos, valores o metadatos consultables por las fases semantica e intermedia.</p>
+ * <p><strong>Entrada:</strong> Posición, nombre, tipo de retorno, parámetros, cuerpo y si es el principal.</p>
  *
- * <p><strong>Restricciones:</strong> No debe ejecutar validaciones globales ni escribir archivos; solo conserva estructura y metadatos.</p>
+ * <p><strong>Salida:</strong> Nodo consultable por las fases semántica e intermedia.</p>
+ *
+ * <p><strong>Restricciones:</strong> Solo almacena estructura y metadatos; no valida.</p>
  */
 public class FuncionNodo extends Nodo {
     private final String nombre;
@@ -19,14 +22,17 @@ public class FuncionNodo extends Nodo {
     private final List<ParametroNodo> parametros;
     private final BloqueNodo cuerpo;
     private final boolean principal;
+
     /**
-     * <strong>Objetivo:</strong> Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * <strong>Nombre:</strong> FuncionNodo
      *
-     * <p><strong>Entradas:</strong> int linea, int columna, String nombre, TipoDato tipoRetorno, List<ParametroNodo> parametros, BloqueNodo cuerpo, boolean principal</p>
+     * <p><strong>Objetivo:</strong> Crear la función con su firma (nombre, tipo, parámetros) y su cuerpo.</p>
      *
-     * <p><strong>Salidas:</strong> Instancia inicializada Nodo.</p>
+     * <p><strong>Entrada:</strong> int linea, int columna, String nombre, TipoDato tipoRetorno, List&lt;ParametroNodo&gt; parametros, BloqueNodo cuerpo, boolean principal.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> Nueva instancia de FuncionNodo.</p>
+     *
+     * <p><strong>Restricciones:</strong> {@code principal = true} indica el procedimiento de entrada __main__.</p>
      */
     public FuncionNodo(int linea, int columna, String nombre, TipoDato tipoRetorno,
                        List<ParametroNodo> parametros, BloqueNodo cuerpo, boolean principal) {
@@ -37,66 +43,77 @@ public class FuncionNodo extends Nodo {
         this.cuerpo = cuerpo;
         this.principal = principal;
     }
+
     /**
-     * <strong>Objetivo:</strong> Consulta el valor asociado a esta propiedad.
+     * <strong>Nombre:</strong> getNombre
      *
-     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     * <p><strong>Objetivo:</strong> Devolver el nombre de la función.</p>
      *
-     * <p><strong>Salidas:</strong> Retorna String.</p>
+     * <p><strong>Entrada:</strong> Ninguna.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> String con el nombre.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
      */
     public String getNombre() {
         return nombre;
     }
 
     /**
-     * <strong>Objetivo:</strong> Consulta el valor asociado a esta propiedad.
+     * <strong>Nombre:</strong> getTipoRetorno
      *
-     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     * <p><strong>Objetivo:</strong> Devolver el tipo de dato que retorna la función.</p>
      *
-     * <p><strong>Salidas:</strong> Retorna TipoDato.</p>
+     * <p><strong>Entrada:</strong> Ninguna.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> TipoDato del retorno.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
      */
     public TipoDato getTipoRetorno() {
         return tipoRetorno;
     }
 
     /**
-     * <strong>Objetivo:</strong> Consulta el valor asociado a esta propiedad.
+     * <strong>Nombre:</strong> getParametros
      *
-     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     * <p><strong>Objetivo:</strong> Devolver los parámetros formales de la función, en orden.</p>
      *
-     * <p><strong>Salidas:</strong> Retorna List<ParametroNodo>.</p>
+     * <p><strong>Entrada:</strong> Ninguna.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> List&lt;ParametroNodo&gt; no modificable.</p>
+     *
+     * <p><strong>Restricciones:</strong> La lista no se puede modificar.</p>
      */
     public List<ParametroNodo> getParametros() {
         return Collections.unmodifiableList(parametros);
     }
 
     /**
-     * <strong>Objetivo:</strong> Consulta el valor asociado a esta propiedad.
+     * <strong>Nombre:</strong> getCuerpo
      *
-     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     * <p><strong>Objetivo:</strong> Devolver el bloque de instrucciones que forma el cuerpo de la función.</p>
      *
-     * <p><strong>Salidas:</strong> Retorna BloqueNodo.</p>
+     * <p><strong>Entrada:</strong> Ninguna.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> BloqueNodo del cuerpo.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
      */
     public BloqueNodo getCuerpo() {
         return cuerpo;
     }
 
     /**
-     * <strong>Objetivo:</strong> Consulta una condicion booleana del objeto.
+     * <strong>Nombre:</strong> isPrincipal
      *
-     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     * <p><strong>Objetivo:</strong> Indicar si la función es el procedimiento principal __main__.</p>
      *
-     * <p><strong>Salidas:</strong> Retorna boolean.</p>
+     * <p><strong>Entrada:</strong> Ninguna.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> boolean; true si es el principal.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
      */
     public boolean isPrincipal() {
         return principal;

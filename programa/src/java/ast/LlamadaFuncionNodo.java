@@ -5,52 +5,64 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * <strong>Objetivo:</strong> Expresion que representa una invocacion  con argumentos.
+ * <strong>Nombre:</strong> LlamadaFuncionNodo
  *
- * <p><strong>Entradas:</strong> Datos sintacticos reconocidos por el parser, posiciones de fuente y subnodos relacionados.</p>
+ * <p><strong>Objetivo:</strong> Representar la invocación de una función con sus argumentos, por
+ * ejemplo {@code sumar<|7, 8|>}. Con esta forma se usan también los operadores relacionales
+ * del lenguaje ({@code equal}, {@code less_t}, etc.).</p>
  *
- * <p><strong>Salidas:</strong> Nodos, valores o metadatos consultables por las fases semantica e intermedia.</p>
+ * <p><strong>Entrada:</strong> Posición en el fuente, el nombre invocado y la lista de argumentos.</p>
  *
- * <p><strong>Restricciones:</strong> No debe ejecutar validaciones globales ni escribir archivos; solo conserva estructura y metadatos.</p>
+ * <p><strong>Salida:</strong> Nodo de expresión consultable por las fases posteriores.</p>
+ *
+ * <p><strong>Restricciones:</strong> Copia la lista de argumentos y la expone como solo lectura.</p>
  */
 public class LlamadaFuncionNodo extends ExpresionNodo {
     private final String nombre;
     private final List<ExpresionNodo> argumentos;
+
     /**
-     * <strong>Objetivo:</strong> Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * <strong>Nombre:</strong> LlamadaFuncionNodo
      *
-     * <p><strong>Entradas:</strong> int linea, int columna, String nombre, List<ExpresionNodo> argumentos</p>
+     * <p><strong>Objetivo:</strong> Crear la llamada con el nombre invocado y la lista de argumentos.</p>
      *
-     * <p><strong>Salidas:</strong> Instancia inicializada de LlamadaFuncionNodo.</p>
+     * <p><strong>Entrada:</strong> int linea, int columna, String nombre, List&lt;ExpresionNodo&gt; argumentos.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> Nueva instancia de LlamadaFuncionNodo.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
      */
     public LlamadaFuncionNodo(int linea, int columna, String nombre, List<ExpresionNodo> argumentos) {
         super(linea, columna);
         this.nombre = nombre;
         this.argumentos = new ArrayList<>(argumentos);
     }
+
     /**
-     * <strong>Objetivo:</strong> Consulta el valor asociado a esta propiedad.
+     * <strong>Nombre:</strong> getNombre
      *
-     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     * <p><strong>Objetivo:</strong> Devolver el nombre de la función u operador invocado.</p>
      *
-     * <p><strong>Salidas:</strong> Retorna String.</p>
+     * <p><strong>Entrada:</strong> Ninguna.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> String con el nombre.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
      */
     public String getNombre() {
         return nombre;
     }
 
     /**
-     * <strong>Objetivo:</strong> Consulta el valor asociado a esta propiedad.
+     * <strong>Nombre:</strong> getArgumentos
      *
-     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     * <p><strong>Objetivo:</strong> Devolver los argumentos pasados en la llamada, en orden.</p>
      *
-     * <p><strong>Salidas:</strong> Retorna List<ExpresionNodo>.</p>
+     * <p><strong>Entrada:</strong> Ninguna.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> List&lt;ExpresionNodo&gt; no modificable.</p>
+     *
+     * <p><strong>Restricciones:</strong> La lista no se puede modificar.</p>
      */
     public List<ExpresionNodo> getArgumentos() {
         return Collections.unmodifiableList(argumentos);

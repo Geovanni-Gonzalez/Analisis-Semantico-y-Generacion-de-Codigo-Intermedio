@@ -1,24 +1,30 @@
 package ast;
 
 /**
- * <strong>Objetivo:</strong> Sentencia de salida del lenguaje, equivalente a imprimir una expresion.
+ * <strong>Nombre:</strong> SalidaNodo
  *
- * <p><strong>Entradas:</strong> Datos sintacticos reconocidos por el parser, posiciones de fuente y subnodos relacionados.</p>
+ * <p><strong>Objetivo:</strong> Representar la sentencia de salida ({@code cout}): imprimir el
+ * valor de una expresión.</p>
  *
- * <p><strong>Salidas:</strong> Nodos, valores o metadatos consultables por las fases semantica e intermedia.</p>
+ * <p><strong>Entrada:</strong> Posición en el fuente y la expresión a imprimir.</p>
  *
- * <p><strong>Restricciones:</strong> No debe ejecutar validaciones globales ni escribir archivos; solo conserva estructura y metadatos.</p>
+ * <p><strong>Salida:</strong> Nodo de sentencia consultable por las fases posteriores.</p>
+ *
+ * <p><strong>Restricciones:</strong> Solo almacena la expresión a imprimir.</p>
  */
 public class SalidaNodo extends SentenciaNodo {
     private final ExpresionNodo valor;
+
     /**
-     * <strong>Objetivo:</strong> Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * <strong>Nombre:</strong> SalidaNodo
      *
-     * <p><strong>Entradas:</strong> int linea, int columna, ExpresionNodo valor</p>
+     * <p><strong>Objetivo:</strong> Crear la sentencia de salida con la expresión a imprimir.</p>
      *
-     * <p><strong>Salidas:</strong> Instancia inicializada de SalidaNodo.</p>
+     * <p><strong>Entrada:</strong> int linea, int columna, ExpresionNodo valor.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> Nueva instancia de SalidaNodo.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
      */
     public SalidaNodo(int linea, int columna, ExpresionNodo valor) {
         super(linea, columna);
@@ -26,13 +32,15 @@ public class SalidaNodo extends SentenciaNodo {
     }
 
     /**
-     * <strong>Objetivo:</strong> Consulta el valor asociado a esta propiedad.
+     * <strong>Nombre:</strong> getValor
      *
-     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     * <p><strong>Objetivo:</strong> Devolver la expresión cuyo valor se imprime.</p>
      *
-     * <p><strong>Salidas:</strong> Retorna ExpresionNodo.</p>
+     * <p><strong>Entrada:</strong> Ninguna.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> ExpresionNodo a imprimir.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
      */
     public ExpresionNodo getValor() {
         return valor;

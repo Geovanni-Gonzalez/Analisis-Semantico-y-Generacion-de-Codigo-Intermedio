@@ -6,117 +6,125 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * <strong>Objetivo:</strong> Generador historico/simple de temporales, etiquetas e instrucciones AST.
+ * <strong>Nombre:</strong> GeneradorCodigo
  *
- * <p><strong>Entradas:</strong> Datos sintacticos reconocidos por el parser, posiciones de fuente y subnodos relacionados.</p>
+ * <p><strong>Objetivo:</strong> Generador simple (histórico) de temporales, etiquetas e
+ * instrucciones de la capa AST. Es un singleton con contadores acumuladores.</p>
  *
- * <p><strong>Salidas:</strong> Nodos, valores o metadatos consultables por las fases semantica e intermedia.</p>
+ * <p><strong>Entrada:</strong> Instrucciones que los métodos van emitiendo.</p>
  *
- * <p><strong>Restricciones:</strong> No debe ejecutar validaciones globales ni escribir archivos; solo conserva estructura y metadatos.</p>
+ * <p><strong>Salida:</strong> Lista de instrucciones y nombres únicos de temporales/etiquetas.</p>
+ *
+ * <p><strong>Restricciones:</strong> Debe reiniciarse con {@link #reiniciar()} antes de reutilizarlo.</p>
  */
 public final class GeneradorCodigo {
-    /**
-     * <strong>Objetivo:</strong> Mantener la unica instancia compartida del
-     * generador historico de codigo.
-     *
-     * <p><strong>Entradas:</strong> Inicializacion estatica de la clase.</p>
-     *
-     * <p><strong>Salidas:</strong> Instancia reutilizable devuelta por
-     * {@code getInstancia}.</p>
-     *
-     * <p><strong>Restricciones:</strong> Debe usarse como singleton y reiniciarse
-     * explicitamente antes de reutilizar sus acumuladores.</p>
-     */
+    /** Única instancia compartida del generador (patrón singleton). */
     private static final GeneradorCodigo INSTANCIA = new GeneradorCodigo();
 
     private int contadorTemporales;
     private int contadorEtiquetas;
     private final List<Instruccion> instrucciones;
+
     /**
-     * <strong>Objetivo:</strong> Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * <strong>Nombre:</strong> GeneradorCodigo
      *
-     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     * <p><strong>Objetivo:</strong> Inicializar la lista de instrucciones del generador.</p>
      *
-     * <p><strong>Salidas:</strong> Instancia inicializada de GeneradorCodigo.</p>
+     * <p><strong>Entrada:</strong> Ninguna.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> Nueva instancia de GeneradorCodigo.</p>
+     *
+     * <p><strong>Restricciones:</strong> Es privado; la instancia se obtiene con {@link #getInstancia()}.</p>
      */
     private GeneradorCodigo() {
         instrucciones = new ArrayList<>();
     }
+
     /**
-     * <strong>Objetivo:</strong> Consulta el valor asociado a esta propiedad.
+     * <strong>Nombre:</strong> getInstancia
      *
-     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     * <p><strong>Objetivo:</strong> Devolver la instancia única del generador.</p>
      *
-     * <p><strong>Salidas:</strong> Retorna GeneradorCodigo.</p>
+     * <p><strong>Entrada:</strong> Ninguna.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> La instancia singleton de GeneradorCodigo.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
      */
     public static GeneradorCodigo getInstancia() {
         return INSTANCIA;
     }
 
     /**
-     * <strong>Objetivo:</strong> Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * <strong>Nombre:</strong> nuevoTemp
      *
-     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     * <p><strong>Objetivo:</strong> Generar un nombre de temporal nuevo y único.</p>
      *
-     * <p><strong>Salidas:</strong> Retorna String.</p>
+     * <p><strong>Entrada:</strong> Ninguna.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> String con el temporal ({@code _t0}, {@code _t1}, ...).</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
      */
     public String nuevoTemp() {
         return "_t" + contadorTemporales++;
     }
 
     /**
-     * <strong>Objetivo:</strong> Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * <strong>Nombre:</strong> nuevaEtiqueta
      *
-     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     * <p><strong>Objetivo:</strong> Generar un nombre de etiqueta nuevo y único.</p>
      *
-     * <p><strong>Salidas:</strong> Retorna String.</p>
+     * <p><strong>Entrada:</strong> Ninguna.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> String con la etiqueta ({@code _L0}, {@code _L1}, ...).</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
      */
     public String nuevaEtiqueta() {
         return "_L" + contadorEtiquetas++;
     }
 
     /**
-     * <strong>Objetivo:</strong> Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * <strong>Nombre:</strong> emitir
      *
-     * <p><strong>Entradas:</strong> Instruccion instruccion</p>
+     * <p><strong>Objetivo:</strong> Agregar una instrucción a la lista acumulada.</p>
      *
-     * <p><strong>Salidas:</strong> No retorna valor.</p>
+     * <p><strong>Entrada:</strong> Instruccion instruccion.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> La instrucción no puede ser {@code null}.</p>
      */
     public void emitir(Instruccion instruccion) {
         instrucciones.add(Objects.requireNonNull(instruccion, "instruccion"));
     }
 
     /**
-     * <strong>Objetivo:</strong> Consulta el valor asociado a esta propiedad.
+     * <strong>Nombre:</strong> getInstrucciones
      *
-     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     * <p><strong>Objetivo:</strong> Devolver las instrucciones emitidas hasta ahora.</p>
      *
-     * <p><strong>Salidas:</strong> Retorna List<Instruccion>.</p>
+     * <p><strong>Entrada:</strong> Ninguna.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> List&lt;Instruccion&gt; no modificable.</p>
+     *
+     * <p><strong>Restricciones:</strong> La lista no se puede modificar.</p>
      */
     public List<Instruccion> getInstrucciones() {
         return Collections.unmodifiableList(instrucciones);
     }
 
     /**
-     * <strong>Objetivo:</strong> Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * <strong>Nombre:</strong> reiniciar
      *
-     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     * <p><strong>Objetivo:</strong> Reiniciar los contadores y vaciar la lista de instrucciones.</p>
      *
-     * <p><strong>Salidas:</strong> No retorna valor.</p>
+     * <p><strong>Entrada:</strong> Ninguna.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> No retorna valor.</p>
+     *
+     * <p><strong>Restricciones:</strong> Debe llamarse antes de reutilizar el generador.</p>
      */
     public void reiniciar() {
         contadorTemporales = 0;

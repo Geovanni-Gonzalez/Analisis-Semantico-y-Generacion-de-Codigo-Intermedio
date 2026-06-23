@@ -3,53 +3,62 @@ package ast;
 import java.util.Objects;
 
 /**
- * <strong>Objetivo:</strong> Representacion textual simple de una instruccion en la capa AST antigua.
+ * <strong>Nombre:</strong> Instruccion (ast)
  *
- * <p><strong>Entradas:</strong> Datos sintacticos reconocidos por el parser, posiciones de fuente y subnodos relacionados.</p>
+ * <p><strong>Objetivo:</strong> Representación textual simple de una instrucción, usada por el
+ * generador histórico {@link GeneradorCodigo}. Solo envuelve una línea de texto.</p>
  *
- * <p><strong>Salidas:</strong> Nodos, valores o metadatos consultables por las fases semantica e intermedia.</p>
+ * <p><strong>Entrada:</strong> El texto de la instrucción.</p>
  *
- * <p><strong>Restricciones:</strong> No debe ejecutar validaciones globales ni escribir archivos; solo conserva estructura y metadatos.</p>
+ * <p><strong>Salida:</strong> Objeto inmutable que representa la línea de instrucción.</p>
+ *
+ * <p><strong>Restricciones:</strong> El texto no puede ser {@code null}.</p>
  */
 public class Instruccion {
     private final String texto;
+
     /**
-     * <strong>Objetivo:</strong> Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * <strong>Nombre:</strong> Instruccion
      *
-     * <p><strong>Entradas:</strong> String texto</p>
+     * <p><strong>Objetivo:</strong> Crear la instrucción a partir de su texto.</p>
      *
-     * <p><strong>Salidas:</strong> Instancia inicializada de Instruccion.</p>
+     * <p><strong>Entrada:</strong> String texto.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> Nueva instancia de Instruccion.</p>
+     *
+     * <p><strong>Restricciones:</strong> Lanza excepción si el texto es {@code null}.</p>
      */
     public Instruccion(String texto) {
         this.texto = Objects.requireNonNull(texto, "texto");
     }
 
     /**
-     * <strong>Objetivo:</strong> Consulta el valor asociado a esta propiedad.
+     * <strong>Nombre:</strong> getTexto
      *
-     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     * <p><strong>Objetivo:</strong> Devolver el texto de la instrucción.</p>
      *
-     * <p><strong>Salidas:</strong> Retorna String.</p>
+     * <p><strong>Entrada:</strong> Ninguna.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> String con el texto.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
      */
     public String getTexto() {
         return texto;
     }
 
-    /** Usa el texto como representacion imprimible de la instruccion. */
-    @Override
     /**
-     * <strong>Objetivo:</strong> Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * <strong>Nombre:</strong> toString
      *
-     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     * <p><strong>Objetivo:</strong> Devolver el texto como representación imprimible de la instrucción.</p>
      *
-     * <p><strong>Salidas:</strong> Retorna String.</p>
+     * <p><strong>Entrada:</strong> Ninguna.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> String con el texto.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
      */
+    @Override
     public String toString() {
         return texto;
     }

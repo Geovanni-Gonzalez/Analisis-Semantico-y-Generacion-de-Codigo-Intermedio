@@ -1,26 +1,32 @@
 package ast;
 
 /**
- * <strong>Objetivo:</strong> Representa un caso individual dentro de un switch.
+ * <strong>Nombre:</strong> CasoSwitchNodo
  *
- * <p><strong>Entradas:</strong> Datos sintacticos reconocidos por el parser, posiciones de fuente y subnodos relacionados.</p>
+ * <p><strong>Objetivo:</strong> Representar un caso individual de un {@code switch}: el valor con
+ * el que se compara (o el caso por defecto) y el bloque que se ejecuta al coincidir.</p>
  *
- * <p><strong>Salidas:</strong> Nodos, valores o metadatos consultables por las fases semantica e intermedia.</p>
+ * <p><strong>Entrada:</strong> Posición en el fuente, el valor, el bloque y si es el caso default.</p>
  *
- * <p><strong>Restricciones:</strong> No debe ejecutar validaciones globales ni escribir archivos; solo conserva estructura y metadatos.</p>
+ * <p><strong>Salida:</strong> Nodo consultable por las fases semántica e intermedia.</p>
+ *
+ * <p><strong>Restricciones:</strong> En el caso default el valor es {@code null}.</p>
  */
 public class CasoSwitchNodo extends Nodo {
     private final ExpresionNodo valor;
     private final BloqueNodo bloque;
     private final boolean defecto;
+
     /**
-     * <strong>Objetivo:</strong> Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * <strong>Nombre:</strong> CasoSwitchNodo
      *
-     * <p><strong>Entradas:</strong> int linea, int columna, ExpresionNodo valor, BloqueNodo bloque, boolean defecto</p>
+     * <p><strong>Objetivo:</strong> Crear el caso con su valor, su bloque y si es el caso {@code default}.</p>
      *
-     * <p><strong>Salidas:</strong> Instancia inicializada de CasoSwitchNodo.</p>
+     * <p><strong>Entrada:</strong> int linea, int columna, ExpresionNodo valor, BloqueNodo bloque, boolean defecto.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> Nueva instancia de CasoSwitchNodo.</p>
+     *
+     * <p><strong>Restricciones:</strong> {@code defecto = true} marca el caso default.</p>
      */
     public CasoSwitchNodo(int linea, int columna, ExpresionNodo valor, BloqueNodo bloque, boolean defecto) {
         super(linea, columna);
@@ -30,39 +36,45 @@ public class CasoSwitchNodo extends Nodo {
     }
 
     /**
-     * <strong>Objetivo:</strong> Consulta el valor asociado a esta propiedad.
+     * <strong>Nombre:</strong> getValor
      *
-     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     * <p><strong>Objetivo:</strong> Devolver el valor con el que se compara la expresión del switch.</p>
      *
-     * <p><strong>Salidas:</strong> Retorna ExpresionNodo.</p>
+     * <p><strong>Entrada:</strong> Ninguna.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> ExpresionNodo del valor, o {@code null} en el caso default.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
      */
     public ExpresionNodo getValor() {
         return valor;
     }
 
     /**
-     * <strong>Objetivo:</strong> Consulta el valor asociado a esta propiedad.
+     * <strong>Nombre:</strong> getBloque
      *
-     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     * <p><strong>Objetivo:</strong> Devolver el bloque que se ejecuta cuando este caso coincide.</p>
      *
-     * <p><strong>Salidas:</strong> Retorna BloqueNodo.</p>
+     * <p><strong>Entrada:</strong> Ninguna.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> BloqueNodo del caso.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
      */
     public BloqueNodo getBloque() {
         return bloque;
     }
 
     /**
-     * <strong>Objetivo:</strong> Consulta una condicion booleana del objeto.
+     * <strong>Nombre:</strong> isDefecto
      *
-     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     * <p><strong>Objetivo:</strong> Indicar si es el caso {@code default}.</p>
      *
-     * <p><strong>Salidas:</strong> Retorna boolean.</p>
+     * <p><strong>Entrada:</strong> Ninguna.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> boolean; true si es el caso default.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
      */
     public boolean isDefecto() {
         return defecto;

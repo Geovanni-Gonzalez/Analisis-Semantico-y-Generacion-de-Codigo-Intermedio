@@ -1,13 +1,17 @@
 package ast;
 
 /**
- * <strong>Objetivo:</strong> Tipos reconocidos por el lenguaje y por las fases del compilador.
+ * <strong>Nombre:</strong> TipoDato
  *
- * <p><strong>Entradas:</strong> Datos sintacticos reconocidos por el parser, posiciones de fuente y subnodos relacionados.</p>
+ * <p><strong>Objetivo:</strong> Enumerar los tipos de dato que reconocen el lenguaje y
+ * las fases del compilador, y ofrecer comprobaciones de compatibilidad entre ellos.</p>
  *
- * <p><strong>Salidas:</strong> Nodos, valores o metadatos consultables por las fases semantica e intermedia.</p>
+ * <p><strong>Entrada:</strong> Ninguna; son constantes fijas del enum.</p>
  *
- * <p><strong>Restricciones:</strong> No debe ejecutar validaciones globales ni escribir archivos; solo conserva estructura y metadatos.</p>
+ * <p><strong>Salida:</strong> Valores de tipo usados por el AST y el análisis semántico.</p>
+ *
+ * <p><strong>Restricciones:</strong> ERROR marca expresiones ya inválidas, EMPTY es el tipo del
+ * procedimiento principal y DESCONOCIDO es el valor previo a determinar el tipo.</p>
  */
 public enum TipoDato {
     INT,
@@ -19,40 +23,48 @@ public enum TipoDato {
     ERROR,
     EMPTY,
     DESCONOCIDO;
+
     /**
-     * <strong>Objetivo:</strong> Consulta una condicion booleana del objeto.
+     * <strong>Nombre:</strong> esNumerico
      *
-     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     * <p><strong>Objetivo:</strong> Indicar si el tipo es numérico (int o float).</p>
      *
-     * <p><strong>Salidas:</strong> Retorna boolean.</p>
+     * <p><strong>Entrada:</strong> Ninguna.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> boolean; true si es int o float.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
      */
     public boolean esNumerico() {
         return this == INT || this == FLOAT;
     }
 
     /**
-     * <strong>Objetivo:</strong> Consulta una condicion booleana del objeto.
+     * <strong>Nombre:</strong> esDeclarableVariable
      *
-     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     * <p><strong>Objetivo:</strong> Indicar si el tipo puede usarse al declarar una variable.</p>
      *
-     * <p><strong>Salidas:</strong> Retorna boolean.</p>
+     * <p><strong>Entrada:</strong> Ninguna.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> boolean; true para int, float, bool, char o string.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
      */
     public boolean esDeclarableVariable() {
         return this == INT || this == FLOAT || this == BOOL || this == CHAR || this == STRING;
     }
 
     /**
-     * <strong>Objetivo:</strong> Consulta una condicion booleana del objeto.
+     * <strong>Nombre:</strong> esCompatibleCon
      *
-     * <p><strong>Entradas:</strong> TipoDato otro</p>
+     * <p><strong>Objetivo:</strong> Indicar si este tipo es compatible con otro en una operación o asignación.</p>
      *
-     * <p><strong>Salidas:</strong> Retorna boolean.</p>
+     * <p><strong>Entrada:</strong> TipoDato otro.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> boolean; true si son compatibles.</p>
+     *
+     * <p><strong>Restricciones:</strong> ERROR es compatible con todo (frena la cascada de errores);
+     * dos tipos numéricos se consideran compatibles entre sí.</p>
      */
     public boolean esCompatibleCon(TipoDato otro) {
         if (this == ERROR || otro == ERROR) {
@@ -66,17 +78,18 @@ public enum TipoDato {
         return esNumerico() && otro.esNumerico();
     }
 
-    /** Imprime el tipo como texto del lenguaje en minuscula. */
-    @Override
     /**
-     * <strong>Objetivo:</strong> Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * <strong>Nombre:</strong> toString
      *
-     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     * <p><strong>Objetivo:</strong> Devolver el nombre del tipo en minúscula, tal como se escribe en el lenguaje.</p>
      *
-     * <p><strong>Salidas:</strong> Retorna String.</p>
+     * <p><strong>Entrada:</strong> Ninguna.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> String con el nombre del tipo en minúscula.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
      */
+    @Override
     public String toString() {
         return name().toLowerCase();
     }

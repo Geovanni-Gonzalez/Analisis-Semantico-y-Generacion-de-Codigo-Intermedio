@@ -1,26 +1,32 @@
 package ast;
 
 /**
- * <strong>Objetivo:</strong> Sentencia de ciclo while o do-while.
+ * <strong>Nombre:</strong> WhileNodo
  *
- * <p><strong>Entradas:</strong> Datos sintacticos reconocidos por el parser, posiciones de fuente y subnodos relacionados.</p>
+ * <p><strong>Objetivo:</strong> Representar un ciclo. Sirve para {@code while} (evalúa la
+ * condición antes del cuerpo) y para {@code do-while} (la evalúa después), según el indicador.</p>
  *
- * <p><strong>Salidas:</strong> Nodos, valores o metadatos consultables por las fases semantica e intermedia.</p>
+ * <p><strong>Entrada:</strong> Posición en el fuente, la condición, el cuerpo y si es do-while.</p>
  *
- * <p><strong>Restricciones:</strong> No debe ejecutar validaciones globales ni escribir archivos; solo conserva estructura y metadatos.</p>
+ * <p><strong>Salida:</strong> Nodo de sentencia consultable por las fases posteriores.</p>
+ *
+ * <p><strong>Restricciones:</strong> El campo {@code doWhile} distingue las dos variantes de ciclo.</p>
  */
 public class WhileNodo extends SentenciaNodo {
     private final ExpresionNodo condicion;
     private final BloqueNodo cuerpo;
     private final boolean doWhile;
+
     /**
-     * <strong>Objetivo:</strong> Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * <strong>Nombre:</strong> WhileNodo
      *
-     * <p><strong>Entradas:</strong> int linea, int columna, ExpresionNodo condicion, BloqueNodo cuerpo, boolean doWhile</p>
+     * <p><strong>Objetivo:</strong> Crear el ciclo con su condición, su cuerpo y si es do-while o while.</p>
      *
-     * <p><strong>Salidas:</strong> Instancia inicializada de WhileNodo.</p>
+     * <p><strong>Entrada:</strong> int linea, int columna, ExpresionNodo condicion, BloqueNodo cuerpo, boolean doWhile.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> Nueva instancia de WhileNodo.</p>
+     *
+     * <p><strong>Restricciones:</strong> {@code doWhile = true} indica un do-while.</p>
      */
     public WhileNodo(int linea, int columna, ExpresionNodo condicion, BloqueNodo cuerpo, boolean doWhile) {
         super(linea, columna);
@@ -28,40 +34,47 @@ public class WhileNodo extends SentenciaNodo {
         this.cuerpo = cuerpo;
         this.doWhile = doWhile;
     }
+
     /**
-     * <strong>Objetivo:</strong> Consulta el valor asociado a esta propiedad.
+     * <strong>Nombre:</strong> getCondicion
      *
-     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     * <p><strong>Objetivo:</strong> Devolver la condición que mantiene el ciclo mientras sea verdadera.</p>
      *
-     * <p><strong>Salidas:</strong> Retorna ExpresionNodo.</p>
+     * <p><strong>Entrada:</strong> Ninguna.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> ExpresionNodo de la condición.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
      */
     public ExpresionNodo getCondicion() {
         return condicion;
     }
 
     /**
-     * <strong>Objetivo:</strong> Consulta el valor asociado a esta propiedad.
+     * <strong>Nombre:</strong> getCuerpo
      *
-     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     * <p><strong>Objetivo:</strong> Devolver el bloque de instrucciones que se repite.</p>
      *
-     * <p><strong>Salidas:</strong> Retorna BloqueNodo.</p>
+     * <p><strong>Entrada:</strong> Ninguna.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> BloqueNodo del cuerpo del ciclo.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
      */
     public BloqueNodo getCuerpo() {
         return cuerpo;
     }
 
     /**
-     * <strong>Objetivo:</strong> Consulta una condicion booleana del objeto.
+     * <strong>Nombre:</strong> isDoWhile
      *
-     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     * <p><strong>Objetivo:</strong> Indicar si es un do-while (el cuerpo se ejecuta al menos una vez).</p>
      *
-     * <p><strong>Salidas:</strong> Retorna boolean.</p>
+     * <p><strong>Entrada:</strong> Ninguna.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> boolean; true si es do-while.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
      */
     public boolean isDoWhile() {
         return doWhile;

@@ -1,24 +1,30 @@
 package ast;
 
 /**
- * <strong>Objetivo:</strong> Expresion que representa el uso de un identificador escalar.
+ * <strong>Nombre:</strong> IdentificadorNodo
  *
- * <p><strong>Entradas:</strong> Datos sintacticos reconocidos por el parser, posiciones de fuente y subnodos relacionados.</p>
+ * <p><strong>Objetivo:</strong> Representar el uso de un identificador escalar (una variable)
+ * dentro del código, por ejemplo {@code x} en {@code x + 1}.</p>
  *
- * <p><strong>Salidas:</strong> Nodos, valores o metadatos consultables por las fases semantica e intermedia.</p>
+ * <p><strong>Entrada:</strong> Posición en el fuente y el nombre de la variable.</p>
  *
- * <p><strong>Restricciones:</strong> No debe ejecutar validaciones globales ni escribir archivos; solo conserva estructura y metadatos.</p>
+ * <p><strong>Salida:</strong> Nodo de expresión consultable por las fases posteriores.</p>
+ *
+ * <p><strong>Restricciones:</strong> Solo almacena el nombre; no resuelve la variable.</p>
  */
 public class IdentificadorNodo extends ExpresionNodo {
     private final String nombre;
+
     /**
-     * <strong>Objetivo:</strong> Ejecuta la responsabilidad principal indicada por el nombre de la funcion.
+     * <strong>Nombre:</strong> IdentificadorNodo
      *
-     * <p><strong>Entradas:</strong> int linea, int columna, String nombre</p>
+     * <p><strong>Objetivo:</strong> Crear el nodo a partir del nombre de la variable referenciada.</p>
      *
-     * <p><strong>Salidas:</strong> Instancia inicializada de IdentificadorNodo.</p>
+     * <p><strong>Entrada:</strong> int linea, int columna, String nombre.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> Nueva instancia de IdentificadorNodo.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
      */
     public IdentificadorNodo(int linea, int columna, String nombre) {
         super(linea, columna);
@@ -26,13 +32,15 @@ public class IdentificadorNodo extends ExpresionNodo {
     }
 
     /**
-     * <strong>Objetivo:</strong> Consulta el valor asociado a esta propiedad.
+     * <strong>Nombre:</strong> getNombre
      *
-     * <p><strong>Entradas:</strong> Sin parametros.</p>
+     * <p><strong>Objetivo:</strong> Devolver el nombre de la variable referenciada.</p>
      *
-     * <p><strong>Salidas:</strong> Retorna String.</p>
+     * <p><strong>Entrada:</strong> Ninguna.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> String con el nombre.</p>
+     *
+     * <p><strong>Restricciones:</strong> Ninguna.</p>
      */
     public String getNombre() {
         return nombre;

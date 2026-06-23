@@ -9,23 +9,29 @@ import reporte.EscritorMIPS;
 import reporte.EscritorReportes;
 
 /**
- * <strong>Objetivo:</strong> Punto de entrada de la aplicacion de consola.
+ * <strong>Nombre:</strong> Main
  *
- * <p><strong>Entradas:</strong> Argumentos o datos necesarios para cumplir la responsabilidad de la clase.</p>
+ * <p><strong>Objetivo:</strong> Ser el punto de entrada del compilador desde la línea de comandos:
+ * ejecuta el {@link Compilador} sobre el archivo recibido y escribe en disco los reportes, el código
+ * intermedio ({@code .ic}) y el código MIPS ({@code .asm}).</p>
  *
- * <p><strong>Salidas:</strong> Resultado correspondiente a la responsabilidad de la clase.</p>
+ * <p><strong>Entrada:</strong> Argumentos de consola: archivo fuente y, opcionalmente, directorio de salida.</p>
  *
- * <p><strong>Restricciones:</strong> Debe mantenerse dentro de su responsabilidad y no mezclar fases independientes.</p>
+ * <p><strong>Salida:</strong> Archivos de reporte y de código en el directorio de salida; mensajes en consola.</p>
+ *
+ * <p><strong>Restricciones:</strong> Valida el archivo antes de compilar y maneja rutas inválidas.</p>
  */
 public class Main {
     /**
-     * <strong>Objetivo:</strong> Ejecuta el compilador sobre un archivo fuente recibido por linea de comandos.
+     * <strong>Nombre:</strong> main
      *
-     * <p><strong>Entradas:</strong> String[] args</p>
+     * <p><strong>Objetivo:</strong> Ejecutar el compilador sobre el archivo recibido y persistir sus resultados.</p>
      *
-     * <p><strong>Salidas:</strong> No retorna valor.</p>
+     * <p><strong>Entrada:</strong> String[] args; {@code args[0]} = archivo fuente, {@code args[1]} (opcional) = directorio de salida.</p>
      *
-     * <p><strong>Restricciones:</strong> Debe construir una instancia consistente sin ejecutar fases externas del compilador.</p>
+     * <p><strong>Salida:</strong> No retorna valor; produce archivos y mensajes de consola.</p>
+     *
+     * <p><strong>Restricciones:</strong> Si falta el argumento o la ruta es inválida, muestra un mensaje y termina.</p>
      */
     public static void main(String[] args) {
         if (args.length == 0) {
