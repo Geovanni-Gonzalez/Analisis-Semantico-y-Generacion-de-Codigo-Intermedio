@@ -1,0 +1,61 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Compilador: elegir archivo .chip",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "proyecto-compiladores",
+            "cwd": "${workspaceFolder}/programa",
+            "args": [
+                "${input:archivoChip}",
+                "salida_debug"
+            ],
+            "preLaunchTask": "Maven: compilar fuentes"
+        },
+        {
+            "type": "java",
+            "name": "Compilador: caso válido",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "proyecto-compiladores",
+            "cwd": "${workspaceFolder}/programa",
+            "args": [
+                "test/valido.chip",
+                "salida_debug"
+            ],
+            "preLaunchTask": "Maven: compilar fuentes"
+        },
+        {
+            "type": "java",
+            "name": "Compilador: caso con errores",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "proyecto-compiladores",
+            "cwd": "${workspaceFolder}/programa",
+            "args": [
+                "test/con_errores.chip",
+                "salida_debug"
+            ],
+            "preLaunchTask": "Maven: compilar fuentes"
+        },
+        {
+            "type": "java",
+            "name": "Pruebas smoke",
+            "request": "launch",
+            "mainClass": "CompiladorSmokeTest",
+            "projectName": "proyecto-compiladores",
+            "cwd": "${workspaceFolder}/programa",
+            "preLaunchTask": "Maven: compilar fuentes"
+        }
+    ],
+    "inputs": [
+        {
+            "id": "archivoChip",
+            "type": "promptString",
+            "description": "Ruta del archivo .chip (relativa a programa/)",
+            "default": "test/valido.chip"
+        }
+    ]
+}

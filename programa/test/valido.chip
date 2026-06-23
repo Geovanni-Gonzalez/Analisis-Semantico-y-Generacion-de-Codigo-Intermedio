@@ -10,9 +10,9 @@ empty ~ __main__ <| |> |:
     if <| equal <| x, 10 |> @ true |> |:
         x <- suma <| x, 1 |>!
     :| else |:
-        break!
+        cout <| "else" |>!
     :|
     do |:
         --x!
-    :| while <| greather_t <| x, 0 |> |>
+    :| while <| greather_t <| x, 0 |> |>!
 :|

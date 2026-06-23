@@ -77,6 +77,17 @@ mvn test
 La prueba compila un caso valido minimo y un caso con errores semanticos para verificar que
 el pipeline acepte, rechace y genere codigo intermedio cuando corresponde.
 
+## Depuración en VS Code
+1. Abrir la carpeta raíz del repositorio en VS Code.
+2. Instalar la extensión recomendada **Extension Pack for Java** cuando VS Code lo solicite.
+3. Esperar a que Maven termine de importar el proyecto `programa/pom.xml`.
+4. Abrir **Ejecutar y depurar** (`Ctrl+Shift+D`) y elegir un perfil `Compilador: ...`.
+5. Colocar breakpoints en `programa/src/java` y presionar `F5`.
+
+El perfil para elegir archivo recibe una ruta relativa a `programa/`, por ejemplo
+`test/valido.chip`. Antes de iniciar, VS Code ejecuta `mvn compile` para regenerar y compilar
+las fuentes de JFlex y CUP. Los reportes de la sesión quedan en `programa/salida_debug`.
+
 ## Diseño del AST
 El AST se modela con una raiz abstracta `Nodo`, que concentra `linea`, `columna` y `TipoDato tipo`. El tipo queda inicializado como `DESCONOCIDO` cuando todavia no hay informacion semantica suficiente, y se completara durante el analisis semantico del P2/M1.
 

@@ -141,18 +141,18 @@ public class Instruccion {
     public String toString() {
         switch (op) {
             case DECL:
-                return "declare " + op1 + " " + resultado;
+                return "declare " + op1 + " " + resultado; // declare <tipo> <variable> : declare int x
             case DECL_ARRAY:
-                return "declare " + op1 + " " + resultado + op2;
+                return "declare " + op1 + " " + resultado + op2; // declare <tipo> <variable>[<tamaño>] : declare int arr[10]
             case FORMAL_PARAM:
-                return "parameter " + op1 + " " + resultado;
+                return "parameter " + op1 + " " + resultado; // parameter <tipo> <variable> : parameter int x
             case LOAD:
-                return resultado + " = load " + op1;
+                return resultado + " = load " + op1;    // <variable> = load <variable> : x = load y
             case STORE_ARRAY:
-                return "store " + op1 + " -> " + resultado;
+                return "store " + op1 + " -> " + resultado; // store <variable> -> <variable> : store x -> y
             case ASIG:
-                return resultado + " = " + op1;
-            case SUMA:
+                return resultado + " = " + op1; // <variable> = <variable> : x = y
+            case SUMA:  
             case RESTA:
             case MULT:
             case DIV:

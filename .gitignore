@@ -37,6 +37,12 @@ salida/
 # VS Code
 .vscode/
 programa/.vscode/
+!.vscode/
+!.vscode/launch.json
+!.vscode/tasks.json
+!.vscode/settings.json
+!.vscode/extensions.json
+/programa/.vscode/
 
 # IntelliJ IDEA
 .idea/

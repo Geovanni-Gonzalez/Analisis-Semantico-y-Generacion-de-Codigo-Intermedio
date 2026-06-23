@@ -1,0 +1,46 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Maven: compilar fuentes",
+            "type": "shell",
+            "command": "mvn",
+            "args": [
+                "compile"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/programa"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "Maven: ejecutar pruebas",
+            "type": "shell",
+            "command": "mvn",
+            "args": [
+                "test"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/programa"
+            },
+            "group": "test",
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "Limpiar salida de debug",
+            "type": "shell",
+            "command": "mvn",
+            "args": [
+                "clean"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/programa"
+            },
+            "problemMatcher": []
+        }
+    ]
+}
