@@ -1,5 +1,7 @@
 ﻿# Análisis Semántico y Generación de Código Intermedio
 
+[![CI](https://github.com/Geovanni-Gonzalez/Analisis-Semantico-y-Generacion-de-Codigo-Intermedio/actions/workflows/ci.yml/badge.svg)](https://github.com/Geovanni-Gonzalez/Analisis-Semantico-y-Generacion-de-Codigo-Intermedio/actions/workflows/ci.yml)
+
 ## Descripción
 Proyecto de compiladores enfocado en validaciónes semanticas y generación de código intermedio sobre una base JFlex/CUP/Java.
 
