@@ -13,7 +13,7 @@
 
 Middle-end of a compiler for `.chip`, a small imperative language for chip-configuration tooling. Project #2 of *Compilers & Interpreters* (IC5701, Tecnológico de Costa Rica): it extends the Project 1 front-end (JFlex scanner + CUP LALR parser with panic-mode recovery) with a **scope-aware, strongly-typed semantic analyzer** and a **three-address intermediate code generator**, plus an early MIPS prototype verified in QtSPIM.
 
-> The full MIPS backend built on top of this phase lives in [Generacion-Codigo-Destino-MIPS](https://github.com/Geovanni-Gonzalez/Generacion-Codigo-Destino-MIPS) (Project #3).
+> **Compiler series — Part 2 of 3.** Builds on the Project 1 front-end ([Analizador-Sintactico-y-Lexico](https://github.com/Geovanni-Gonzalez/Analizador-Sintactico-y-Lexico)); the full MIPS backend built on top of this phase lives in [Generacion-Codigo-Destino-MIPS](https://github.com/Geovanni-Gonzalez/Generacion-Codigo-Destino-MIPS) (Project #3).
 
 ## What it does
 
