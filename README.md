@@ -1,193 +1,70 @@
-﻿# Análisis Semántico y Generación de Código Intermedio
+<div align="center">
+
+# Análisis Semántico y Generación de Código Intermedio
+### Semantic analysis + three-address IR for the `.chip` language (Compiler Project #2)
 
 [![CI](https://github.com/Geovanni-Gonzalez/Analisis-Semantico-y-Generacion-de-Codigo-Intermedio/actions/workflows/ci.yml/badge.svg)](https://github.com/Geovanni-Gonzalez/Analisis-Semantico-y-Generacion-de-Codigo-Intermedio/actions/workflows/ci.yml)
+[![Java](https://img.shields.io/badge/Java-17-orange)](https://openjdk.org/)
+[![Build](https://img.shields.io/badge/build-Maven-blue)](https://maven.apache.org/)
+[![Lexer](https://img.shields.io/badge/lexer-JFlex%201.9.1-informational)](https://jflex.de/)
+[![Parser](https://img.shields.io/badge/parser-Java%20CUP%20LALR-informational)](http://www2.cs.tum.edu/projects/cup/)
 
-## Descripción
-Proyecto de compiladores enfocado en validaciónes semanticas y generación de código intermedio sobre una base JFlex/CUP/Java.
+</div>
 
-## Objetivo
-Practicar fases posteriores de un compilador: reglas semanticas, tablas y representaciónes intermedias.
+Middle-end of a compiler for `.chip`, a small imperative language for chip-configuration tooling. Project #2 of *Compilers & Interpreters* (IC5701, Tecnológico de Costa Rica): it extends the Project 1 front-end (JFlex scanner + CUP LALR parser with panic-mode recovery) with a **scope-aware, strongly-typed semantic analyzer** and a **three-address intermediate code generator**, plus an early MIPS prototype verified in QtSPIM.
 
-## Tecnologías utilizadas
-- Java
-- Maven
-- JFlex
-- CUP
+> The full MIPS backend built on top of this phase lives in [Generacion-Codigo-Destino-MIPS](https://github.com/Geovanni-Gonzalez/Generacion-Codigo-Destino-MIPS) (Project #3).
 
-## Funcionalidades principales
-- Especificacion lexica
-- Especificacion sintactica
-- Build Maven
-- Punto de entrada Java
+## What it does
 
-## Mi rol
-Organicé el proyecto Maven y trabajé en la conexión entre análisis léxico, sintáctico y semántico.
+Given a `.chip` source file, the compiler:
 
-## Aprendizajes clave
-- Pipeline de compilación
-- Integracion JFlex/CUP
-- Validaciónes semanticas
-- Automatización con Maven
+1. Runs lexical and LALR syntactic analysis, reporting errors via **panic-mode recovery**.
+2. Performs semantic analysis: scope-stacked symbol table, **strong explicit typing**, boolean-only conditions, single-`main` enforcement, return checking (`semantico/AnalizadorSemantico`, `TablaDeSimbolos`).
+3. Emits readable **three-address intermediate code** to `.ic` (`intermedio/GeneradorCodigoIntermedio`).
+4. Writes reports: tokens, symbol table, errors with counts, and acceptance verdict.
+5. As an extension beyond the assignment, translates the IR of core constructs to MIPS (`mips/GeneradorMIPS`) — 8 sample programs with their generated `.asm` and expected console output are checked in under [`pruebas_qtspim/`](pruebas_qtspim/) for manual QtSPIM verification.
 
-## Instalación y ejecución
-```bash
-cd Analisis-Semantico-y-Generacion-de-Codigo-Intermedio/programa
-mvn clean package
-java -jar target/proyecto-compiladores-1.0-SNAPSHOT.jar
+## Architecture
+
 ```
-Si el JAR cambia de nombre, revisar `target/`.
-
-## Estructura del proyecto
-- `programa/pom.xml`: configuracion Maven y generacion JFlex/CUP.
-- `programa/src/lexico/`: especificacion lexica JFlex.
-- `programa/src/sintactico/`: gramatica CUP y acciones sintacticas.
-- `programa/src/java/Main.java`: punto de entrada CLI.
-- `programa/src/java/ast/`: jerarquia de nodos del AST y `TipoDato`.
-- `programa/src/java/semantico/`: analisis semantico, tabla de simbolos, simbolos y categorias.
-- `programa/src/java/intermedio/`: representacion de codigo de tres direcciones.
-- `programa/src/java/reporte/`: formateo de errores, tokens y escritura de reportes.
-- `programa/src/java/pipeline/`: orquestacion reutilizable del compilador y resultado.
-- `programa/src/lib/`: librerias locales requeridas para generar el parser CUP.
-- `programa/src/test/java/`: pruebas smoke ejecutadas por Maven sin dependencias externas.
-
-## Arquitectura
-El proyecto queda separado en capas para evitar que la gramatica concentre toda la logica:
-
-```text
-Fuente .chip
-  -> lexico/MiLexer
-  -> sintactico/Parser
-  -> ast/*
-  -> semantico/AnalizadorSemantico
-  -> intermedio/Instruccion
-  -> reporte/EscritorReportes
+.chip → Lexer (JFlex) → Parser (CUP, LALR + panic mode) → AST (~30 nodes)
+      → Semantic analyzer (symbol table, types)  → three-address IR (.ic)
+      → [extension] MIPS generator (.asm)        → reports (.txt)
 ```
 
-El parser CUP conserva acciones de construccion del AST, pero delega validaciones de tipos,
-alcances, funciones, parametros, asignaciones y retornos al paquete `semantico`. La salida de
-tokens, errores, resultado sintactico y codigo intermedio se centraliza en `reporte`. `Main`
-queda como CLI y delega el flujo reutilizable al paquete `pipeline`.
+The CUP grammar keeps AST-construction actions but delegates type, scope, function, assignment, and return validation to the `semantico` package. Packages: `ast/` (Composite node hierarchy) · `semantico/` · `intermedio/` · `mips/` (early prototype) · `reporte/` (writers) · `pipeline/` (orchestrator + result DTO). ~9,700 lines of Java across 54 files; ~1,700-line CUP grammar.
 
-## Pruebas
-El comando Maven ejecuta una prueba smoke durante la fase `test`:
+## Build & run
 
 ```bash
 cd programa
-mvn test
+mvn clean package    # generates scanner/parser (JFlex/CUP), compiles, packages fat JAR
+java -jar target/proyecto-compiladores-1.0-SNAPSHOT.jar <source.chip> [output_dir]
 ```
 
-La prueba compila un caso valido minimo y un caso con errores semanticos para verificar que
-el pipeline acepte, rechace y genere codigo intermedio cuando corresponde.
+Outputs: `tokens_report.txt`, `tabla_simbolos.txt`, `errores_report.txt`, `resultado_sintactico.txt`, `<base>.ic` (and `.asm` for supported constructs). Sample runs are checked in under `test/`; error-recovery screenshots in [`docs/img/`](docs/img/).
 
-## Depuración en VS Code
-1. Abrir la carpeta raíz del repositorio en VS Code.
-2. Instalar la extensión recomendada **Extension Pack for Java** cuando VS Code lo solicite.
-3. Esperar a que Maven termine de importar el proyecto `programa/pom.xml`.
-4. Abrir **Ejecutar y depurar** (`Ctrl+Shift+D`) y elegir un perfil `Compilador: ...`.
-5. Colocar breakpoints en `programa/src/java` y presionar `F5`.
+## Testing
 
-El perfil para elegir archivo recibe una ruta relativa a `programa/`, por ejemplo
-`test/valido.chip`. Antes de iniciar, VS Code ejecuta `mvn compile` para regenerar y compilar
-las fuentes de JFlex y CUP. Los reportes de la sesión quedan en `programa/salida_debug`.
-
-## Diseño del AST
-El AST se modela con una raiz abstracta `Nodo`, que concentra `linea`, `columna` y `TipoDato tipo`. El tipo queda inicializado como `DESCONOCIDO` cuando todavia no hay informacion semantica suficiente, y se completara durante el analisis semantico del P2/M1.
-
-```mermaid
-classDiagram
-    class Nodo {
-        <<abstract>>
-        -int linea
-        -int columna
-        -TipoDato tipo
-    }
-
-    class ExpresionNodo {
-        <<abstract>>
-    }
-
-    class SentenciaNodo {
-        <<abstract>>
-    }
-
-    Nodo <|-- ProgramaNodo
-    Nodo <|-- FuncionNodo
-    Nodo <|-- ParametroNodo
-    Nodo <|-- BloqueNodo
-    Nodo <|-- InicializacionArregloNodo
-    Nodo <|-- CasoSwitchNodo
-    Nodo <|-- ExpresionNodo
-    Nodo <|-- SentenciaNodo
-
-    ExpresionNodo <|-- LiteralNodo
-    ExpresionNodo <|-- IdentificadorNodo
-    ExpresionNodo <|-- AccesoArregloNodo
-    ExpresionNodo <|-- ExpresionBinariaNodo
-    ExpresionNodo <|-- ExpresionUnariaNodo
-    ExpresionNodo <|-- LlamadaFuncionNodo
-
-    SentenciaNodo <|-- DeclaracionVariableNodo
-    SentenciaNodo <|-- AsignacionNodo
-    SentenciaNodo <|-- IfNodo
-    SentenciaNodo <|-- WhileNodo
-    SentenciaNodo <|-- ReturnNodo
-    SentenciaNodo <|-- BreakNodo
-    SentenciaNodo <|-- EntradaNodo
-    SentenciaNodo <|-- SalidaNodo
-    SentenciaNodo <|-- SwitchNodo
-    SentenciaNodo <|-- ExpresionSentenciaNodo
-
-    ProgramaNodo "1" --> "*" FuncionNodo
-    FuncionNodo "1" --> "1" BloqueNodo
-    FuncionNodo "1" --> "*" ParametroNodo
-    BloqueNodo "1" --> "*" Nodo
-    IfNodo "1" --> "1" ExpresionNodo
-    IfNodo "1" --> "1..2" BloqueNodo
-    WhileNodo "1" --> "1" ExpresionNodo
-    WhileNodo "1" --> "1" BloqueNodo
-    SwitchNodo "1" --> "*" CasoSwitchNodo
+```bash
+cd programa
+mvn test    # executable smoke test: valid case accepted + IR generated, invalid case rejected
 ```
 
-## Capturas o demo
-Ver la estructura del manual de usuario:
-[`documentación/manual_usuario.md`](documentación/manual_usuario.md).
+CI (GitHub Actions, Temurin 17) runs `mvn verify` on every push. The smoke test (`CompiladorSmokeTest`) covers analysis → IR → MIPS with regression assertions.
 
-Ver la guia de documentacion interna del compilador:
-[`documentación/documentacion_interna.md`](documentación/documentacion_interna.md).
+## Team
 
-Ver la documentacion de la prueba de recuperacion con multiples errores:
-[`documentación/recuperacion_multiples_errores.md`](documentación/recuperacion_multiples_errores.md).
+Built in pairs (course requirement): Geovanni González Aguilar and Owen Torres Porras. My focus: Maven project organization and the integration between lexical, syntactic and semantic phases.
 
-Ver tambien la prueba E2E de equivalencia entre fuente y codigo intermedio:
-[`documentación/generacion_completa_equivalencia.md`](documentación/generacion_completa_equivalencia.md).
+## License
 
-## Estado del proyecto
-Proyecto académico en evolución.
+See [`LICENSE`](LICENSE).
 
-## Valor técnico demostrado
-Demuestra comprensión de fases de compiladores y herramientas de generación.
+<details>
+<summary><b>Resumen en español</b></summary>
 
-## Recuperación sintáctica a nivel de frase
-Se implementó una recuperación local para declaraciones sin terminador de sentencia. Cuando el parser reconoce una declaración completa y el siguiente token ya pertenece a la sentencia siguiente o al cierre del bloque, reduce la declaración como válida e inserta virtualmente el terminador faltante. El reporte sintáctico registra el mensaje `se insertó '!' para recuperar el análisis`.
+Fase media de un compilador para el lenguaje `.chip` (Proyecto #2 de Compiladores e Intérpretes, TEC). Sobre el front-end JFlex/CUP del Proyecto 1 añade: analizador semántico con tabla de símbolos por alcances y tipado fuerte explícito, generador de código intermedio de tres direcciones (`.ic`), reportes de tokens/símbolos/errores con recuperación en modo pánico, y —como extensión— un prototipo de generador MIPS con 8 programas verificados manualmente en QtSPIM (`pruebas_qtspim/`). Build Maven que genera scanner/parser, smoke test ejecutable y CI en GitHub Actions.
 
-Este caso cubre declaraciones escalares o de arreglo que omiten el terminador antes de otra sentencia, por ejemplo `int ~ x <- 10` seguido de `cout <|x|>!`. La estrategia conserva el token inicial de la sentencia siguiente, por lo que el análisis puede continuar con menos pérdida de contexto que en modo pánico. Los errores internos de la declaración y otros tipos de sentencias siguen usando las producciones de recuperación existentes con `error`.
-
-## Mejoras futuras
-- Agregar casos de prueba
-- Documentar gramática
-- Completar ejemplos de código intermedio
-
-## Autor
-Geovanni González  
-Estudiante de Ingeniería en Computación  
-GitHub: [Geovanni-Gonzalez](https://github.com/Geovanni-Gonzalez)
-
-
-
-
-
-
-
-
-
-
+</details>
